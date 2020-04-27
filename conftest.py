@@ -9,7 +9,7 @@ import os
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-def driver_init(headless=False, size=None, maximize=True, impl_wait=3):
+def driver_init_local(headless=False, size=None, maximize=True, impl_wait=3):
     options = webdriver.ChromeOptions()
     if headless:
         options.add_argument('--headless')
@@ -24,14 +24,14 @@ def driver_init(headless=False, size=None, maximize=True, impl_wait=3):
     return driver
 
 
-def driver_init_remote(headless=False, size=None, maximize=True, impl_wait=3):
+def driver_init(maximize=True, impl_wait=3):
     ip = 'http://127.0.0.1:4444/wd/hub'
-    options = webdriver.ChromeOptions()
-    if headless:
-        options.add_argument('--headless')
-    if size:
-        options.add_argument(f"window-size={size[0]},{size[1]}")
-    capabilities = options.to_capabilities()
+    capabilities = {
+        "browserName": "chrome",
+        "version": "80.0",
+        "enableVNC": True,
+        "enableVideo": False
+    }
     driver = webdriver.Remote(
         command_executor=ip,
         desired_capabilities=capabilities)
