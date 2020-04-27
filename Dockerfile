@@ -12,5 +12,3 @@ RUN apt-get update && \
     pip3 freeze && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-USER seluser

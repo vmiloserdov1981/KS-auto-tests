@@ -9,16 +9,16 @@ pipeline {
             steps{
             sh "python --version"
             sh "pytest --version"
-            sh "pytest --alluredir=reports"
+            sh "sudo pytest --alluredir=reports"
             }
         }      
         }
-//    post{
-//         always {
-//        archiveArtifacts artifacts: 'reports/**'
-//        }
+    post{
+         always {
+          archiveArtifacts artifacts: 'reports/**'
+        }
 //        cleanup{
 //            cleanWs()
 //        }
-//    }
+    }
 }
