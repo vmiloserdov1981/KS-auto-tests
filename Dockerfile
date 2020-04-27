@@ -9,5 +9,6 @@ RUN sudo apt-get update && \
     python --version && \
     pip3 --version && \
     pip3 install -r requirements.txt && \
+    pip3 freeze && \
     sudo apt-get clean && \
     sudo rm -rf /var/lib/apt/lists/*
