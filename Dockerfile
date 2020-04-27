@@ -10,3 +10,5 @@ RUN sudo apt-get update && \
     pip3 freeze && \
     sudo apt-get clean && \
     sudo rm -rf /var/lib/apt/lists/*
+
+USER root
