@@ -25,7 +25,7 @@ def driver_init(headless=False, size=None, maximize=True, impl_wait=3):
 
 
 def driver_init_remote(headless=False, size=None, maximize=True, impl_wait=3):
-    ip = os.getenv('GRID_IP', 'http://192.168.0.37:4445/wd/hub')
+    ip = 'http://127.0.0.1:4444/wd/hub'
     options = webdriver.ChromeOptions()
     if headless:
         options.add_argument('--headless')

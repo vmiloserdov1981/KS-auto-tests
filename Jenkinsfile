@@ -7,7 +7,7 @@ pipeline {
     stages {
         stage('Run Test') {
             steps{
-            sh "python3 --version"
+            sh "python --version"
             sh "pytest --alluredir=reports"
             }
         }      
