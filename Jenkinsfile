@@ -8,16 +8,16 @@ pipeline {
         stage('Run Test') {
             steps{
             sh "python3 --version"
-            sh "python3 pytest --alluredir=reports"
+            sh "pytest --alluredir=reports"
             }
         }      
         }
-    post{
-         always {
-        archiveArtifacts artifacts: 'reports/**'
-        }
-        cleanup{
-            cleanWs()
-        }
-    }
+//    post{
+//         always {
+//        archiveArtifacts artifacts: 'reports/**'
+//        }
+//        cleanup{
+//            cleanWs()
+//        }
+//    }
 }
