@@ -4,7 +4,9 @@ ADD . /app
 WORKDIR /app
 
 RUN sudo apt-get update && \
+    sudo sudo ln -fs /usr/bin/python3.6 /usr/bin/python && \
     sudo apt-get install -y python3-pip && \
+    python --version && \
     pip3 --version && \
     pip3 install -r requirements.txt && \
     sudo apt-get clean && \
