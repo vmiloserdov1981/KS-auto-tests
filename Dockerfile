@@ -1,13 +1,12 @@
 FROM selenium/standalone-chrome:3.141.59
-ADD . /app
 WORKDIR /app
-USER root
-RUN apt-get update && \
-    ln -fs /usr/bin/python3.6 /usr/bin/python && \
-    apt-get install -y python3-pip && \
+ADD . /app
+RUN sudo apt-get update && \
+    sudo ln -fs /usr/bin/python3.6 /usr/bin/python && \
+    sudo apt-get install -y python3-pip && \
     python --version && \
     pip3 --version && \
-    pip3 install -r requirements.txt && \
+    sudo -H pip3 install -r /app/requirements.txt && \
     pip3 freeze && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    sudo apt-get clean && \
+    sudo rm -rf /var/lib/apt/lists/*

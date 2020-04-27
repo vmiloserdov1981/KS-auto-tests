@@ -17,4 +17,4 @@ six==1.14.0
 urllib3==1.25.9
 wcwidth==0.1.9
 zipp==3.1.0
-webdriver_manager
+webdriver_manager==2.4.0
