@@ -1,5 +1,5 @@
 FROM selenium/standalone-chrome:3.141.59
-
+USER root
 ADD . /app
 WORKDIR /app
 
@@ -12,3 +12,5 @@ RUN sudo apt-get update && \
     pip3 freeze && \
     sudo apt-get clean && \
     sudo rm -rf /var/lib/apt/lists/*
+
+USER seluser
