@@ -1,2 +1,2 @@
-FROM selenium/standalone-chrome:3.141.59
+FROM python:3.7.7-alpine3.11
 
