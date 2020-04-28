@@ -1,9 +1,7 @@
 pipeline {
-  agent {
-    dockerfile {
-      filename 'Dockerfile'
+    agent {
+        docker { image 'python:3.7.7-alpine3.11' }
     }
-  }
   stages {
     stage('build') {
       steps {
