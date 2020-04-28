@@ -7,6 +7,7 @@ class LoginPage(BasePage):
     LOCATOR_PKM_PASS_FIELD = (By.NAME, "password")
     LOCATOR_PKM_LOGIN_ADMIN_BUTTON = (By.XPATH, "//button [@class='user-button user-view-clear user-form-default "
                                                 "user-size-s']")
+    LOCATOR_PKM_LOGIN_EU_BUTTON = (By.XPATH, "//button [@class='user-button user-view-primary user-form-default user-size-s']")
     LOCATOR_PKM_LOGIN_TITLE = (By.XPATH, "//div[@class='login-container']//div[@class='login-title']")
 
     def go_to_site(self):
@@ -27,6 +28,9 @@ class LoginPage(BasePage):
 
     def login_as_admin(self):
         return self.find_and_click(self.LOCATOR_PKM_LOGIN_ADMIN_BUTTON)
+
+    def login_as_eu(self):
+        return self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
 
     def check_page(self):
         login_title = self.get_element_text(self.LOCATOR_PKM_LOGIN_TITLE)

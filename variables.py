@@ -19,3 +19,4 @@ class PkmVars:
     PKM_BASE_OBJECT_NAME = 'object'
     PKM_BASE_DATASET_NAME = 'dataset'
     PKM_BASE_TABLE_NAME = 'table'
+    PKM_ADMIN_ROLE_NAME = 'администратор'

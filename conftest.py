@@ -5,8 +5,12 @@ from conditions.preconditions_ui import PreconditionsFront
 import users as user
 from conditions.preconditions_api import ClassesPreconditions
 from conditions.postconditions_api import ClassesPostconditions
+from conditions.preconditions_api import EuPreconditions
 import os
 from webdriver_manager.chrome import ChromeDriverManager
+
+'''
+первая версия инита
 
 
 def driver_init_local(headless=False, size=None, maximize=True, impl_wait=3):
@@ -22,19 +26,23 @@ def driver_init_local(headless=False, size=None, maximize=True, impl_wait=3):
     if maximize:
         driver.maximize_window()
     return driver
+'''
 
 
 def driver_init(maximize=True, impl_wait=3):
-    ip = 'http://127.0.0.1:4444/wd/hub'
-    capabilities = {
-        "browserName": "chrome",
-        "version": "80.0",
-        "enableVNC": True,
-        "enableVideo": False
-    }
-    driver = webdriver.Remote(
-        command_executor=ip,
-        desired_capabilities=capabilities)
+    if os.getenv('IS_LOCAL'):
+        driver = webdriver.Chrome(ChromeDriverManager().install())
+    else:
+        ip = 'http://127.0.0.1:4444/wd/hub'
+        capabilities = {
+            "browserName": "chrome",
+            "version": "80.0",
+            "enableVNC": True,
+            "enableVideo": False
+        }
+        driver = webdriver.Remote(
+            command_executor=ip,
+            desired_capabilities=capabilities)
     driver.test_data = {}
     driver.implicitly_wait(impl_wait)
     driver.set_window_position(0, 0)
@@ -78,6 +86,17 @@ def driver_login():
     driver = driver_init()
     preconditions = PreconditionsFront(driver)
     preconditions.login_as_admin(user.admin.login, user.admin.password)
+    yield driver
+    driver.quit()
+
+
+@pytest.fixture()
+def driver_eu_login():
+    driver = driver_init()
+    preconditions_api = EuPreconditions(user.admin.login, user.admin.password)
+    preconditions = PreconditionsFront(driver)
+    preconditions_api.api_check_eu_user()
+    preconditions.login_as_eu(user.eu_user.login, user.eu_user.password)
     yield driver
     driver.quit()
 

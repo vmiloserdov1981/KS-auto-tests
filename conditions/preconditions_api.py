@@ -1,6 +1,8 @@
 from api.api import ApiClasses
+from api.api import ApiEu
 from variables import PkmVars as Vars
 import allure
+import users
 
 
 class ClassesPreconditions(ApiClasses):
@@ -169,3 +171,7 @@ class ClassesPreconditions(ApiClasses):
                                                class_6_node_uuid))
 
             return test_data
+
+
+class EuPreconditions(ApiEu):
+    pass

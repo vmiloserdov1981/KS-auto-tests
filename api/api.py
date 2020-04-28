@@ -1,5 +1,6 @@
 from core import BaseApi
 from variables import PkmVars as Vars
+import users
 
 
 class ApiClasses(BaseApi):
@@ -206,6 +207,56 @@ class ApiModels(BaseApi):
             count += 1
             newname = f"{basename}_{count}"
         return newname
+
+
+class ApiEu(BaseApi):
+    target_user = users.eu_user
+
+    def api_check_eu_user(self, create=True):
+        eu_user = None
+        users_list = self.post(f'{Vars.PKM_API_URL}users/get-list', self.token, {}).get('data')
+        for user in users_list:
+            if user.get('login') == self.target_user.login and user.get('fullName') == self.target_user.name:
+                eu_user = user
+                break
+        if eu_user:
+            return eu_user
+        else:
+            if create:
+                fname = self.target_user.name.split(' ')[1]
+                lname = self.target_user.name.split(' ')[0]
+                payload = {
+                    "email": "autouser@test.com",
+                    "login": self.target_user.login,
+                    "password": self.target_user.password,
+                    "firstname": fname,
+                    "lastname": lname,
+                    "settings": {}
+                }
+                request = self.post(f'{Vars.PKM_API_URL}users/create', self.token, payload)
+                assert not request.get('error'), f'Ошибка при создании пользователя "{self.target_user.name}"'
+                user_uuid = request.get('uuid')
+                payload = {
+                    "term": "",
+                    "limit": 0
+                }
+                roles = self.post(f'{Vars.PKM_API_URL}access-control/get-roles', self.token, payload).get('data')
+                admin_role_uuid = None
+                for role in roles:
+                    if role.get('name') == Vars.PKM_ADMIN_ROLE_NAME:
+                        admin_role_uuid = role.get('uuid')
+                assert admin_role_uuid is not None, f'В системе нет роли "{Vars.PKM_ADMIN_ROLE_NAME}"'
+                payload = {
+                    "roleUuid": admin_role_uuid,
+                    "userUuid": user_uuid
+                }
+                request = self.post(f'{Vars.PKM_API_URL}access-control/set-role', self.token, payload)
+                assert not request.get(
+                    'error'), f'Ошибка при назначении роли "{Vars.PKM_ADMIN_ROLE_NAME}" пользователю "{self.target_user.name}"'
+            else:
+                return False
+
+
 
 
 
