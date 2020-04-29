@@ -25,7 +25,7 @@ def driver_init_local(headless=False, size=None, maximize=True, impl_wait=3):
 
 
 def driver_init(maximize=True, impl_wait=3):
-    ip = 'http://10.10.20.11:4444/wd/hub'
+    ip = 'http://127.0.0.1:4444/wd/hub'
     capabilities = {
         "browserName": "chrome",
         "version": "81.0",
