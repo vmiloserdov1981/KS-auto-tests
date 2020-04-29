@@ -79,7 +79,7 @@ class BasePage:
         action.move_to_element(elem).move_by_offset(x, y).click().perform()
 
     def find_and_context_click(self, locator, time=5):
-        element = self.find_element_clickable(locator, time)
+        element = self.find_element(locator, time)
         action_chains = ActionChains(self.driver)
         return action_chains.context_click(element).perform()
 

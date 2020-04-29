@@ -184,10 +184,6 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
         if icon.get_attribute('ng-reflect-icon') == 'angle-right':
             folder_locator = (By.XPATH, f"(//span[text()='{node_name}'])//..//..//..//div[contains(@class, 'item-arrow')]")
             self.find_and_click(folder_locator)
-        elif icon.get_attribute('ng-reflect-icon') == 'angle-down':
-            pass
-        else:
-            raise AssertionError('Невозможно раскрыть папку')
 
     def create_indicator(self, class_name, ind_name):
         class_icon_locator = (By.XPATH, f"//span[text()='{class_name}']//..//..//div[@class='item-icon']")
