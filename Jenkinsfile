@@ -22,7 +22,7 @@ pipeline {
             }
             steps {
                 sh 'pip3 freeze'
-//                sh 'pytest --alluredir=reports'
+                sh 'pytest --alluredir=reports'
             }
         }
     }
