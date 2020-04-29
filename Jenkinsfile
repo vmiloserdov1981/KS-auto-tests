@@ -25,7 +25,7 @@ pipeline {
             }
             steps {
                 sh 'python --version'
-                sh 'pip install -U pip'
+                sh 'pip install -U pip -u 0'
                 sh 'pip3 --version'
                 sh 'pip install -r requirements.txt'
                 sh 'pytest --alluredir=reports'
