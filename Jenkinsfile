@@ -17,7 +17,7 @@ pipeline {
         stage("Build project") {
             agent {
                 docker {
-                    image 'python:3.8-slim'
+                    image 'python:rc-buster'
                     args "-v ${PWD}:/app -w /app"
                     reuseNode true
                     label "GazBank_test"
@@ -26,7 +26,6 @@ pipeline {
             steps {
                 sh 'python --version'
                 sh 'pip3 --version'
-                sh 'sudo apk update'
                 sh 'python -m pip install --upgrade pip'
                 sh 'pip install -r requirements.txt'
                 sh 'pytest --alluredir=reports'
