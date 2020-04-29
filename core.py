@@ -46,10 +46,10 @@ class BasePage:
                 return False
             return True
 
-    def get_element_text(self, locator):
+    def get_element_text(self, locator, time=5):
         element = self.find_element(locator)
         if element.text == '':
-            WebDriverWait(self.driver, 5).until((lambda text_present: self.find_element(locator).text.strip() != ''),
+            WebDriverWait(self.driver, time).until((lambda text_present: self.find_element(locator).text.strip() != ''),
                                                 message=f"Empty element {locator}")
         return element.text
 
