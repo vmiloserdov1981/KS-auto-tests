@@ -17,16 +17,10 @@ pipeline {
         stage("Build project") {
             agent {
                 docker {
-                    image 'python:3.8-buster'
-                    args "-v ${PWD}:/app -w /app"
-                    reuseNode true
-                    label "GazBank_test"
+                    filename 'Dockerfile'
                 }
             }
             steps {
-                sh 'python --version'
-                sh 'pip3 --version'
-                sh 'pip install -r requirements.txt'
                 sh 'pytest --alluredir=reports'
             }
         }
