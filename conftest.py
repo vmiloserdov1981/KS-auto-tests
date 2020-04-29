@@ -25,16 +25,19 @@ def driver_init_local(headless=False, size=None, maximize=True, impl_wait=3):
 
 
 def driver_init(maximize=True, impl_wait=3):
-    ip = 'http://10.10.20.11:4444/wd/hub'
-    capabilities = {
-        "browserName": "chrome",
-        "version": "80.0",
-        "enableVNC": True,
-        "enableVideo": False
-    }
-    driver = webdriver.Remote(
-        command_executor=ip,
-        desired_capabilities=capabilities)
+    if os.getenv('IS_LOCAL'):
+        driver = webdriver.Chrome(ChromeDriverManager().install())
+    else:
+        ip = os.getenv('SELENOID_IP', 'http://127.0.0.1:4444/wd/hub')
+        capabilities = {
+            "browserName": "chrome",
+            "version": "80.0",
+            "enableVNC": True,
+            "enableVideo": False
+        }
+        driver = webdriver.Remote(
+            command_executor=ip,
+            desired_capabilities=capabilities)
     driver.test_data = {}
     driver.implicitly_wait(impl_wait)
     driver.set_window_position(0, 0)
