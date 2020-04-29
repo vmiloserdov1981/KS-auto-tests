@@ -11,7 +11,7 @@ pipeline {
         disableConcurrentBuilds()
     }
 
-    agent master
+    agent none
 
     stages {
 
