@@ -30,8 +30,8 @@ pipeline {
         always {
             archiveArtifacts artifacts: 'reports/**'
         }
-        cleanup{
-            cleanWs()
+        step([$class: "WsCleanup"])
+        cleanWs()
         }
     }
 }
