@@ -14,10 +14,18 @@ pipeline {
     agent any
 
     stages {
+        stage("Prepare build image") {
+            steps {
+                sh "docker build -f Dockerfile . -t gazbank:test"
+            }
+        }
         stage("Build project") {
             agent {
-                dockerfile {
-                    filename 'Dockerfile'
+                docker {
+                    image 'gazbank:test'
+                    args "-v ${PWD}:/app -w /app"
+                    reuseNode true
+                    label "gazbank_test"
                 }
             }
             steps {
