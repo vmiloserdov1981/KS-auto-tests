@@ -177,7 +177,10 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
         self.wait_until_text_in_element(self.LOCATOR_PAGE_TITLE_BLOCK, node_name.upper())
 
     def expand_node(self, node_name):
-        icon = self.find_element((By.XPATH, f"(//span[text()='{node_name}'])//..//..//..//div[contains(@class, 'item-arrow')]//fa-icon"))
+        try:
+            icon = self.find_element((By.XPATH, f"(//span[text()='{node_name}'])//..//..//..//div[contains(@class, 'item-arrow')]//fa-icon"), time=20)
+        except TimeoutException:
+            raise AssertionError('Кнопка раскрытия не отображается')
         if icon.get_attribute('ng-reflect-icon') == 'angle-right':
             folder_locator = (By.XPATH, f"(//span[text()='{node_name}'])//..//..//..//div[contains(@class, 'item-arrow')]")
             self.find_and_click(folder_locator)
