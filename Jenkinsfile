@@ -27,7 +27,7 @@ pipeline {
                 sh 'python --version'
                 sh 'pip --version'
 //                sh 'apk update'
-                sh 'python -m pip install --upgrade pip'
+//                sh 'python -m pip install --upgrade pip'
                 sh 'pip install -r requirements.txt'
                 sh 'pytest --alluredir=reports'
             }
