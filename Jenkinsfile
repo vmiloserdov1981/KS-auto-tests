@@ -30,13 +30,13 @@ pipeline {
                 sh 'pytest --alluredir=reports'
             }
         }
-        post{
-            always {
-                archiveArtifacts artifacts: 'reports/**'
-            }
-            cleanup{
-                cleanWs()
-            }
+    }
+    post{
+        always {
+            archiveArtifacts artifacts: 'reports/**'
+        }
+        cleanup{
+            cleanWs()
         }
     }
 }
