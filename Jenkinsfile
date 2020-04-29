@@ -26,7 +26,7 @@ pipeline {
             steps {
                 sh 'python --version'
                 sh 'pip3 --version'
-                sh 'python get-pip.py pip==19.3.1'
+                sh 'pip install --upgrade pip'
                 sh 'pip install -r requirements.txt'
                 sh 'pytest --alluredir=reports'
             }
