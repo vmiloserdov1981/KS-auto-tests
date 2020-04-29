@@ -17,7 +17,7 @@ pipeline {
         stage("Build project") {
             agent {
                 docker {
-                    image 'python:3.8-buster'
+                    image 'python:3.7-alpine'
                     args "-v ${PWD}:/app -w /app"
                     reuseNode true
                     label "GazBank_test"
