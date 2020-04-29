@@ -33,7 +33,7 @@ def driver_init(maximize=True, impl_wait=3):
     if os.getenv('IS_LOCAL'):
         driver = webdriver.Chrome(ChromeDriverManager().install())
     else:
-        ip = 'http://127.0.0.1:4444/wd/hub'
+        ip = os.getenv('SELENOID_IP', 'http://127.0.0.1:4444/wd/hub')
         capabilities = {
             "browserName": "chrome",
             "version": "80.0",
