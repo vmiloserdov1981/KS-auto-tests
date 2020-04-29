@@ -8,7 +8,7 @@ from api.api import ApiModels
 
 
 class EuHeader(BasePage):
-    LOCATOR_EU_PAGE_TITLE = (By.CLASS_NAME, "user-menu-page-title")
+    LOCATOR_EU_PAGE_TITLE = (By.XPATH, "//div[@class='user-menu-page-title']")
     LOCATOR_EU_USER_MENU = (By.XPATH, "//div[contains(@class, 'user-menu ')]")
     LOCATOR_EU_MENU_BUTTON = (By.XPATH, "//fa-icon[contains(@class, 'menu-button')]")
 
@@ -17,11 +17,9 @@ class EuHeader(BasePage):
         return text
 
     def open_menu(self):
-        try:
-            self.find_and_click(self.LOCATOR_EU_MENU_BUTTON)
-            assert self.find_element(self.LOCATOR_EU_USER_MENU, time=5), 'Невозможно открыть меню'
-        except TimeoutException:
-            assert self.find_element(self.LOCATOR_EU_USER_MENU, time=1), 'Невозможно открыть меню'
+        self.find_and_click(self.LOCATOR_EU_MENU_BUTTON)
+        assert self.find_element(self.LOCATOR_EU_USER_MENU, time=5), 'Невозможно открыть меню'
+
 
     def navigate_to_page(self, page_name):
         title = self.get_title_text()
@@ -29,6 +27,6 @@ class EuHeader(BasePage):
             pass
         else:
             self.open_menu()
-            button = (By.XPATH, f"//div[@class='menu-item' and text() = '{page_name}']")
+            button = (By.XPATH, f"//div[contains(@class, 'menu-item ') and text() = ' {page_name} ']")
             self.find_and_click(button)
-            assert self.get_title_text() == page_name.upper(), 'Неверный тайтл страницы'
+            assert self.wait_until_text_in_element(self.LOCATOR_EU_PAGE_TITLE, page_name.upper()), 'Неверный тайтл страницы'
