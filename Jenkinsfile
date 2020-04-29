@@ -26,9 +26,8 @@ pipeline {
             }
         }
     }
-    post{
+    post {
         always {
-            archiveArtifacts artifacts: 'reports/**'
             step([$class: "WsCleanup"])
             cleanWs()
         }
