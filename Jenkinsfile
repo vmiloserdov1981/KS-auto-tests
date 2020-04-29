@@ -26,9 +26,11 @@ pipeline {
             }
         }
     }
-    post {
-        always {
-            step([$class: "WsCleanup"])
+    post{
+      always {
+        allure includeProperties: false, jdk: '', results: [[path: 'reports']]
+        }
+      cleanup{
             cleanWs()
         }
     }
