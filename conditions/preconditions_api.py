@@ -174,4 +174,20 @@ class ClassesPreconditions(ApiClasses):
 
 
 class EuPreconditions(ApiEu):
-    pass
+
+    def api_check_eu_user(self):
+        eu_user = self.api_get_user(users.eu_user.login, users.eu_user.name)
+        if eu_user:
+            return eu_user
+        else:
+            eu_user_uuid = self.api_create_user('autouser@testкdj.com', users.eu_user.login, users.eu_user.password, users.eu_user.name, {})
+            self.api_set_admin_role(eu_user_uuid)
+
+    def create_test_data(self):
+        data = {
+            'last_k6_plan': self.api_get_last_k6_plan()
+        }
+        return data
+
+
+

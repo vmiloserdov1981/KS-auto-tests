@@ -210,54 +210,83 @@ class ApiModels(BaseApi):
 
 
 class ApiEu(BaseApi):
-    target_user = users.eu_user
 
-    def api_check_eu_user(self, create=True):
-        eu_user = None
+    def api_get_user(self, login, name):
         users_list = self.post(f'{Vars.PKM_API_URL}users/get-list', self.token, {}).get('data')
         for user in users_list:
-            if user.get('login') == self.target_user.login and user.get('fullName') == self.target_user.name:
-                eu_user = user
-                break
-        if eu_user:
-            return eu_user
-        else:
-            if create:
-                fname = self.target_user.name.split(' ')[1]
-                lname = self.target_user.name.split(' ')[0]
-                payload = {
-                    "email": "autouser@test.com",
-                    "login": self.target_user.login,
-                    "password": self.target_user.password,
-                    "firstname": fname,
-                    "lastname": lname,
-                    "settings": {}
-                }
-                request = self.post(f'{Vars.PKM_API_URL}users/create', self.token, payload)
-                assert not request.get('error'), f'Ошибка при создании пользователя "{self.target_user.name}"'
-                user_uuid = request.get('uuid')
-                payload = {
-                    "term": "",
-                    "limit": 0
-                }
-                roles = self.post(f'{Vars.PKM_API_URL}access-control/get-roles', self.token, payload).get('data')
-                admin_role_uuid = None
-                for role in roles:
-                    if role.get('name') == Vars.PKM_ADMIN_ROLE_NAME:
-                        admin_role_uuid = role.get('uuid')
-                assert admin_role_uuid is not None, f'В системе нет роли "{Vars.PKM_ADMIN_ROLE_NAME}"'
-                payload = {
-                    "roleUuid": admin_role_uuid,
-                    "userUuid": user_uuid
-                }
-                request = self.post(f'{Vars.PKM_API_URL}access-control/set-role', self.token, payload)
-                assert not request.get(
-                    'error'), f'Ошибка при назначении роли "{Vars.PKM_ADMIN_ROLE_NAME}" пользователю "{self.target_user.name}"'
+            if user.get('login') == login and user.get('fullName') == name:
+                return user
+
+    def api_create_user(self, email, login, password, user_name, settings):
+        fname = user_name.split(' ')[1]
+        lname = user_name.split(' ')[0]
+        payload = {
+            "email": email,
+            "login": login,
+            "password": password,
+            "firstname": fname,
+            "lastname": lname,
+            "settings": settings
+        }
+        request = self.post(f'{Vars.PKM_API_URL}users/create', self.token, payload)
+        assert not request.get('error'), f'Ошибка при создании пользователя "{user_name}"'
+        return request.get('uuid')
+
+    def api_set_admin_role(self, user_uuid):
+        payload = {
+            "term": "",
+            "limit": 0
+        }
+        roles = self.post(f'{Vars.PKM_API_URL}access-control/get-roles', self.token, payload).get('data')
+        admin_role_uuid = None
+        for role in roles:
+            if role.get('name') == Vars.PKM_ADMIN_ROLE_NAME:
+                admin_role_uuid = role.get('uuid')
+        assert admin_role_uuid is not None, f'В системе нет роли "{Vars.PKM_ADMIN_ROLE_NAME}"'
+        payload = {
+            "roleUuid": admin_role_uuid,
+            "userUuid": user_uuid
+        }
+        request = self.post(f'{Vars.PKM_API_URL}access-control/set-role', self.token, payload)
+        assert not request.get('error'), f'Ошибка при назначении роли "{Vars.PKM_ADMIN_ROLE_NAME}" пользователю'
+
+    def api_get_plans(self):
+        request = self.post(f'{Vars.PKM_API_URL}plans/get-list', self.token, {})
+        return request.get('data')
+
+    def api_get_k6_plans(self):
+        k6_plans = []
+        k6_comments = []
+        plans = self.api_get_plans()
+        for plan in plans:
+            comment = plan.get('settings').get('plan').get('comment')
+            if Vars.PKM_DEFAULT_K6_PLAN_COMMENT in comment:
+                k6_plans.append(plan)
+                k6_comments.append(comment)
+        assert len(k6_plans) > 0, 'В системе нет планов K6'
+        data = {
+            'plans': k6_plans,
+            'comments': k6_comments
+        }
+        return data
+
+    def api_get_last_k6_plan(self):
+        numbers = []
+        plans = self.api_get_k6_plans()
+        comments = plans.get('comments')
+        for comment in comments:
+            numbers.append(comment.split(Vars.PKM_DEFAULT_K6_PLAN_COMMENT)[1])
+        numbers.sort(reverse=True)
+        last_number = numbers[0]
+        comment = f'{Vars.PKM_DEFAULT_K6_PLAN_COMMENT}{last_number}'
+
+        def f_func(x):
+            if x.get('settings').get('plan').get('comment') == comment:
+                return True
             else:
                 return False
-
-
-
-
+        plan = filter(f_func, plans.get('plans'))
+        plan = list(plan)
+        return plan[0]
 
 

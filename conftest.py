@@ -96,6 +96,9 @@ def driver_eu_login():
     preconditions_api = EuPreconditions(user.admin.login, user.admin.password)
     preconditions = PreconditionsFront(driver)
     preconditions_api.api_check_eu_user()
+    data = preconditions_api.create_test_data()
+    with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
+        driver.test_data = data
     preconditions.login_as_eu(user.eu_user.login, user.eu_user.password)
     yield driver
     driver.quit()

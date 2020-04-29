@@ -20,3 +20,4 @@ class PkmVars:
     PKM_BASE_DATASET_NAME = 'dataset'
     PKM_BASE_TABLE_NAME = 'table'
     PKM_ADMIN_ROLE_NAME = 'администратор'
+    PKM_DEFAULT_K6_PLAN_COMMENT = 'k6-test-'
