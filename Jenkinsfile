@@ -29,9 +29,8 @@ pipeline {
     post{
         always {
             archiveArtifacts artifacts: 'reports/**'
-        }
-        step([$class: "WsCleanup"])
-        cleanWs()
+            step([$class: "WsCleanup"])
+            cleanWs()
         }
     }
 }
