@@ -11,10 +11,9 @@ pipeline {
         disableConcurrentBuilds()
     }
 
-    agent none
+    agent any
 
     stages {
-
         stage("Build project") {
             agent {
                 docker {
