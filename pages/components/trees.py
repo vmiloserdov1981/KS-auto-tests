@@ -220,6 +220,7 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
         self.hover_over_element(self.LOCATOR_TREE_CONTEXT_CREATE_BUTTON)
         self.find_and_click(self.LOCATOR_TREE_CONTEXT_CREATE_TABLE_BUTTON)
         Modals.enter_and_save(self, table_name)
+        time.sleep(Vars.PKM_API_WAIT_TIME)
 
     @staticmethod
     def check_nodes_order(prev_order, node_name, new_order):
