@@ -5,6 +5,8 @@ from selenium.common.exceptions import TimeoutException
 from pages.components.modals import Modals
 from api.api import ApiClasses
 from api.api import ApiModels
+from variables import PkmVars as Vars
+import time
 
 
 class UserBlock(BasePage):
@@ -71,6 +73,7 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
         self.find_and_context_click(folder_locator)
         self.find_and_click(self.LOCATOR_CREATE_MODEL_BUTTON)
         Modals.enter_and_save(self, model_name)
+        time.sleep(Vars.PKM_USER_WAIT_TIME)
 
     def get_root_elements(self):
         names = []
@@ -177,14 +180,12 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
         self.wait_until_text_in_element(self.LOCATOR_PAGE_TITLE_BLOCK, node_name.upper())
 
     def expand_node(self, node_name):
-        icon = self.find_element((By.XPATH, f"(//span[text()='{node_name}'])//..//..//..//div[contains(@class, 'item-arrow')]//fa-icon"))
+        try:
+            icon = self.find_element((By.XPATH, f"(//span[text()='{node_name}'])//..//..//..//div[contains(@class, 'item-arrow')]//fa-icon"), time=20)
+        except TimeoutException:
+            raise AssertionError('Кнопка раскрытия не отображается')
         if icon.get_attribute('ng-reflect-icon') == 'angle-right':
-            folder_locator = (By.XPATH, f"(//span[text()='{node_name}'])//..//..//..//div[contains(@class, 'item-arrow')]")
-            self.find_and_click(folder_locator)
-        elif icon.get_attribute('ng-reflect-icon') == 'angle-down':
-            pass
-        else:
-            raise AssertionError('Невозможно раскрыть папку')
+            self.find_element((By.XPATH, f"(//span[text()='{node_name}'])//..//..//..//div[contains(@class, 'item-arrow')]//fa-icon"), time=20).click()
 
     def create_indicator(self, class_name, ind_name):
         class_icon_locator = (By.XPATH, f"//span[text()='{class_name}']//..//..//div[@class='item-icon']")
@@ -201,11 +202,14 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
         Modals.object_enter_and_save(self, object_name, class_name)
         self.expand_node(model_name)
         assert self.find_element((By.XPATH, f"//span[text()='{model_name}']//..//../following-sibling::div[contains(@class, 'tree-item-children')]//span[text()='{object_name}']")), f'Объект "{object_name}" не отображается в дереве в модели "{model_name}"'
+        time.sleep(Vars.PKM_USER_WAIT_TIME)
 
     def create_model_dataset(self, model_name, dataset_name):
         model_icon_locator = (By.XPATH, f"//span[text()='{model_name}']//..//..//div[@class='item-icon']")
         self.find_and_context_click(model_icon_locator)
+        time.sleep(Vars.PKM_USER_WAIT_TIME)
         self.hover_over_element(self.LOCATOR_TREE_CONTEXT_CREATE_BUTTON)
+        time.sleep(Vars.PKM_USER_WAIT_TIME)
         self.find_and_click(self.LOCATOR_TREE_CONTEXT_CREATE_DATASET_BUTTON)
         Modals.enter_and_save(self, dataset_name)
 

@@ -14,6 +14,7 @@ class PkmVars:
         'dictionary': ' Справочник значений '
     }
     PKM_API_WAIT_TIME = 5
+    PKM_USER_WAIT_TIME = 3
     PKM_DEFAULT_FORMULA_NAME = 'formula'
     PKM_BASE_MODEL_NAME = 'auto_model'
     PKM_BASE_OBJECT_NAME = 'object'
