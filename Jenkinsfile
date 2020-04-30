@@ -1,3 +1,5 @@
+def SELENOID_IP= "http://10.10.20.11:4444/wd/hub"
+
 pipeline { 
     options {
         buildDiscarder(
