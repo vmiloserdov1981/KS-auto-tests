@@ -3,7 +3,6 @@ WORKDIR /app
 ADD . /app
 RUN apk update && \
     apk add docker && \
-    rc-update add docker boot && \
     python --version && \
     pip install -U pip && \
     pip --version && \
