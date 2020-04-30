@@ -21,7 +21,8 @@ pipeline {
                 }
             }
             steps {
-                sh "curl -s https://aerokube.com/cm/bash | bash"
+                sh "service docker start"
+                sh "curl -s https://aerokube.com/cm/bash | sh"
                 sh "./cm selenoid start --browsers 'chrome:80.0'"
                 sh 'pytest --alluredir=reports'
             }
