@@ -22,3 +22,4 @@ class PkmVars:
     PKM_BASE_TABLE_NAME = 'table'
     PKM_ADMIN_ROLE_NAME = 'администратор'
     PKM_DEFAULT_K6_PLAN_COMMENT = 'k6-test-'
+    PKM_BASE_EVENT_NAME = 'Тестовое мероприятие'
