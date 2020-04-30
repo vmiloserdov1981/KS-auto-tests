@@ -60,7 +60,11 @@ class EventsPlan(EuHeader, Modals, BasePage):
         self.find_and_click(self.LOCATOR_ADD_EVENT_BUTTON)
         title = Modals.get_title(self)
         assert title == 'Параметры мероприятия', 'Неверный тайтл'
-        self.fill_field('Название*', data.get('event_name'))
+        self.fill_name('Название*', data.get('event_name'))
+        self.set_field('Готовность', 'Выполнено')
+        self.fill_field('Комментарий', 'Ололо')
+        self.check_option('Требует повышенного внимания')
+        self.uncheck_option('Требует повышенного внимания')
         pass
 
 

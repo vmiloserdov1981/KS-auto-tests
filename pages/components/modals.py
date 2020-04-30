@@ -31,15 +31,49 @@ class Modals(BasePage):
         title = self.get_element_text(self.LOCATOR_MODAL_TITLE)
         return title
 
-    def fill_field(self, field_name, text):
+    def fill_name(self, field_name, text):
         action = ActionChains(self.driver)
         field_locator = (By.XPATH, f"//label[@for='title' and text()='{field_name}']//following-sibling::input[@id='title']")
         field = self.find_element(field_locator)
-        a = field.get_attribute('value')
         if field.get_attribute('value') != '':
             action.double_click(field).perform()
             field.send_keys(Keys.DELETE)
         else:
             pass
         field.send_keys(text)
+
+    def fill_field(self, field_name, text):
+        action = ActionChains(self.driver)
+        field_locator = (By.XPATH, f"//div[contains(@class, 'indicator-label') and text()=' {field_name} ']//following-sibling::input")
+        field = self.find_element(field_locator)
+        if field.get_attribute('value') != '':
+            action.double_click(field).perform()
+            field.send_keys(Keys.DELETE)
+        else:
+            pass
+        field.send_keys(text)
+
+    def set_field(self, field_name, option):
+        field_locator = (By.XPATH, f"//div[contains(@class, 'indicator-label') and text()=' {field_name} ']//..//div[contains(@class, 'dropdown')]")
+        value_locator = (By.XPATH, f"//div[@class='content' and text()=' {option} ']")
+        self.find_and_click(field_locator)
+        self.find_and_click(value_locator)
+
+    def check_option(self, option_name):
+        checkbox_locator = (By.XPATH, f"//div[contains(@class, 'checkbox-label ') and text()=' {option_name} ']//preceding-sibling::div")
+        checkbox = self.find_element(checkbox_locator)
+        if 'checkbox-selected' in checkbox.get_attribute('class'):
+            pass
+        else:
+            self.find_and_click(checkbox_locator)
+
+    def uncheck_option(self, option_name):
+        checkbox_locator = (By.XPATH, f"//div[contains(@class, 'checkbox-label ') and text()=' {option_name} ']//preceding-sibling::div")
+        checkbox = self.find_element(checkbox_locator)
+        if 'checkbox-selected' in checkbox.get_attribute('class'):
+            self.find_and_click(checkbox_locator)
+        else:
+            pass
+
+
 
