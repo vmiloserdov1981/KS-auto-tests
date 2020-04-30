@@ -200,9 +200,10 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
         self.hover_over_element(self.LOCATOR_TREE_CONTEXT_CREATE_BUTTON)
         self.find_and_click(self.LOCATOR_TREE_CONTEXT_CREATE_OBJECT_BUTTON)
         Modals.object_enter_and_save(self, object_name, class_name)
+        time.sleep(Vars.PKM_API_WAIT_TIME)
         self.expand_node(model_name)
         assert self.find_element((By.XPATH, f"//span[text()='{model_name}']//..//../following-sibling::div[contains(@class, 'tree-item-children')]//span[text()='{object_name}']")), f'Объект "{object_name}" не отображается в дереве в модели "{model_name}"'
-        time.sleep(Vars.PKM_USER_WAIT_TIME)
+
 
     def create_model_dataset(self, model_name, dataset_name):
         model_icon_locator = (By.XPATH, f"//span[text()='{model_name}']//..//..//div[@class='item-icon']")
@@ -219,6 +220,7 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
         self.hover_over_element(self.LOCATOR_TREE_CONTEXT_CREATE_BUTTON)
         self.find_and_click(self.LOCATOR_TREE_CONTEXT_CREATE_TABLE_BUTTON)
         Modals.enter_and_save(self, table_name)
+        time.sleep(Vars.PKM_API_WAIT_TIME)
 
     @staticmethod
     def check_nodes_order(prev_order, node_name, new_order):
