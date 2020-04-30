@@ -1,4 +1,3 @@
-def SELENOID_IP= "http://10.10.20.11:4444/wd/hub"
 
 pipeline { 
     options {
@@ -23,6 +22,8 @@ pipeline {
                 }
             }
             steps {
+                sh 'ls'
+                sh './cm selenoid start --browsers 'chrome:80.0''
                 sh 'pytest --alluredir=reports'
             }
         }
