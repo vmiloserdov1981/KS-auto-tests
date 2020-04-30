@@ -17,10 +17,13 @@ pipeline {
         stage("Build project") {
             agent {
                 dockerfile {
-                    filename 'Dockerfile'
+                    filename "Dockerfile"
                 }
             }
             steps {
+//                sh "service docker start"
+//                sh "curl -s https://aerokube.com/cm/bash | sh"
+//                sh "./cm selenoid start --browsers 'chrome:80.0'"
                 sh 'pytest --alluredir=reports'
             }
         }
