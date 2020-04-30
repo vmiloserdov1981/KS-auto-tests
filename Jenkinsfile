@@ -17,12 +17,12 @@ pipeline {
         stage("Build project") {
             agent {
                 dockerfile {
-                    filename 'Dockerfile'
+                    filename "Dockerfile"
                 }
             }
             steps {
-                sh 'ls'
-                sh './cm selenoid start --browsers 'chrome:80.0''
+                sh "ls"
+                sh "./cm selenoid start --browsers 'chrome:80.0'"
 //                sh 'pytest --alluredir=reports'
             }
         }
