@@ -2,7 +2,7 @@ FROM python:3.8-alpine
 WORKDIR /app
 ADD . /app
 RUN apk update && \
-    apk install -y curl && \
+    apk add -y curl && \
     curl -s https://aerokube.com/cm/bash | bash && \ 
     python --version && \
     pip install -U pip && \
