@@ -2,7 +2,6 @@ FROM python:3.8-alpine
 WORKDIR /app
 ADD . /app
 RUN apk update && \
-    apk add docker && \
     python --version && \
     pip install -U pip && \
     pip --version && \
