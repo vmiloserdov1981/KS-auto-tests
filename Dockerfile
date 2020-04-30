@@ -8,6 +8,6 @@ RUN apk update && \
     pip --version && \
     pip install -r /app/requirements.txt && \
     pip3 freeze && \
-    curl -s https://aerokube.com/cm/bash | sh && \ 
+    curl -s https://aerokube.com/cm/bash && \ 
     ls /bin/sh
     
