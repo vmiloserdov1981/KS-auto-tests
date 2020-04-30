@@ -3,7 +3,7 @@ WORKDIR /app
 ADD . /app
 RUN apk update && \
     apk add curl && \
-    curl -s https://aerokube.com/cm/bash | bash && \ 
+    curl -s https://aerokube.com/cm/bash | sh && \ 
     python --version && \
     pip install -U pip && \
     pip --version && \
