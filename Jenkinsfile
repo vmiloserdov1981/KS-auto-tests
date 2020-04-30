@@ -21,9 +21,9 @@ pipeline {
                 }
             }
             steps {
-                sh "ls /bin/bash"
-//                sh "./cm selenoid start --browsers 'chrome:80.0'"
-//                sh 'pytest --alluredir=reports'
+                sh "curl -s https://aerokube.com/cm/bash | bash"
+                sh "./cm selenoid start --browsers 'chrome:80.0'"
+                sh 'pytest --alluredir=reports'
             }
         }
     }
