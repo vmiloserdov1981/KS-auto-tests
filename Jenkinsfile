@@ -1,4 +1,3 @@
-
 pipeline { 
     options {
         buildDiscarder(
@@ -24,7 +23,7 @@ pipeline {
             steps {
                 sh 'ls'
                 sh './cm selenoid start --browsers 'chrome:80.0''
-                sh 'pytest --alluredir=reports'
+//                sh 'pytest --alluredir=reports'
             }
         }
     }
