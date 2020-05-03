@@ -50,12 +50,12 @@ class BasePage:
         element = self.find_element(locator)
         if element.text == '':
             WebDriverWait(self.driver, time).until((lambda text_present: self.find_element(locator).text.strip() != ''),
-                                                message=f"Empty element {locator}")
+                                                   message=f"Empty element {locator}")
         return element.text
 
     def wait_until_text_in_element(self, locator, text, time=15):
         return WebDriverWait(self.driver, time).until(ec.text_to_be_present_in_element(locator, text),
-                                               message=f"No '{text}' text in element '{locator}'")
+                                                      message=f"No '{text}' text in element '{locator}'")
 
     def wait_until_text_in_element_value(self, locator, text, time=5):
         WebDriverWait(self.driver, time).until(ec.text_to_be_present_in_element_value(locator, text),
@@ -64,6 +64,10 @@ class BasePage:
     def find_element_clickable(self, locator, time=10):
         return WebDriverWait(self.driver, time).until(ec.element_to_be_clickable(locator),
                                                       message=f"Can't find element by locator {locator}")
+
+    def find_element_disabled(self, locator, time=10):
+        return WebDriverWait(self.driver, time).until_not(ec.element_to_be_clickable(locator),
+                                                          message=f"Can't find element by locator {locator}")
 
     def show_element(self, locator, time=10):
         return WebDriverWait(self.driver, time).until(ec.visibility_of_element_located(locator),
@@ -128,6 +132,10 @@ class BasePage:
         action = ActionChains(self.driver)
         action.drag_and_drop(element_1, element_2).perform()
 
+    def get_input_value(self, input_locator):
+        input_element = self.find_element(input_locator)
+        return input_element.get_attribute('value')
+
 
 class BaseApi:
     def __init__(self, login, password, token=None):
@@ -151,3 +159,27 @@ class BaseApi:
         headers = {'Content-Type': 'application/json', 'Authorization': str("Bearer " + token)}
         response = requests.post(url, data=json.dumps(payload), headers=headers)
         return json.loads(response.text)
+
+    @staticmethod
+    def get(url, params={}):
+        headers = {'Content-Type': 'application/json'}
+        response = requests.get(url, params=json.dumps(params), headers=headers)
+        return json.loads(response.text)
+
+    @staticmethod
+    def get_utc_date():
+        raw_date = BaseApi.get('http://worldtimeapi.org/api/ip')
+        raw_date = raw_date.get('utc_datetime')
+        date = raw_date.split('T')[0].split('-')[::-1]
+        return date
+
+    @staticmethod
+    def get_feature_date(date, offset):
+        day = int(date[0])
+        day = day + offset
+        if day < 10:
+            day = f'0{day}'
+        else:
+            day = str(day)
+        date[0] = day
+        return date

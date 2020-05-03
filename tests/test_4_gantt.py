@@ -1,13 +1,9 @@
-from pages.login_po import LoginPage
-from pages.main_po import MainPage
-from pages.components.trees import UserBlock
-from variables import PkmVars as Vars
 from pages.components.eu_header import EuHeader
 from pages.plan_registry_po import PlanRegistry
 from pages.events_plan_po import EventsPlan
-
-from pages.components.modals import Modals
-import users as user
+from pages.components.eu_filter import EuFilter
+import time
+from variables import PkmVars as Vars
 import allure
 
 
@@ -17,12 +13,12 @@ import allure
 @allure.severity(allure.severity_level.CRITICAL)
 def test_eu_create_gantt_event(driver_eu_login):
     header = EuHeader(driver_eu_login)
+    eu_filter = EuFilter(driver_eu_login)
     k6_plan_comment = driver_eu_login.test_data.get('last_k6_plan').get('settings').get('plan').get('comment')
     plan_registry_page = PlanRegistry(driver_eu_login)
     events_plan = EventsPlan(driver_eu_login)
     version1 = 'Проект плана'
     version2 = 'Факт'
-
 
     with allure.step('Перейти на страницу "Реестр ИП"'):
         header.navigate_to_page('Реестр интегрированных планов')
@@ -35,7 +31,7 @@ def test_eu_create_gantt_event(driver_eu_login):
 
     with allure.step(f'Создать мероприятие'):
         event_name = events_plan.create_unique_event_name(Vars.PKM_BASE_EVENT_NAME)
-        event_data = {
+        event_plan_data = {
             'event_name': event_name,
             'start_day': '10',
             'duration': '5',
@@ -48,4 +44,59 @@ def test_eu_create_gantt_event(driver_eu_login):
             'is_cross_platform': True,
             'is_need_attention': True
         }
-        events_plan.create_event(event_data)
+        plan_event_data = events_plan.create_event(event_plan_data)
+        empty_data = {
+            'event_name': event_name,
+            'start_date': [''],
+            'duration': '',
+            'end_date': [''],
+            'event_type': '',
+            'works_type': '',
+            'plan': '',
+            'ready': '',
+            'comment': '',
+            'responsible': '',
+            'is_cross_platform': False,
+            'is_need_attention': False
+        }
+
+    with allure.step(f'Проверить отображение мероприятия на Ганте'):
+        events_plan.check_event(plan_event_data.get('event_name'), plan_event_data.get('start_date'), plan_event_data.get('end_date'))
+
+    with allure.step(f'Открыть созданное мероприятие "{event_name}" на Ганте'):
+        events_plan.open_event(event_name)
+
+    with allure.step(f'Проверить, что параметры созданного мероприятия "{event_name}" не изменились'):
+        assert events_plan.get_event_data() == plan_event_data
+
+    with allure.step('Обновить страницу'):
+        driver_eu_login.refresh()
+
+    with allure.step(f'Проверить отображение мероприятия на Ганте'):
+        events_plan.check_event(plan_event_data.get('event_name'), plan_event_data.get('start_date'), plan_event_data.get('end_date'))
+
+    with allure.step(f'Открыть созданное мероприятие "{event_name}" на Ганте'):
+        events_plan.open_event(event_name)
+
+    with allure.step(f'Проверить, что параметры созданного мероприятия "{event_name}" не изменились'):
+        assert events_plan.get_event_data() == plan_event_data
+        events_plan.find_and_click(events_plan.LOCATOR_CANCEL_BUTTON)
+
+    with allure.step(f'Выбрать версию плана "{version2}"'):
+        events_plan.set_version(version2)
+
+    with allure.step('Выключить в фильтре отображение незаполненных мероприятий'):
+        eu_filter.switch_off_empty_events()
+
+    with allure.step(f'Проверить, что мероприятие "{event_name}" не отображается на Ганте'):
+        assert event_name not in events_plan.get_event_names()
+
+    with allure.step('Включить в фильтре отображение незаполненных мероприятий'):
+        eu_filter.switch_on_empty_events()
+        time.sleep(Vars.PKM_USER_WAIT_TIME)
+
+    with allure.step(f'Открыть созданное мероприятие "{event_name}" на Ганте'):
+        events_plan.open_event(event_name)
+
+    with allure.step(f'Проверить, что мероприятие "{event_name}" пустое'):
+        assert events_plan.get_event_data() == empty_data
