@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from variables import PkmVars as Vars
 from pages.components.modals import Modals as Modal
+import time
 
 
 class ClassPage(ApiClasses, Modal, BasePage):
@@ -124,6 +125,7 @@ class IndicatorPage(ApiClasses, Modal, BasePage):
     def create_formula(self, formula_name):
         self.find_and_click(self.LOCATOR_ADD_FORMULA_BUTTON)
         Modal.enter_and_save(self, formula_name)
+        time.sleep(Vars.PKM_API_WAIT_TIME)
         formulas_list = self.get_formulas_list()
         assert formula_name in formulas_list
 
