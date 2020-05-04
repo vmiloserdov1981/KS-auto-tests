@@ -131,7 +131,7 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
 
     def check_indicator_in_tree(self, ind_name, class_name, active=True):
         locator = (By.XPATH, f"//span[text()='{class_name}']//..//../following-sibling::div[contains(@class, 'tree-item-children')]//span[text()='{ind_name}']")
-        self.find_element(locator)
+        self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(locator))
         if active:
             active_node_title = self.get_element_text(self.LOCATOR_TREE_ACTIVE_NODE)
             assert active_node_title == ind_name, 'Созданная нода не активная в дереве'

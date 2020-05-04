@@ -1,9 +1,9 @@
 class PkmVars:
     PKM_MAIN_URL = 'http://pkm.andersenlab.com/'
     PKM_API_URL = 'http://pkm.andersenlab.com/api/'
-    PKM_TEST_FOLDER_NAME = 'auto-test'
-    PKM_BASE_CLASS_NAME = 'auto_class'
-    PKM_BASE_FOLDER_NAME = 'auto_folder'
+    PKM_TEST_FOLDER_NAME = 'auto-test-2'
+    PKM_BASE_CLASS_NAME = 'autoclass'
+    PKM_BASE_FOLDER_NAME = 'auto_folder-2'
     PKM_DEFAULT_TREE_TYPE = 'model'
     PKM_BASE_INDICATOR_NAME = 'indicator'
     PKM_INDICATOR_NAME_TYPE = {
