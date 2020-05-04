@@ -33,6 +33,6 @@ class LoginPage(BasePage):
         return self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
 
     def check_page(self):
-        login_title = self.get_element_text(self.LOCATOR_PKM_LOGIN_TITLE)
+        login_title = self.get_element_text(self.LOCATOR_PKM_LOGIN_TITLE, time=20)
         assert login_title == 'Авторизация', 'неверный тайтл страницы'
         assert self.base_url in self.driver.current_url, 'Неверный url страницы'

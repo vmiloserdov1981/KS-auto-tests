@@ -20,7 +20,6 @@ class EuHeader(BasePage):
         self.find_and_click(self.LOCATOR_EU_MENU_BUTTON)
         assert self.find_element(self.LOCATOR_EU_USER_MENU, time=5), 'Невозможно открыть меню'
 
-
     def navigate_to_page(self, page_name):
         title = self.get_title_text()
         if title == page_name.upper():
@@ -29,4 +28,4 @@ class EuHeader(BasePage):
             self.open_menu()
             button = (By.XPATH, f"//div[contains(@class, 'menu-item ') and text() = ' {page_name} ']")
             self.find_and_click(button)
-            assert self.wait_until_text_in_element(self.LOCATOR_EU_PAGE_TITLE, page_name.upper()), 'Неверный тайтл страницы'
+            self.wait_until_text_in_element(self.LOCATOR_EU_PAGE_TITLE, page_name.upper())
