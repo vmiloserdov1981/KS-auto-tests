@@ -182,6 +182,7 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
     def expand_node(self, node_name):
         # фикс для обновления дерева:
         self.find_and_click(self.LOCATOR_TREE_TARGET_BUTTON)
+        time.sleep(2)
         try:
             self.find_element((By.XPATH, f"(//span[text()='{node_name}'])//..//..//..//div[contains(@class, 'item-arrow')]//fa-icon[contains(@ng-reflect-icon, 'angle-right')]"), time=20).click()
         except TimeoutException:
