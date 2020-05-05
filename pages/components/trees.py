@@ -181,11 +181,9 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
 
     def expand_node(self, node_name):
         try:
-            icon = self.find_element((By.XPATH, f"(//span[text()='{node_name}'])//..//..//..//div[contains(@class, 'item-arrow')]//fa-icon"), time=20)
+            self.find_element((By.XPATH, f"(//span[text()='{node_name}'])//..//..//..//div[contains(@class, 'item-arrow')]//fa-icon[contains(@ng-reflect-icon, 'angle-right')]"), time=20).click()
         except TimeoutException:
             raise AssertionError('Кнопка раскрытия не отображается')
-        if icon.get_attribute('ng-reflect-icon') == 'angle-right':
-            self.find_element((By.XPATH, f"(//span[text()='{node_name}'])//..//..//..//div[contains(@class, 'item-arrow')]//fa-icon"), time=20).click()
 
     def create_indicator(self, class_name, ind_name):
         class_icon_locator = (By.XPATH, f"//span[text()='{class_name}']//..//..//div[@class='item-icon']")
@@ -193,6 +191,7 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
         self.hover_over_element(self.LOCATOR_TREE_CONTEXT_CREATE_BUTTON)
         self.find_and_click(self.LOCATOR_TREE_CONTEXT_CREATE_INDICATOR_BUTTON)
         Modals.enter_and_save(self, ind_name)
+        # фикс для обновления дерева:
         self.find_and_click(self.LOCATOR_TREE_TARGET_BUTTON)
 
     def create_model_object(self, model_name, class_name, object_name):
@@ -204,7 +203,6 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
         time.sleep(Vars.PKM_API_WAIT_TIME)
         self.expand_node(model_name)
         assert self.find_element((By.XPATH, f"//span[text()='{model_name}']//..//../following-sibling::div[contains(@class, 'tree-item-children')]//span[text()='{object_name}']")), f'Объект "{object_name}" не отображается в дереве в модели "{model_name}"'
-
 
     def create_model_dataset(self, model_name, dataset_name):
         model_icon_locator = (By.XPATH, f"//span[text()='{model_name}']//..//..//div[@class='item-icon']")

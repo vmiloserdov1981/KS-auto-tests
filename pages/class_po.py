@@ -49,6 +49,7 @@ class ClassPage(ApiClasses, Modal, BasePage):
     def add_indicator(self, ind_name):
         self.find_and_click(self.LOCATOR_ADD_INDICATOR_BUTTON)
         Modal.enter_and_save(self, ind_name)
+        # фикс для обновления дерева:
         self.find_and_click(self.LOCATOR_TREE_TARGET_BUTTON)
 
     def delete_indicator(self, indicator_name):
