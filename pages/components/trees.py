@@ -180,13 +180,19 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
         self.wait_until_text_in_element(self.LOCATOR_PAGE_TITLE_BLOCK, node_name.upper())
 
     def expand_node(self, node_name):
-        # фикс для обновления дерева:
-        self.find_and_click(self.LOCATOR_TREE_TARGET_BUTTON)
-        time.sleep(2)
+
+        el = (By.XPATH, f"//span[text()='{node_name}']//..//..//..//div[contains(@class, 'item-arrow')]//fa-icon[contains(@ng-reflect-icon, 'angle-right')]")
         try:
-            self.find_element((By.XPATH, f"(//span[text()='{node_name}'])//..//..//..//div[contains(@class, 'item-arrow')]//fa-icon[contains(@ng-reflect-icon, 'angle-right')]"), time=20).click()
+            # фикс для обновления дерева:
+            self.find_and_click(self.LOCATOR_TREE_TARGET_BUTTON)
+            self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(el))
+            self.find_and_click(el)
         except TimeoutException:
-            raise AssertionError('Кнопка раскрытия не отображается')
+            pass
+        try:
+            self.find_and_click(el, time=1)
+        except TimeoutException:
+            pass
 
     def create_indicator(self, class_name, ind_name):
         class_icon_locator = (By.XPATH, f"//span[text()='{class_name}']//..//..//div[@class='item-icon']")
