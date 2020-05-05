@@ -28,7 +28,7 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
     LOCATOR_CREATE_FOLDER_BUTTON = (By.XPATH, "//div[@class='context-menu-item']//div[text()=' Создать папку ']")
     LOCATOR_CREATE_CLASS_BUTTON = (By.XPATH, "//div[@class='context-menu-item']//div[text()=' Создать класс ']")
     LOCATOR_CREATE_MODEL_BUTTON = (By.XPATH, "//div[@class='context-menu-item']//div[text()=' Создать модель ']")
-
+    LOCATOR_TREE_TARGET_BUTTON = (By.XPATH, "//div[contains(@class,'menu-buttons')]//fa-icon[@ng-reflect-icon='far,dot-circle']")
     LOCATOR_DELETE_CLASS_BUTTON = (By.XPATH, "//div[@class='context-menu-item']//div[text()=' Удалить ']")
     LOCATOR_TREE_ELEMENTS = (By.XPATH, "//div[@class='tree-item-children ng-star-inserted']//div["
                                        "@class='tree-item']//div[@class='item-name']//span")
@@ -193,6 +193,7 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
         self.hover_over_element(self.LOCATOR_TREE_CONTEXT_CREATE_BUTTON)
         self.find_and_click(self.LOCATOR_TREE_CONTEXT_CREATE_INDICATOR_BUTTON)
         Modals.enter_and_save(self, ind_name)
+        self.find_and_click(self.LOCATOR_TREE_TARGET_BUTTON)
 
     def create_model_object(self, model_name, class_name, object_name):
         model_icon_locator = (By.XPATH, f"//span[text()='{model_name}']//..//..//div[@class='item-icon']")

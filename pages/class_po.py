@@ -10,6 +10,7 @@ import time
 class ClassPage(ApiClasses, Modal, BasePage):
     LOCATOR_INDICATOR_VALUES = (By.XPATH, "//div[@class='title' and text()=' Показатели ']//..//following-sibling::div[contains(@class, 'list-body')]//div[@class='list-item-name']")
     LOCATOR_ADD_INDICATOR_BUTTON = (By.XPATH, "//div[@class='list-header' and contains(div, ' Показатели ' )]//div[@class='header-buttons']")
+    LOCATOR_TREE_TARGET_BUTTON = (By.XPATH, "//div[contains(@class,'menu-buttons')]//fa-icon[@ng-reflect-icon='far,dot-circle']")
 
     def __init__(self, driver, login, password, token=None):
         BasePage.__init__(self, driver)
@@ -48,6 +49,7 @@ class ClassPage(ApiClasses, Modal, BasePage):
     def add_indicator(self, ind_name):
         self.find_and_click(self.LOCATOR_ADD_INDICATOR_BUTTON)
         Modal.enter_and_save(self, ind_name)
+        self.find_and_click(self.LOCATOR_TREE_TARGET_BUTTON)
 
     def delete_indicator(self, indicator_name):
         indicator = (By.XPATH, f"(//div[@class='title' and contains(text(), 'Показатели')]//..//following-sibling::div[contains(@class, 'list-body')]//div[@class='list-item-name'])[text()=' {indicator_name} ']")
