@@ -6,6 +6,7 @@ from variables import PkmVars as Vars
 class MainPage(BasePage):
     LOCATOR_PKM_PROFILENAME_BLOCK = (By.XPATH, "//div[@class='profile-name']")
 
+
     def check_url(self, driver):
         assert self.base_url is not None, 'Для главной страницы не указан url'
         target_url = '{0}?treeType={1}'.format(self.base_url, Vars.PKM_DEFAULT_TREE_TYPE)

@@ -289,4 +289,98 @@ class ApiEu(BaseApi):
         plan = list(plan)
         return plan[0]
 
+    def api_get_datasets_by_plan(self, plan_uuid):
+        payload = {"modelUuid": plan_uuid}
+        request = self.post(f'{Vars.PKM_API_URL}datasets/get-by-model-id', self.token, payload)
+        assert not request.get('error'), f'Ошибка при получении наборов данных'
+        return request.get('data')
+
+    def api_get_version_uuid(self, model_uuid, version_name):
+        datasets = self.api_get_datasets_by_plan(model_uuid)
+        for dataset in datasets:
+            if dataset.get('name') == version_name:
+                return dataset.get('uuid')
+
+    def api_get_gantt(self, version_name, plan_uuid, login):
+        version_uuid = self.api_get_version_uuid(plan_uuid, version_name)
+        gantt_uuid = self.api_get_user_by_login(login).get('settings').get('ui').get('ganttUuid')
+        payload = {
+            "uuid": gantt_uuid,
+            "modelUuid": plan_uuid,
+            "datasetUuid": version_uuid
+        }
+        request = self.post(f'{Vars.PKM_API_URL}gantts/get-by-id', self.token, payload)
+        assert not request.get('error'), f'Ошибка при получении Ганта'
+        return request
+
+    def api_create_event(self, event_name, model_uuid, version_name, login):
+        dataset = self.api_get_version_uuid(model_uuid, version_name)
+        gantt = self.api_get_gantt(version_name, model_uuid, login)
+        start_uuid = gantt.get('ganttDiagram').get('options')[0].get('startUuid')
+        duration_uuid = gantt.get('ganttDiagram').get('options')[0].get('durationUuid')
+        end_uuid = gantt.get('ganttDiagram').get('options')[0].get('endUuid')
+        utc = self.get_utc_date()
+        start_date = f'{utc[2]}-{utc[1]}-10T00:00:00.000Z'
+        end_date = f'{utc[2]}-{utc[1]}-15T00:00:00.000Z'
+        duration = 5
+
+        data = {
+            start_uuid: [
+                {
+                    "value": {
+                        "data": start_date,
+                        "type": "datetime"
+                    }
+                }
+            ],
+            duration_uuid: [
+                {
+                    "value": {
+                        "data": duration,
+                        "type": "number"
+                    }
+                }
+            ],
+            end_uuid: [
+                {
+                    "value": {
+                        "data": end_date,
+                        "type": "datetime"
+                    }
+                }
+            ]
+        }
+        payload = {
+            "name": event_name,
+            "classUuid": gantt.get('ganttDiagram').get('options')[0].get('classUuid'),
+            "modelUuid": model_uuid,
+            "datasetUuid": dataset,
+            "data": data
+        }
+        request = self.post(f'{Vars.PKM_API_URL}gantts/create-object', self.token, payload)
+        assert not request.get('error'), f'Ошибка при создании мероприятия'
+        return request.get('uuid')
+
+    def api_get_event_names(self, version, plan_uuid, login):
+        names = []
+        gantt = self.api_get_gantt(version, plan_uuid, login)
+        tasks = gantt.get('data').get('tasks')
+        for task in tasks:
+            name = task.get('object').get('name')
+            names.append(name)
+        return names
+
+    def api_create_unique_event_name(self, base_name, versions, plan_uuid, login):
+        events_list = []
+        for version in versions:
+            events = self.api_get_event_names(version, plan_uuid, login)
+            events_list.extend(events)
+        count = 0
+        new_name = base_name
+        while new_name in events_list:
+            count += 1
+            new_name = "{0}_{1}".format(base_name, count)
+        return new_name
+
+
 

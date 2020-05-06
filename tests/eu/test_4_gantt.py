@@ -2,8 +2,10 @@ from pages.components.eu_header import EuHeader
 from pages.plan_registry_po import PlanRegistry
 from pages.events_plan_po import EventsPlan
 from pages.components.eu_filter import EuFilter
+from api.api import ApiEu
 import time
 from variables import PkmVars as Vars
+import users as user
 import allure
 
 
@@ -19,6 +21,10 @@ def test_eu_create_gantt_event(driver_eu_login):
     events_plan = EventsPlan(driver_eu_login)
     version1 = 'Проект плана'
     version2 = 'Факт'
+    api = ApiEu(None, None, token=driver_eu_login.token)
+    versions = ['Проект плана', 'Факт', 'План потребности']
+    plan_uuid = driver_eu_login.test_data.get('last_k6_plan').get('uuid')
+    login = user.system_user.login
 
     with allure.step('Перейти на страницу "Реестр ИП"'):
         header.navigate_to_page('Реестр интегрированных планов')
@@ -30,7 +36,7 @@ def test_eu_create_gantt_event(driver_eu_login):
         events_plan.set_version(version1)
 
     with allure.step(f'Создать мероприятие'):
-        event_name = events_plan.create_unique_event_name(Vars.PKM_BASE_EVENT_NAME)
+        event_name = api.api_create_unique_event_name(Vars.PKM_BASE_EVENT_NAME, versions, plan_uuid, login)
         event_plan_data = {
             'event_name': event_name,
             'start_day': '10',
@@ -100,3 +106,25 @@ def test_eu_create_gantt_event(driver_eu_login):
 
     with allure.step(f'Проверить, что мероприятие "{event_name}" пустое'):
         assert events_plan.get_event_data() == empty_data
+
+
+@allure.feature('Интерфейс КП')
+@allure.story('План мероприятий')
+@allure.title('Удаление мероприятия')
+@allure.severity(allure.severity_level.CRITICAL)
+def test_eu_delete_gantt_event(driver_eu_login):
+    api = ApiEu(None, None, token=driver_eu_login.token)
+    header = EuHeader(driver_eu_login)
+    eu_filter = EuFilter(driver_eu_login)
+    k6_plan_comment = driver_eu_login.test_data.get('last_k6_plan').get('settings').get('plan').get('comment')
+    plan_registry_page = PlanRegistry(driver_eu_login)
+    events_plan = EventsPlan(driver_eu_login)
+    version1 = 'Проект плана'
+    version2 = 'Факт'
+    plan_uuid = driver_eu_login.test_data.get('last_k6_plan').get('uuid')
+    login = user.system_user.login
+    versions = ['Проект плана', 'Факт', 'План потребности']
+    event_name = api.api_create_unique_event_name(Vars.PKM_BASE_EVENT_NAME, versions, plan_uuid, login)
+
+    with allure.step('Создать тестовое мероприятие через API"'):
+        api.api_create_event(event_name, plan_uuid, 'Проект плана', login)

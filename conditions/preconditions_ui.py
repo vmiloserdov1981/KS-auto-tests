@@ -3,6 +3,7 @@ from pages.login_po import LoginPage
 from variables import PkmVars as Vars
 from pages.main_po import MainPage
 import allure
+from selenium.webdriver.common.by import By
 
 
 class PreconditionsFront(BasePage):
@@ -33,5 +34,5 @@ class PreconditionsFront(BasePage):
             login_page.enter_pass(password)
         with allure.step('Войти в режим конечного пользователя'):
             login_page.login_as_eu()
-            #main_page.find_element(main_page.LOCATOR_PKM_PROFILENAME_BLOCK)
+            main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"))
             self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')

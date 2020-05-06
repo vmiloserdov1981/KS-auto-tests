@@ -183,3 +183,9 @@ class BaseApi:
             day = str(day)
         date[0] = day
         return date
+
+    def api_get_user_by_login(self, login):
+        payload = {"login": login}
+        response = self.post(f'{Vars.PKM_API_URL}users/get-user-by-login', self.token, payload)
+        assert not response.get('error'), f'Ошибка при получении данных пользователя'
+        return response.get('user')
