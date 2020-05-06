@@ -21,17 +21,11 @@ pipeline {
                 }
             }
             steps {
-                sh 'pytest --alluredir=reports'
+                sh 'pytest --alluredir=reports/'
             }
         }
         stage('Publish tests results') {
-            allure([
-            includeProperties: true,
-            jdk              : '',
-            properties       : [],
-            reportBuildPolicy: 'ALWAYS',
-            results          : [[path: 'reports']]
-            ])
+            allure jdk: '', results: [[path: "reports/"]]
         }
     }
     post{
