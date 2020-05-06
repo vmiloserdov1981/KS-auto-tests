@@ -1,5 +1,4 @@
 
-
 pipeline { 
     options {
         buildDiscarder(
@@ -12,11 +11,6 @@ pipeline {
         )
         disableConcurrentBuilds()
     }
-    properties([
-        parameters([
-            string(name: 'SELENOID_IP', defaultValue: 'http://10.10.20.39:4444/wd/hub', description: 'переменная с адресом селеноида', )
-        ])
-    ])
 
     agent any
 
@@ -28,6 +22,7 @@ pipeline {
                 }
             }
             steps {
+                def String SELENOID_IP = 'http://10.10.20.39:4444/wd/hub' 
                 sh 'pytest --alluredir=reports'
             }
         }
