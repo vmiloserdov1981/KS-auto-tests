@@ -22,7 +22,7 @@ class BasePage:
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),
                                                       message=f"Can't find element by locator {locator}")
 
-    def wait_element_disappearing(self, locator, time=10, wait_display=True):
+    def is_element_disappearing(self, locator, time=10, wait_display=True):
         if wait_display:
             try:
                 element = self.find_element(locator)

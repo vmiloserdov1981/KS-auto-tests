@@ -107,7 +107,7 @@ def test_eu_create_gantt_event(driver_eu_login):
     with allure.step(f'Проверить, что мероприятие "{event_name}" пустое'):
         assert events_plan.get_event_data() == empty_data
 
-'''
+
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Удаление мероприятия')
@@ -128,4 +128,15 @@ def test_eu_delete_gantt_event(driver_eu_login):
 
     with allure.step('Создать тестовое мероприятие через API"'):
         api.api_create_event(event_name, plan_uuid, 'Проект плана', login)
-'''
+
+    with allure.step('Перейти на страницу "Реестр ИП"'):
+        header.navigate_to_page('Реестр интегрированных планов')
+
+    with allure.step(f'Посмотреть на плане мероприятий последний план, созданный в к6 (с комментарием "{k6_plan_comment}")'):
+        plan_registry_page.watch_plan_by_comment(k6_plan_comment)
+
+    with allure.step(f'Выбрать версию плана "{version1}"'):
+        events_plan.set_version(version1)
+
+    with allure.step(f'Удалить мероприятие "{event_name}"'):
+        events_plan.delete_event(event_name)

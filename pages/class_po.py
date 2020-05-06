@@ -62,7 +62,7 @@ class ClassPage(ApiClasses, Modal, BasePage):
         except TimeoutException:
             return True
         try:
-            self.wait_element_disappearing(indicator)
+            self.is_element_disappearing(indicator)
         except TimeoutException:
             raise AssertionError('показатель не исчез из списка показателей на странице класса')
 
@@ -149,6 +149,6 @@ class IndicatorPage(ApiClasses, Modal, BasePage):
         self.find_and_click(operator_button)
         self.find_and_click(self.LOCATOR_SEARCH_INDICATORS_INPUT)
         self.find_and_click(indicator_2)
-        self.wait_element_disappearing(self.LOCATOR_ERROR_CIRCLE)
+        self.is_element_disappearing(self.LOCATOR_ERROR_CIRCLE)
 
 

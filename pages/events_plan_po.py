@@ -3,16 +3,18 @@ from pages.components.eu_header import EuHeader
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from pages.components.modals import NewEventModal
+from pages.components.modals import Modals
 import allure
 import time
 from variables import PkmVars as Vars
 
 
-class EventsPlan(NewEventModal, EuHeader, BasePage):
+class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
     LOCATOR_VERSION_INPUT = (By.XPATH, "//div[@class='controls-base-block']//input[contains(@class, 'dropdown-input')]")
     LOCATOR_VERSION_INPUT_VALUE = (By.XPATH, "//div[@class='controls-base-block']//div[@class='display-value-text']")
     LOCATOR_EVENT_NAME = (By.XPATH, "//div[contains(@class, 'gantt-indicator-name-value ')]")
     LOCATOR_ADD_EVENT_BUTTON = (By.XPATH, "//div[contains(@class, 'controls-base-block')]//fa-icon[@icon='plus']")
+    LOCATOR_TRASH_ICON = (By.XPATH, "//div[@class='controls-base-block']//fa-icon[@icon='trash']")
 
     def set_version(self, version_name):
         current_version = self.get_element_text(self.LOCATOR_VERSION_INPUT_VALUE)
@@ -113,6 +115,23 @@ class EventsPlan(NewEventModal, EuHeader, BasePage):
         assert aria_name == name
         assert aria_start == start_date
         assert aria_end == end_date
+
+    def select_event(self, name):
+        grid_data_locator = (By.XPATH, "//div[@class='gantt_grid_data']")
+        self.find_element(grid_data_locator)
+        time.sleep(Vars.PKM_USER_WAIT_TIME)
+        event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{name}')]")
+        self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(event_locator))
+        self.find_and_click(event_locator)
+        assert 'gantt_selected' in self.find_element(event_locator).get_attribute('class')
+
+    def delete_event(self, name):
+        self.select_event(name)
+        self.find_and_click(self.LOCATOR_TRASH_ICON)
+        self.find_and_click(Modals.LOCATOR_ACCEPT_BUTTON)
+        event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{name}')]")
+        assert self.is_element_disappearing(event_locator, wait_display=False), 'Мероприятие не исчезает после удаления'
+
 
     def open_event(self, event_name):
         grid_data_locator = (By.XPATH, "//div[@class='gantt_grid_data']")

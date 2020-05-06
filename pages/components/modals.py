@@ -14,6 +14,7 @@ class Modals(BasePage):
     LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Создать ']")
     LOCATOR_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class,'notification-type-error') and text()='Ошибка сервера']")
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[@class='modal-window-title']//div[@class='title-text']")
+    LOCATOR_ACCEPT_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Принять ']")
 
     def enter_and_save(self, name):
         self.find_and_enter(self.LOCATOR_NAME_INPUT, name)
@@ -28,7 +29,7 @@ class Modals(BasePage):
     def check_error_displaying(self, wait_disappear=False):
         assert self.find_element(self.LOCATOR_ERROR_NOTIFICATION), 'Окно с ошибкой не отображается'
         if wait_disappear:
-            assert self.wait_element_disappearing(self.LOCATOR_ERROR_NOTIFICATION), "Окно с ошибкой не исчезает"
+            assert self.is_element_disappearing(self.LOCATOR_ERROR_NOTIFICATION), "Окно с ошибкой не исчезает"
 
 
 class Calendar(BasePage, BaseApi):

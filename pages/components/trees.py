@@ -142,7 +142,7 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
             self.find_element(element, time=0.5)
         except TimeoutException:
             return True
-        assert self.wait_element_disappearing(element, time=5, wait_display=False), f'элемент "{child_node_name}" не исчез из ноды "{parent_node_name}" в дереве'
+        assert self.is_element_disappearing(element, time=5, wait_display=False), f'элемент "{child_node_name}" не исчез из ноды "{parent_node_name}" в дереве'
 
     def get_node_childrens(self, node_name):
         list_elements = []
@@ -166,7 +166,7 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
             self.driver.find_element(element)
         except InvalidArgumentException:
             return True
-        self.wait_element_disappearing(element)
+        self.is_element_disappearing(element)
 
     def open_tree(self):
         try:
