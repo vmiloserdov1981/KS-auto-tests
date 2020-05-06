@@ -1,4 +1,3 @@
-
 pipeline { 
     options {
         buildDiscarder(
@@ -22,7 +21,8 @@ pipeline {
                 }
             }
             steps {
-                def String SELENOID_IP = 'http://10.10.20.39:4444/wd/hub' 
+                def String SELENOID_IP = 'http://10.10.20.39:4444/wd/hub'
+                print SELENOID_IP
                 sh 'pytest --alluredir=reports'
             }
         }
