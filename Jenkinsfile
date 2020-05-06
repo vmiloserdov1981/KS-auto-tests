@@ -1,3 +1,5 @@
+
+
 pipeline { 
     options {
         buildDiscarder(
@@ -10,6 +12,11 @@ pipeline {
         )
         disableConcurrentBuilds()
     }
+    properties([
+        parameters([
+            string(name: 'SELENOID_IP', defaultValue: 'http://10.10.20.39:4444/wd/hub', description: 'переменная с адресом селеноида', )
+        ])
+    ])
 
     agent any
 
@@ -21,9 +28,6 @@ pipeline {
                 }
             }
             steps {
-//                sh "service docker start"
-//                sh "curl -s https://aerokube.com/cm/bash | sh"
-//                sh "./cm selenoid start --browsers 'chrome:80.0'"
                 sh 'pytest --alluredir=reports'
             }
         }
