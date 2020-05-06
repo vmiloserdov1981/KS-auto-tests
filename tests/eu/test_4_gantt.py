@@ -107,7 +107,7 @@ def test_eu_create_gantt_event(driver_eu_login):
     with allure.step(f'Проверить, что мероприятие "{event_name}" пустое'):
         assert events_plan.get_event_data() == empty_data
 
-
+'''
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Удаление мероприятия')
@@ -128,3 +128,4 @@ def test_eu_delete_gantt_event(driver_eu_login):
 
     with allure.step('Создать тестовое мероприятие через API"'):
         api.api_create_event(event_name, plan_uuid, 'Проект плана', login)
+'''
