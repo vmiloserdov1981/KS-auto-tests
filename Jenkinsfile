@@ -23,9 +23,9 @@ pipeline {
             steps {
                 sh 'pytest --alluredir=reports/'
             }
-        }
-        stage('Publish tests results') {
-            allure jdk: '', results: [[path: "reports/"]]
+            steps {
+                allure jdk: '', results: [[path: "reports/"]]
+            }
         }
     }
     post{
