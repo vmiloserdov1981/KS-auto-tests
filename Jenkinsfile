@@ -1,4 +1,3 @@
-
 pipeline { 
     options {
         buildDiscarder(
@@ -25,13 +24,20 @@ pipeline {
                 sh 'pytest --alluredir=reports'
             }
         }
+        stage('Publish tests results') {
+            allure([
+            includeProperties: true,
+            jdk              : '',
+            properties       : [],
+            reportBuildPolicy: 'ALWAYS',
+            results          : [[path: 'reports']]
+            ])
+        }
     }
     post{
       always {
-        allure includeProperties: false, jdk: '', results: [[path: 'reports']]
-        }
-      cleanup{
-            cleanWs()
-        }
+//        cleanup{
+//            cleanWs()
+//        }
     }
 }
