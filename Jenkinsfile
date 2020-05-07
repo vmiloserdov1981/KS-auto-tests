@@ -10,12 +10,11 @@ pipeline {
         )
         disableConcurrentBuilds()
     }
+
+    agent any
     parameters {
       string defaultValue: 'http://10.10.20.39:4444/wd/hub', description: 'переменная с адресом селеноида', name: 'SELENOID_IP', trim: false
     }
-
-    agent any
-
     stages {
         stage("Build project") {
             agent {
@@ -24,10 +23,11 @@ pipeline {
                 }
             }
             steps {
-                sh 'pytest --alluredir=reports/'
+                echo "IP ${params.SELENOID_IP}"
+                sh 'pytest --alluredir=reports'
             }
             steps {
-                allure jdk: '', results: [[path: "reports/"]]
+                allure jdk: '', results: [[path: "reports"]]
             }
         }
     }
