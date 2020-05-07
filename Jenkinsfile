@@ -25,8 +25,7 @@ pipeline {
                 }
             }
             steps {
-                echo "IP_1 ${SELENOID_IP}"
-                echo "IP_2 ${IP}"
+                echo "IP ${SELENOID_IP}"
                 sh 'pytest --alluredir=reports'
             }
         }
