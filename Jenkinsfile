@@ -12,9 +12,9 @@ pipeline {
     }
 
     agent any
-    parameters {
-      string defaultValue: 'http://10.10.20.39:4444/wd/hub', description: 'переменная с адресом селеноида', name: 'SELENOID_IP', trim: false
-    }
+//    parameters {
+//      string defaultValue: 'http://10.10.20.39:4444/wd/hub', description: 'переменная с адресом селеноида', name: 'SELENOID_IP', trim: false
+//    }
     stages {
         stage("Build project") {
             agent {
@@ -23,7 +23,11 @@ pipeline {
                 }
             }
             steps {
+                script {
+                def IP = 'http://10.10.20.39:4444/wd/hub'
+                }
                 echo "IP ${SELENOID_IP}"
+                echo "IP ${IP}"
                 sh 'pytest --alluredir=reports'
             }
         }
