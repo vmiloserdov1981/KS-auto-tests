@@ -1,3 +1,5 @@
+вуа IP = "http://10.10.20.39:4444/wd/hub"
+
 pipeline { 
     options {
         buildDiscarder(
@@ -23,9 +25,6 @@ pipeline {
                 }
             }
             steps {
-                script {
-                def IP = 'http://10.10.20.39:4444/wd/hub'
-                }
                 echo "IP ${SELENOID_IP}"
                 echo "IP ${IP}"
                 sh 'pytest --alluredir=reports'
