@@ -31,14 +31,15 @@ pipeline {
     post{
       always {
         script {
-              allure([
+            allure([
+                commandline: 'allure',
                 includeProperties: false,
                 jdk: '',
                 properties: [],
                 reportBuildPolicy: 'ALWAYS',
                 results: [[path: 'reports']]
-              ])
-            }
+            ])   
+        }
         cleanup{
             cleanWs()
         }
