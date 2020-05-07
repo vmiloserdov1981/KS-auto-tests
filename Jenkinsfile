@@ -1,4 +1,4 @@
-вуа IP = "http://10.10.20.39:4444/wd/hub"
+def IP = "http://10.10.20.39:4444/wd/hub"
 
 pipeline { 
     options {
