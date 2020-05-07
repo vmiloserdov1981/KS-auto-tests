@@ -41,8 +41,5 @@ pipeline {
                 ]) 
             }
         }
-        success {
-             deleteDir() /* clean up our workspace */
-        }
     }
 }
