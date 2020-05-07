@@ -38,8 +38,9 @@ pipeline {
                 properties: [],
                 reportBuildPolicy: 'ALWAYS',
                 results: [[path: 'reports']]
-            ])   
+                ]) 
+            }
+            deleteDir() /* clean up our workspace */
         }
-      }
     }
 }
