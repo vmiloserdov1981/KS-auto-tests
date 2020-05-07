@@ -29,8 +29,8 @@ pipeline {
         }
     }
     post{
-      always {
-        script {
+        always {
+            script {
             allure([
                 commandline: 'allure',
                 includeProperties: false,
@@ -39,9 +39,10 @@ pipeline {
                 reportBuildPolicy: 'ALWAYS',
                 results: [[path: 'reports']]
             ])   
-        }
+            }
         cleanup{
-            cleanWs()
+            echo 'One way or another, I have finished'
+            deleteDir() /* clean up our workspace */
         }
       }
     }
