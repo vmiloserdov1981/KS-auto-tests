@@ -40,7 +40,9 @@ pipeline {
                 results: [[path: 'reports']]
                 ]) 
             }
-            deleteDir() /* clean up our workspace */
+        }
+        success {
+             deleteDir() /* clean up our workspace */
         }
     }
 }
