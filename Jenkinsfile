@@ -23,18 +23,26 @@ pipeline {
                 }
             }
             steps {
-                echo "IP ${params.SELENOID_IP}"
+                echo "IP ${SELENOID_IP}"
                 sh 'pytest --alluredir=reports'
-            }
-            steps {
-                allure jdk: '', results: [[path: "reports"]]
             }
         }
     }
     post{
-      always {
-        cleanup{
-            cleanWs()
+        always {
+            script {
+            allure([
+                commandline: 'allure',
+                includeProperties: false,
+                jdk: '',
+                properties: [],
+                reportBuildPolicy: 'ALWAYS',
+                results: [[path: 'reports']]
+                ]) 
+            }
+        }
+        success {
+             deleteDir() /* clean up our workspace */
         }
     }
 }
