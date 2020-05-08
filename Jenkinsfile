@@ -16,7 +16,14 @@ pipeline {
       string defaultValue: 'http://10.10.20.39:4444/wd/hub', description: 'переменная с адресом селеноида', name: 'SELENOID_IP', trim: false
     }
     stages {
-        stage("Build project") {
+        stage('Clean folder') {
+            steps {
+                dir('./') {
+                deleteDir()
+                } 
+            }       
+        }
+        stage("Pytest") {
             agent {
                 dockerfile {
                     filename "Dockerfile"
@@ -31,7 +38,7 @@ pipeline {
     post{
         always {
             script {
-            allure([
+                allure([
                 commandline: 'allure',
                 includeProperties: false,
                 jdk: '',
@@ -40,9 +47,6 @@ pipeline {
                 results: [[path: 'reports']]
                 ]) 
             }
-        }
-        success {
-             deleteDir() /* clean up our workspace */
         }
     }
 }
