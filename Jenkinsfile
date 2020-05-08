@@ -18,11 +18,6 @@ pipeline {
     }
     
     stages {
-        stage('Clean folder') {
-            steps {
-                cleanWs()
-            }       
-        }
         stage("Pytest") {
             agent {
                 dockerfile {
@@ -36,12 +31,10 @@ pipeline {
                 }
             }
         }
-        stage('Allure result') {
-            agent{
-                label "master"
-            }
-            steps {
-              script {
+    }
+    post { 
+        always { 
+            script {
                 allure([
                 commandline: 'allure',
                 includeProperties: false,
@@ -50,8 +43,11 @@ pipeline {
                 reportBuildPolicy: 'ALWAYS',
                 results: [[path: 'reports']]
                 ]) 
-              }
-            }       
+            }
+        }
+        cleanup { 
+            cleanWs()
         }
     }
 }
+
