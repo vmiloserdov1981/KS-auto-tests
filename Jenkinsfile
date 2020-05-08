@@ -12,13 +12,15 @@ pipeline {
     }
 
     agent any
+    
     parameters {
       string defaultValue: 'http://10.10.20.39:4444/wd/hub', description: 'переменная с адресом селеноида', name: 'SELENOID_IP', trim: false
     }
+    
     stages {
         stage('Clean folder') {
             steps {
-                deleteDir()
+                cleanWs()
             }       
         }
         stage("Pytest") {
@@ -28,14 +30,18 @@ pipeline {
                 }
             }
             steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                 echo "IP ${SELENOID_IP}"
                 sh 'pytest --alluredir=reports'
+                }
             }
         }
-    }
-    post{
-        always {
-            script {
+        stage('Allure result') {
+            agent{
+                label "master"
+            }
+            steps {
+              script {
                 allure([
                 commandline: 'allure',
                 includeProperties: false,
@@ -44,7 +50,8 @@ pipeline {
                 reportBuildPolicy: 'ALWAYS',
                 results: [[path: 'reports']]
                 ]) 
-            }
+              }
+            }       
         }
     }
 }
