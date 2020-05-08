@@ -12,28 +12,47 @@ pipeline {
     }
 
     agent any
-
+    
+    parameters {
+      string defaultValue: 'http://10.10.20.39:4444/wd/hub', description: 'переменная с адресом селеноида', name: 'SELENOID_IP', trim: false
+    }
+    
     stages {
-        stage("Build project") {
+
+        stage("Pytest") {
             agent {
                 dockerfile {
                     filename "Dockerfile"
                 }
             }
             steps {
-//                sh "service docker start"
-//                sh "curl -s https://aerokube.com/cm/bash | sh"
-//                sh "./cm selenoid start --browsers 'chrome:80.0'"
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                echo "IP ${SELENOID_IP}"
                 sh 'pytest --alluredir=reports'
+                }
             }
         }
-    }
-    post{
-      always {
-        allure includeProperties: false, jdk: '', results: [[path: 'reports']]
+        stage('Allure result') {
+            agent{
+                label "master"
+            }
+            steps {
+              script {
+                allure([
+                commandline: 'allure',
+                includeProperties: false,
+                jdk: '',
+                properties: [],
+                reportBuildPolicy: 'ALWAYS',
+                results: [[path: 'reports']]
+                ]) 
+              }
+            }       
         }
-      cleanup{
-            cleanWs()
+        stage('Clean folder') {
+            steps {
+                cleanWs()
+            }       
         }
     }
 }
