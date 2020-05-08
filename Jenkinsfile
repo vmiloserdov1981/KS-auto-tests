@@ -18,9 +18,7 @@ pipeline {
     stages {
         stage('Clean folder') {
             steps {
-                dir('./') {
                 deleteDir()
-                } 
             }       
         }
         stage("Pytest") {
