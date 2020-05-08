@@ -1,6 +1,5 @@
 from core import BaseApi
 from variables import PkmVars as Vars
-import users
 
 
 class ApiClasses(BaseApi):
@@ -313,16 +312,48 @@ class ApiEu(BaseApi):
         assert not request.get('error'), f'Ошибка при получении Ганта'
         return request
 
-    def api_create_event(self, event_name, model_uuid, version_name, login):
+    def api_create_event(self, event_name, model_uuid, version_name, login, event_data):
+        """
+               Пример:
+               event_data = {
+                   'event_name': event_name,
+                   'start_day': '10',
+                   'duration': '5',
+                   'event_type': 'Текущая',
+                   'works_type': 'Бурение',
+                   'plan': 'План отгрузок',
+                   'ready': 'Готово к реализации',
+                   'comment': 'Авто тест',
+                   'responsible': 'Олег Петров',
+                   'is_cross_platform': True,
+                   'is_need_attention': True
+               }
+               """
+        def get_custom_field_uuid(gantt_dict, field_name):
+            custom_fields = gantt_dict.get('ganttDiagram').get('options')[0].get('customFields')
+            for field in custom_fields:
+                if custom_fields.get(field) == field_name:
+                    return field
+
         dataset = self.api_get_version_uuid(model_uuid, version_name)
         gantt = self.api_get_gantt(version_name, model_uuid, login)
         start_uuid = gantt.get('ganttDiagram').get('options')[0].get('startUuid')
         duration_uuid = gantt.get('ganttDiagram').get('options')[0].get('durationUuid')
         end_uuid = gantt.get('ganttDiagram').get('options')[0].get('endUuid')
+        event_type_uuid = get_custom_field_uuid(gantt, 'Тип работ')
+        works_type_uuid = get_custom_field_uuid(gantt, 'Тип одновременных работ')
+        plan_type_uuid = get_custom_field_uuid(gantt, 'Функциональный план')
+        ready_type_uuid = get_custom_field_uuid(gantt, 'Готовность')
+        comment_uuid = get_custom_field_uuid(gantt, 'Комментарий')
+        responsible_uuid = get_custom_field_uuid(gantt, 'Ответственный')
+        is_cross_platform_uuid = get_custom_field_uuid(gantt, 'Кросс-функцильальное')
+        is_need_attention_uuid = get_custom_field_uuid(gantt, 'Требует повышенного внимания')
         utc = self.get_utc_date()
-        start_date = f'{utc[2]}-{utc[1]}-10T00:00:00.000Z'
-        end_date = f'{utc[2]}-{utc[1]}-15T00:00:00.000Z'
-        duration = 5
+        start_day = event_data.get("start_day")
+        duration = int(event_data.get("duration"))
+        end_day = str(int(start_day)+int(duration))
+        start_date = f'{utc[2]}-{utc[1]}-{start_day}T00:00:00.000Z'
+        end_date = f'{utc[2]}-{utc[1]}-{end_day}T00:00:00.000Z'
 
         data = {
             start_uuid: [
@@ -346,6 +377,70 @@ class ApiEu(BaseApi):
                     "value": {
                         "data": end_date,
                         "type": "datetime"
+                    }
+                }
+            ],
+            event_type_uuid: [
+                {
+                    "value": {
+                        "data": event_data.get('event_type'),
+                        "type": "string"
+                    }
+                }
+            ],
+            works_type_uuid: [
+                {
+                    "value": {
+                        "data": event_data.get('works_type'),
+                        "type": "string"
+                    }
+                }
+            ],
+            plan_type_uuid: [
+                {
+                    "value": {
+                        "data": event_data.get('plan'),
+                        "type": "string"
+                    }
+                }
+            ],
+            ready_type_uuid: [
+                {
+                    "value": {
+                        "data": event_data.get('ready'),
+                        "type": "string"
+                    }
+                }
+            ],
+            comment_uuid: [
+                {
+                    "value": {
+                        "data": event_data.get('comment'),
+                        "type": "string"
+                    }
+                }
+            ],
+            responsible_uuid: [
+                {
+                    "value": {
+                        "data": event_data.get('responsible'),
+                        "type": "string"
+                    }
+                }
+            ],
+            is_cross_platform_uuid: [
+                {
+                    "value": {
+                        "data": event_data.get('is_cross_platform'),
+                        "type": "boolean"
+                    }
+                }
+            ],
+            is_need_attention_uuid: [
+                {
+                    "value": {
+                        "data": event_data.get('is_need_attention'),
+                        "type": "boolean"
                     }
                 }
             ]
@@ -381,6 +476,3 @@ class ApiEu(BaseApi):
             count += 1
             new_name = "{0}_{1}".format(base_name, count)
         return new_name
-
-
-

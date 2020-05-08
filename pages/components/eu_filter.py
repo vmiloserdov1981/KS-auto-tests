@@ -13,6 +13,7 @@ class EuFilter(BasePage):
             pass
         else:
             self.find_and_click(self.LOCATOR_SHOW_EMPTY_EVENTS_TOGGLE)
+            time.sleep(Vars.PKM_USER_WAIT_TIME)
 
     def switch_off_empty_events(self):
         toggle = self.find_element(self.LOCATOR_SHOW_EMPTY_EVENTS_TOGGLE)

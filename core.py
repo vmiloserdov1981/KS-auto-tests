@@ -7,6 +7,7 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
+from datetime import datetime
 
 
 class BasePage:
@@ -168,9 +169,8 @@ class BaseApi:
 
     @staticmethod
     def get_utc_date():
-        raw_date = BaseApi.get('http://worldtimeapi.org/api/ip')
-        raw_date = raw_date.get('utc_datetime')
-        date = raw_date.split('T')[0].split('-')[::-1]
+        raw_date = datetime.utcnow()
+        date = str(raw_date).split(' ')[0].split('-')[::-1]
         return date
 
     @staticmethod

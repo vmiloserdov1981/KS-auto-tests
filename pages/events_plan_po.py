@@ -7,6 +7,7 @@ from pages.components.modals import Modals
 import allure
 import time
 from variables import PkmVars as Vars
+from selenium.common.exceptions import TimeoutException
 
 
 class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
@@ -38,6 +39,19 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
             names.append(event_name)
         return names
 
+    def is_event_exists(self, event_name):
+        try:
+            self.find_element(self.LOCATOR_EVENT_NAME)
+        except TimeoutException:
+            return False
+        names_elements = self.driver.find_elements(*self.LOCATOR_EVENT_NAME)
+        for name in names_elements:
+            self.driver.execute_script("arguments[0].scrollIntoView();", name)
+            exists_event_name = name.text
+            if exists_event_name == event_name:
+                return True
+        return False
+
     def create_unique_event_name(self, base_name):
         events_list = self.get_event_names()
         count = 0
@@ -48,7 +62,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
         return new_name
 
     def create_event(self, data, check=True):
-        '''
+        """
         Пример:
         data = {
             'event_name': event_name,
@@ -63,7 +77,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
             'is_cross_platform': True,
             'is_need_attention': True
         }
-        '''
+        """
         today = self.get_utc_date()
         tomorrow = self.get_feature_date(self.get_utc_date(), 1)
         self.find_and_click(self.LOCATOR_ADD_EVENT_BUTTON)
@@ -126,12 +140,13 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
         assert 'gantt_selected' in self.find_element(event_locator).get_attribute('class')
 
     def delete_event(self, name):
-        self.select_event(name)
-        self.find_and_click(self.LOCATOR_TRASH_ICON)
-        self.find_and_click(Modals.LOCATOR_ACCEPT_BUTTON)
-        event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{name}')]")
-        assert self.is_element_disappearing(event_locator, wait_display=False), 'Мероприятие не исчезает после удаления'
-
+        with allure.step(f'Удалить мероприятие'):
+            self.select_event(name)
+            self.find_and_click(self.LOCATOR_TRASH_ICON)
+            self.find_and_click(Modals.LOCATOR_ACCEPT_BUTTON)
+        with allure.step(f'Проверить исчезание мероприятия после удаления'):
+            event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{name}')]")
+            assert self.is_element_disappearing(event_locator, wait_display=False), 'Мероприятие не исчезает после удаления'
 
     def open_event(self, event_name):
         grid_data_locator = (By.XPATH, "//div[@class='gantt_grid_data']")
