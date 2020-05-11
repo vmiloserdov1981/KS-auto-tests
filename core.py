@@ -7,7 +7,9 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import StaleElementReferenceException
 from datetime import datetime
+import time
 
 
 class BasePage:
@@ -18,6 +20,22 @@ class BasePage:
     def __init__(self, driver, url=None):
         self.driver = driver
         self.base_url = url
+
+    @staticmethod
+    def antistale(func):
+        def wrap(*args):
+            stale = True
+            start_time = time.time()
+            while stale:
+                stale = False
+                try:
+                    func(*args)
+                except StaleElementReferenceException:
+                    stale = True
+                    execution_time = time.time() - start_time
+                    if int(execution_time) > 19:
+                        break
+        return wrap
 
     def find_element(self, locator, time=10):
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),

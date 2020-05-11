@@ -5,8 +5,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 from pages.components.modals import NewEventModal
 from pages.components.modals import Modals
 import allure
-import time
-from variables import PkmVars as Vars
 from selenium.common.exceptions import TimeoutException
 
 
@@ -116,10 +114,10 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
             NewEventModal.save_event(self)
             return completed_data
 
+    @BasePage.antistale
     def check_event(self, name, start_date, end_date):
         grid_data_locator = (By.XPATH, "//div[@class='gantt_grid_data']")
         self.find_element(grid_data_locator)
-        time.sleep(Vars.PKM_USER_WAIT_TIME)
         event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{name}')]")
         self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(event_locator))
         aria_label = self.find_element(event_locator).get_attribute('aria-label')
@@ -130,10 +128,10 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
         assert aria_start == start_date
         assert aria_end == end_date
 
+    @BasePage.antistale
     def select_event(self, name):
         grid_data_locator = (By.XPATH, "//div[@class='gantt_grid_data']")
         self.find_element(grid_data_locator)
-        time.sleep(Vars.PKM_USER_WAIT_TIME)
         event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{name}')]")
         self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(event_locator))
         self.find_and_click(event_locator)
@@ -148,12 +146,12 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
             event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{name}')]")
             assert self.is_element_disappearing(event_locator, wait_display=False), 'Мероприятие не исчезает после удаления'
 
+    @BasePage.antistale
     def open_event(self, event_name):
         grid_data_locator = (By.XPATH, "//div[@class='gantt_grid_data']")
         self.find_element(grid_data_locator)
         event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{event_name}')]")
         action = ActionChains(self.driver)
         self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(event_locator))
-        time.sleep(Vars.PKM_USER_WAIT_TIME)
         action.double_click(self.find_element(event_locator)).perform()
         assert self.get_title() == event_name
