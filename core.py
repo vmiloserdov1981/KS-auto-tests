@@ -7,6 +7,9 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import StaleElementReferenceException
+from datetime import datetime
+import time
 
 
 class BasePage:
@@ -18,11 +21,27 @@ class BasePage:
         self.driver = driver
         self.base_url = url
 
+    @staticmethod
+    def antistale(func):
+        def wrap(*args):
+            stale = True
+            start_time = time.time()
+            while stale:
+                stale = False
+                try:
+                    func(*args)
+                except StaleElementReferenceException:
+                    stale = True
+                    execution_time = time.time() - start_time
+                    if int(execution_time) > 19:
+                        break
+        return wrap
+
     def find_element(self, locator, time=10):
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),
                                                       message=f"Can't find element by locator {locator}")
 
-    def wait_element_disappearing(self, locator, time=10, wait_display=True):
+    def is_element_disappearing(self, locator, time=10, wait_display=True):
         if wait_display:
             try:
                 element = self.find_element(locator)
@@ -168,9 +187,8 @@ class BaseApi:
 
     @staticmethod
     def get_utc_date():
-        raw_date = BaseApi.get('http://worldtimeapi.org/api/ip')
-        raw_date = raw_date.get('utc_datetime')
-        date = raw_date.split('T')[0].split('-')[::-1]
+        raw_date = datetime.utcnow()
+        date = str(raw_date).split(' ')[0].split('-')[::-1]
         return date
 
     @staticmethod
@@ -183,3 +201,9 @@ class BaseApi:
             day = str(day)
         date[0] = day
         return date
+
+    def api_get_user_by_login(self, login):
+        payload = {"login": login}
+        response = self.post(f'{Vars.PKM_API_URL}users/get-user-by-login', self.token, payload)
+        assert not response.get('error'), f'Ошибка при получении данных пользователя'
+        return response.get('user')

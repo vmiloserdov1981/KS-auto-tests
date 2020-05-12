@@ -18,11 +18,7 @@ pipeline {
     }
     
     stages {
-        stage('Clean folder') {
-            steps {
-                cleanWs()
-            }       
-        }
+
         stage("Pytest") {
             agent {
                 dockerfile {
@@ -51,6 +47,11 @@ pipeline {
                 results: [[path: 'reports']]
                 ]) 
               }
+            }       
+        }
+        stage('Clean folder') {
+            steps {
+                cleanWs()
             }       
         }
     }
