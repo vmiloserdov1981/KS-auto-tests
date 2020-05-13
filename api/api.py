@@ -284,6 +284,7 @@ class ApiEu(BaseApi):
                 return True
             else:
                 return False
+
         plan = filter(f_func, plans.get('plans'))
         plan = list(plan)
         return plan[0]
@@ -329,6 +330,7 @@ class ApiEu(BaseApi):
                    'is_need_attention': True
                }
                """
+
         def get_custom_field_uuid(gantt_dict, field_name):
             custom_fields = gantt_dict.get('ganttDiagram').get('options')[0].get('customFields')
             for field in custom_fields:
@@ -351,7 +353,7 @@ class ApiEu(BaseApi):
         utc = self.get_utc_date()
         start_day = event_data.get("start_day")
         duration = int(event_data.get("duration"))
-        end_day = str(int(start_day)+int(duration))
+        end_day = str(int(start_day) + int(duration))
         start_date = f'{utc[2]}-{utc[1]}-{start_day}T00:00:00.000Z'
         end_date = f'{utc[2]}-{utc[1]}-{end_day}T00:00:00.000Z'
 
@@ -454,7 +456,228 @@ class ApiEu(BaseApi):
         }
         request = self.post(f'{Vars.PKM_API_URL}gantts/create-object', self.token, payload)
         assert not request.get('error'), f'Ошибка при создании мероприятия'
-        return request.get('uuid')
+        assert request.get('uuid') is not None, 'Невозможно получить uuid мероприятия'
+        uuid = request.get('uuid')
+        event_data = {
+            'event_uuid': uuid,
+            'event_data': {
+                'event_name': event_name,
+                'start_date': start_date.split('T')[0].split('-')[::-1],
+                'end_date': end_date.split('T')[0].split('-')[::-1],
+                'duration': str(duration),
+                'event_type': event_data.get('event_type'),
+                'works_type': event_data.get('works_type'),
+                'plan': event_data.get('plan'),
+                'ready': event_data.get('ready'),
+                'comment': event_data.get('comment'),
+                'responsible': event_data.get('responsible'),
+                'is_cross_platform': event_data.get('is_cross_platform'),
+                'is_need_attention': event_data.get('is_need_attention')
+            }
+        }
+        return event_data
+
+    def api_update_event(self, event_uuid, model_uuid, version_name, login, event_data):
+        """
+               Пример:
+               event_data = {
+                   'event_name': event_name
+                   'start_day': '10',
+                   'duration': '5',
+                   'event_type': 'Текущая',
+                   'works_type': 'Бурение',
+                   'plan': 'План отгрузок',
+                   'ready': 'Готово к реализации',
+                   'comment': 'Авто тест',
+                   'responsible': 'Олег Петров',
+                   'is_cross_platform': True,
+                   'is_need_attention': True
+               }
+               """
+
+        def get_custom_field_uuid(gantt_dict, field_name):
+            custom_fields = gantt_dict.get('ganttDiagram').get('options')[0].get('customFields')
+            for field in custom_fields:
+                if custom_fields.get(field) == field_name:
+                    return field
+
+        dataset = self.api_get_version_uuid(model_uuid, version_name)
+        gantt = self.api_get_gantt(version_name, model_uuid, login)
+        start_uuid = gantt.get('ganttDiagram').get('options')[0].get('startUuid')
+        duration_uuid = gantt.get('ganttDiagram').get('options')[0].get('durationUuid')
+        end_uuid = gantt.get('ganttDiagram').get('options')[0].get('endUuid')
+        event_type_uuid = get_custom_field_uuid(gantt, 'Тип работ')
+        works_type_uuid = get_custom_field_uuid(gantt, 'Тип одновременных работ')
+        plan_type_uuid = get_custom_field_uuid(gantt, 'Функциональный план')
+        ready_type_uuid = get_custom_field_uuid(gantt, 'Готовность')
+        comment_uuid = get_custom_field_uuid(gantt, 'Комментарий')
+        responsible_uuid = get_custom_field_uuid(gantt, 'Ответственный')
+        is_cross_platform_uuid = get_custom_field_uuid(gantt, 'Кросс-функцильальное')
+        is_need_attention_uuid = get_custom_field_uuid(gantt, 'Требует повышенного внимания')
+        utc = self.get_utc_date()
+        start_day = event_data.get("start_day")
+        duration = int(event_data.get("duration"))
+        end_day = str(int(start_day) + int(duration))
+        start_date = f'{utc[2]}-{utc[1]}-{start_day}T00:00:00.000Z'
+        end_date = f'{utc[2]}-{utc[1]}-{end_day}T00:00:00.000Z'
+
+        data = [
+            {
+                'datasetUuid': dataset,
+                'dimensionsElements': None,
+                'indicatorUuid': start_uuid,
+                'modelUuid': model_uuid,
+                'objectUuid': event_uuid,
+                'uuid': None,
+                'value': {
+                    'data': start_date,
+                    'type': 'datetime'
+                }
+            },
+            {
+                'datasetUuid': dataset,
+                'dimensionsElements': None,
+                'indicatorUuid': duration_uuid,
+                'modelUuid': model_uuid,
+                'objectUuid': event_uuid,
+                'uuid': None,
+                'value': {
+                    'data': duration,
+                    'type': 'number'
+                }
+            },
+            {
+                'datasetUuid': dataset,
+                'dimensionsElements': None,
+                'indicatorUuid': end_uuid,
+                'modelUuid': model_uuid,
+                'objectUuid': event_uuid,
+                'uuid': None,
+                'value': {
+                    'data': end_date,
+                    'type': 'datetime'
+                }
+            },
+            {
+                'datasetUuid': dataset,
+                'dimensionsElements': None,
+                'indicatorUuid': event_type_uuid,
+                'modelUuid': model_uuid,
+                'objectUuid': event_uuid,
+                'uuid': None,
+                'value': {
+                    'data': event_data.get('event_type'),
+                    'type': 'string'
+                }
+            },
+            {
+                'datasetUuid': dataset,
+                'dimensionsElements': None,
+                'indicatorUuid': works_type_uuid,
+                'modelUuid': model_uuid,
+                'objectUuid': event_uuid,
+                'uuid': None,
+                'value': {
+                    'data': event_data.get('works_type'),
+                    'type': 'string'
+                }
+            },
+            {
+                'datasetUuid': dataset,
+                'dimensionsElements': None,
+                'indicatorUuid': plan_type_uuid,
+                'modelUuid': model_uuid,
+                'objectUuid': event_uuid,
+                'uuid': None,
+                'value': {
+                    'data': event_data.get('plan'),
+                    'type': 'string'
+                }
+            },
+            {
+                'datasetUuid': dataset,
+                'dimensionsElements': None,
+                'indicatorUuid': ready_type_uuid,
+                'modelUuid': model_uuid,
+                'objectUuid': event_uuid,
+                'uuid': None,
+                'value': {
+                    'data': event_data.get('ready'),
+                    'type': 'string'
+                }
+            },
+            {
+                'datasetUuid': dataset,
+                'dimensionsElements': None,
+                'indicatorUuid': comment_uuid,
+                'modelUuid': model_uuid,
+                'objectUuid': event_uuid,
+                'uuid': None,
+                'value': {
+                    'data': event_data.get('comment'),
+                    'type': 'string'
+                }
+            },
+            {
+                'datasetUuid': dataset,
+                'dimensionsElements': None,
+                'indicatorUuid': responsible_uuid,
+                'modelUuid': model_uuid,
+                'objectUuid': event_uuid,
+                'uuid': None,
+                'value': {
+                    'data': event_data.get('responsible'),
+                    'type': 'string'
+                }
+            },
+            {
+                'datasetUuid': dataset,
+                'dimensionsElements': None,
+                'indicatorUuid': is_cross_platform_uuid,
+                'modelUuid': model_uuid,
+                'objectUuid': event_uuid,
+                'uuid': None,
+                'value': {
+                    'data': event_data.get('is_cross_platform'),
+                    'type': 'boolean'
+                }
+            },
+            {
+                'datasetUuid': dataset,
+                'dimensionsElements': None,
+                'indicatorUuid': is_need_attention_uuid,
+                'modelUuid': model_uuid,
+                'objectUuid': event_uuid,
+                'uuid': None,
+                'value': {
+                    'data': event_data.get('is_need_attention'),
+                    'type': 'boolean'
+                }
+            }
+        ]
+        payload = {
+            "data": data
+        }
+        request = self.post(f'{Vars.PKM_API_URL}data/save', self.token, payload)
+        assert not request.get('error'), f'Ошибка при редактировании мероприятия'
+        event_data = {
+            'event_uuid': event_uuid,
+            'event_data': {
+                'event_name': event_data.get('event_name'),
+                'start_date': start_date.split('T')[0].split('-')[::-1],
+                'end_date': end_date.split('T')[0].split('-')[::-1],
+                'duration': str(duration),
+                'event_type': event_data.get('event_type'),
+                'works_type': event_data.get('works_type'),
+                'plan': event_data.get('plan'),
+                'ready': event_data.get('ready'),
+                'comment': event_data.get('comment'),
+                'responsible': event_data.get('responsible'),
+                'is_cross_platform': event_data.get('is_cross_platform'),
+                'is_need_attention': event_data.get('is_need_attention')
+            }
+        }
+        return event_data
 
     def api_get_event_names(self, version, plan_uuid, login):
         names = []

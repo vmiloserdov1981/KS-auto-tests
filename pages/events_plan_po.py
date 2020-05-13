@@ -6,6 +6,8 @@ from pages.components.modals import NewEventModal
 from pages.components.modals import Modals
 import allure
 from selenium.common.exceptions import TimeoutException
+import time
+from variables import PkmVars as Vars
 
 
 class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
@@ -26,6 +28,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
             self.wait_until_text_in_element(self.LOCATOR_VERSION_INPUT_VALUE, version_name)
             grid_data_locator = (By.XPATH, "//div[@class='gantt_grid_data']")
             self.find_element(grid_data_locator)
+            time.sleep(Vars.PKM_USER_WAIT_TIME)
 
     def get_event_names(self):
         names = []
@@ -100,6 +103,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
         with allure.step(f'Заполнить данные мероприятия'):
             NewEventModal.fill_name(self, data.get('event_name'))
             NewEventModal.set_start_day(self, data.get('start_day'))
+            NewEventModal.set_duration(self, data.get('duration'))
             NewEventModal.set_field(self, 'Тип мероприятия', data.get('event_type'))
             NewEventModal.set_field(self, 'Тип одновременных работ', data.get('works_type'))
             NewEventModal.set_field(self, 'Функциональный план', data.get('plan'))
@@ -154,4 +158,9 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
         action = ActionChains(self.driver)
         self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(event_locator))
         action.double_click(self.find_element(event_locator)).perform()
-        assert self.get_title() == event_name
+        try:
+            assert self.get_title() == event_name
+        except TimeoutException:
+            self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(event_locator))
+            action.double_click(self.find_element(event_locator)).perform()
+            assert self.get_title() == event_name

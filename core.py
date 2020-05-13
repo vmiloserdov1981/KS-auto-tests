@@ -10,6 +10,8 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import StaleElementReferenceException
 from datetime import datetime
 import time
+from datetime import date
+from datetime import timedelta
 
 
 class BasePage:
@@ -192,15 +194,25 @@ class BaseApi:
         return date
 
     @staticmethod
-    def get_feature_date(date, offset):
-        day = int(date[0])
-        day = day + offset
+    def get_feature_date(start, offset):
+        raw_date = list(map(int, start[::-1]))
+        start_date = date(*raw_date)
+        day = timedelta(days=1)
+        end_date = start_date + day * offset
+        day = end_date.day
+        month = end_date.month
+        year = end_date.year
         if day < 10:
             day = f'0{day}'
         else:
             day = str(day)
-        date[0] = day
-        return date
+        if month < 10:
+            month = f'0{month}'
+        else:
+            month = str(month)
+        year = str(year)
+        feature_date = [day, month, year]
+        return feature_date
 
     def api_get_user_by_login(self, login):
         payload = {"login": login}

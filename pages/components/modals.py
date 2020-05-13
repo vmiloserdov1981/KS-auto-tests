@@ -99,11 +99,9 @@ class NewEventModal(Calendar, BasePage):
         return title
 
     def fill_name(self, text):
-        action = ActionChains(self.driver)
         field = self.find_element(self.LOCATOR_EVENT_NAME_FIELD)
         if field.get_attribute('value') != '':
-            action.double_click(field).perform()
-            field.send_keys(Keys.DELETE)
+            field.clear()
         else:
             pass
         field.send_keys(text)
@@ -119,12 +117,10 @@ class NewEventModal(Calendar, BasePage):
         return date
 
     def fill_field(self, field_name, text):
-        action = ActionChains(self.driver)
         field_locator = (By.XPATH, f"//div[contains(@class, 'indicator-label') and text()=' {field_name} ']//following-sibling::input")
         field = self.find_element(field_locator)
         if field.get_attribute('value') != '':
-            action.double_click(field).perform()
-            field.send_keys(Keys.DELETE)
+            field.clear()
         else:
             pass
         field.send_keys(text)
@@ -193,6 +189,14 @@ class NewEventModal(Calendar, BasePage):
         Calendar.check_calendar_displaying(self)
         Calendar.select_day(self, day)
 
+    def set_duration(self, duration):
+        field = self.find_element(self.LOCATOR_EVENT_DURATION_FIELD)
+        if field.get_attribute('value') != '':
+            field.clear()
+        else:
+            pass
+        field.send_keys(duration)
+
     def save_event(self):
         button_locator = (By.XPATH, "(//div[@class='modal-window-footer']//button)[last()]")
         button = self.find_element(button_locator)
@@ -218,3 +222,159 @@ class NewEventModal(Calendar, BasePage):
             'is_need_attention': self.option_is_checked('Требует повышенного внимания')
         }
         return data
+
+    def modify_event(self, data):
+        """
+        Пример:
+        data = {
+            'event_name': event_name,
+            'start_day': '10',
+            'duration': '5',
+            'event_type': 'Текущая',
+            'works_type': 'Бурение',
+            'plan': 'План отгрузок',
+            'ready': 'Готово к реализации',
+            'comment': 'Авто тест',
+            'responsible': 'Олег Петров',
+            'is_cross_platform': True,
+            'is_need_attention': True
+        }
+        """
+        exists_event_data = self.get_event_data()
+        new_event_data = {
+            'event_name': None,
+            'start_date': None,
+            'duration': None,
+            'end_date': None,
+            'event_type': None,
+            'works_type': None,
+            'plan': None,
+            'ready': None,
+            'comment': None,
+            'responsible': None,
+            'is_cross_platform': None,
+            'is_need_attention': None
+        }
+        if data.get('event_name'):
+            NewEventModal.fill_name(self, data.get('event_name'))
+            new_event_data['event_name'] = data.get('event_name')
+        else:
+            new_event_data['event_name'] = exists_event_data.get('event_name')
+
+        if data.get('start_day'):
+            NewEventModal.set_start_day(self, data.get('start_day'))
+            new_event_data['start_date'] = self.get_start_date()
+        else:
+            new_event_data['start_date'] = exists_event_data.get('start_date')
+
+        if data.get('duration'):
+            NewEventModal.set_duration(self, data.get('duration'))
+            new_event_data['duration'] = data.get('duration')
+        else:
+            new_event_data['duration'] = exists_event_data.get('duration')
+
+        if data.get('start_date') or data.get('duration'):
+            new_event_data['end_date'] = self.get_end_date()
+        else:
+            new_event_data['end_date'] = exists_event_data.get('end_date')
+
+        if data.get('event_type'):
+            NewEventModal.set_field(self, 'Тип мероприятия', data.get('event_type'))
+            new_event_data['event_type'] = data.get('event_type')
+        else:
+            new_event_data['event_type'] = exists_event_data.get('event_type')
+
+        if data.get('works_type'):
+            NewEventModal.set_field(self, 'Тип одновременных работ', data.get('works_type'))
+            new_event_data['works_type'] = data.get('works_type')
+        else:
+            new_event_data['works_type'] = exists_event_data.get('works_type')
+
+        if data.get('plan'):
+            NewEventModal.set_field(self, 'Функциональный план', data.get('plan'))
+            new_event_data['plan'] = data.get('plan')
+        else:
+            new_event_data['plan'] = exists_event_data.get('plan')
+
+        if data.get('ready'):
+            NewEventModal.set_field(self, 'Готовность', data.get('ready'))
+            new_event_data['ready'] = data.get('ready')
+        else:
+            new_event_data['ready'] = exists_event_data.get('ready')
+
+        if data.get('comment'):
+            NewEventModal.fill_field(self, 'Комментарий', data.get('comment'))
+            new_event_data['comment'] = data.get('comment')
+        else:
+            new_event_data['comment'] = exists_event_data.get('comment')
+
+        if data.get('responsible'):
+            NewEventModal.fill_field(self, 'Ответственный', data.get('responsible'))
+            new_event_data['responsible'] = data.get('responsible')
+        else:
+            new_event_data['responsible'] = exists_event_data.get('responsible')
+
+        if data.get('is_cross_platform') is not None:
+            if data.get('is_cross_platform') is True:
+                NewEventModal.check_option(self, 'Кросс-функциональное мероприятие')
+                new_event_data['is_cross_platform'] = True
+            if data.get('is_cross_platform') is False:
+                NewEventModal.uncheck_option(self, 'Кросс-функциональное мероприятие')
+                new_event_data['is_cross_platform'] = False
+        else:
+            new_event_data['is_cross_platform'] = exists_event_data.get('is_cross_platform')
+
+        if data.get('is_need_attention') is not None:
+            if data.get('is_need_attention') is True:
+                NewEventModal.check_option(self, 'Требует повышенного внимания')
+                new_event_data['is_need_attention'] = True
+            if data.get('is_need_attention') is False:
+                NewEventModal.uncheck_option(self, 'Требует повышенного внимания')
+                new_event_data['is_need_attention'] = False
+        else:
+            new_event_data['is_need_attention'] = exists_event_data.get('is_need_attention')
+
+        completed_data = NewEventModal.get_event_data(self)
+        assert completed_data == new_event_data, 'Поля отображают неправильные значения'
+        NewEventModal.save_event(self)
+        return completed_data
+
+    def check_event(self, expected_data):
+        """
+                Пример:
+                expected_data = {
+                    'event_name': event_name,
+                    'start_date': ['11', '05', '2020'],
+                    'end_date': ['12', '05', '2020'],
+                    'duration': '1',
+                    'event_type': 'Текущая',
+                    'works_type': 'Бурение',
+                    'plan': None,
+                    'ready': 'Готово к реализации',
+                    'comment': 'Авто тест',
+                    'responsible': 'Олег Петров',
+                    'is_cross_platform': True,
+                    'is_need_attention': True
+                }
+                """
+        actual_data = self.get_event_data()
+        for indicator in actual_data:
+            if actual_data.get(indicator) == '' or actual_data.get(indicator) == ['']:
+                actual_data[indicator] = None
+
+        for indicator in expected_data:
+            if expected_data.get(indicator) == '' or expected_data.get(indicator) == ['']:
+                expected_data[indicator] = None
+
+        if expected_data.get('is_cross_platform') is None:
+            expected_data['is_cross_platform'] = False
+
+        if expected_data.get('is_need_attention') is None:
+            expected_data['is_need_attention'] = False
+
+        if actual_data == expected_data:
+            return True
+        else:
+            return False
+
+

@@ -15,7 +15,7 @@ class UserBlock(BasePage):
     LOCATOR_PKM_LOGOUT_BUTTON = (By.XPATH, "//fa-icon[@icon='sign-out-alt']")
 
     def check_username(self, username):
-        assert self.get_element_text(self.LOCATOR_PKM_PROFILENAME_BLOCK) == username, 'В блоке профиля отображается ' \
+        assert self.get_element_text(self.LOCATOR_PKM_PROFILENAME_BLOCK, time=20) == username, 'В блоке профиля отображается ' \
                                                                                       'неправильное имя '
 
     def logout(self):
