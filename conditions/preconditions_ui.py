@@ -34,5 +34,5 @@ class PreconditionsFront(BasePage):
             login_page.enter_pass(password)
         with allure.step('Войти в режим конечного пользователя'):
             login_page.login_as_eu()
-            main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"))
+            main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=20)
             self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')

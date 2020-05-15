@@ -688,14 +688,20 @@ class ApiEu(BaseApi):
             names.append(name)
         return names
 
-    def api_create_unique_event_name(self, base_name, versions, plan_uuid, login):
+    def api_create_unique_event_name(self, base_name, versions, plan_uuid, login, subname=None):
         events_list = []
         for version in versions:
             events = self.api_get_event_names(version, plan_uuid, login)
             events_list.extend(events)
         count = 0
-        new_name = base_name
+        if not subname:
+            new_name = base_name
+        else:
+            new_name = f'{base_name}_{subname}'
         while new_name in events_list:
             count += 1
-            new_name = "{0}_{1}".format(base_name, count)
+            if not subname:
+                new_name = "{0}_{1}".format(base_name, count)
+            else:
+                new_name = "{0}_{1}_{2}".format(base_name, subname, count)
         return new_name

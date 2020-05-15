@@ -36,7 +36,7 @@ def test_eu_create_gantt_event(driver_eu_login):
         events_plan.set_version(version1)
 
     with allure.step(f'Создать мероприятие'):
-        event_name = api.api_create_unique_event_name(Vars.PKM_BASE_EVENT_NAME, versions, plan_uuid, login)
+        event_name = api.api_create_unique_event_name(Vars.PKM_BASE_EVENT_NAME, versions, plan_uuid, login, subname='Создание')
         event_plan_data = {
             'event_name': event_name,
             'start_day': '10',
@@ -121,7 +121,7 @@ def test_eu_delete_gantt_event(driver_eu_login):
     plan_uuid = driver_eu_login.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт', 'План потребности')
-    event_name = api.api_create_unique_event_name(Vars.PKM_BASE_EVENT_NAME, versions, plan_uuid, login)
+    event_name = api.api_create_unique_event_name(Vars.PKM_BASE_EVENT_NAME, versions, plan_uuid, login, subname='Удаление')
     event_data = {
         'event_name': event_name,
         'start_day': '10',
@@ -136,6 +136,21 @@ def test_eu_delete_gantt_event(driver_eu_login):
         'is_need_attention': True
     }
     deleted_event_data = {
+        'event_name': event_name,
+        'start_date': [''],
+        'duration': '',
+        'end_date': [''],
+        'event_type': event_data.get('event_type'),
+        'works_type': event_data.get('works_type'),
+        'plan': event_data.get('plan'),
+        'ready': event_data.get('ready'),
+        'comment': event_data.get('comment'),
+        'responsible': event_data.get('responsible'),
+        'is_cross_platform': event_data.get('is_cross_platform'),
+        'is_need_attention': event_data.get('is_need_attention'),
+    }
+
+    deleted_event_data_2 = {
         'event_name': event_name,
         'start_date': [''],
         'duration': '',
@@ -196,7 +211,7 @@ def test_eu_delete_gantt_event(driver_eu_login):
         events_plan.open_event(event_name)
 
     with allure.step(f'Проверить, что при удалении мероприятия "{event_name}", у него удалились только даты и длительность'):
-        assert events_plan.get_event_data() == deleted_event_data
+        assert events_plan.get_event_data() == deleted_event_data or events_plan.get_event_data() == deleted_event_data_2
         events_plan.find_and_click(events_plan.LOCATOR_CANCEL_BUTTON)
 
     with allure.step(f'Выбрать версию плана "{versions[1]}"'):
@@ -252,7 +267,7 @@ def test_eu_modify_gantt_event(driver_eu_login):
     plan_uuid = driver_eu_login.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт', 'План потребности')
-    event_name = api.api_create_unique_event_name(Vars.PKM_BASE_EVENT_NAME, versions, plan_uuid, login)
+    event_name = api.api_create_unique_event_name(Vars.PKM_BASE_EVENT_NAME, versions, plan_uuid, login, subname='Изменение')
     event_data_plan = {
         'event_name': event_name,
         'start_day': '10',
