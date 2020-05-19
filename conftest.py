@@ -36,7 +36,7 @@ def driver_init(maximize=True, impl_wait=3):
         ip = os.getenv('SELENOID_IP', 'http://127.0.0.1:4444/wd/hub')
         capabilities = {
             "browserName": "chrome",
-            # "version": "80.0",
+            "version": "81.0",
             "enableVNC": True,
             "enableVideo": False
         }

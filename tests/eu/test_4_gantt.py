@@ -292,7 +292,6 @@ def test_eu_modify_gantt_event(driver_eu_login):
     }
 
     new_event_data_plan = {
-        'start_day': '15',
         'duration': '3',
         'event_type': 'ПНГ',
         'comment': 'Отредактированный',

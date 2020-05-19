@@ -188,14 +188,22 @@ class NewEventModal(Calendar, BasePage):
         self.find_and_click(self.LOCATOR_START_DATE_FIELD)
         Calendar.check_calendar_displaying(self)
         Calendar.select_day(self, day)
+        start_date = self.get_start_date()
+        duration = int(self.get_input_value(self.LOCATOR_EVENT_DURATION_FIELD))
+        expected_end = self.get_feature_date(start_date, duration)
+        assert self.get_end_date() == expected_end, 'дата окончания рассчитана неправильно'
 
     def set_duration(self, duration):
+        start_date = self.get_start_date()
         field = self.find_element(self.LOCATOR_EVENT_DURATION_FIELD)
         if field.get_attribute('value') != '':
             field.clear()
         else:
             pass
         field.send_keys(duration)
+        expected_end = self.get_feature_date(start_date, int(duration))
+        time.sleep(1)
+        assert self.get_end_date() == expected_end, 'дата окончания рассчитана неправильно'
 
     def save_event(self):
         button_locator = (By.XPATH, "(//div[@class='modal-window-footer']//button)[last()]")
