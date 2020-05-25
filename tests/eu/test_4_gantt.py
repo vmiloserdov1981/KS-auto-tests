@@ -229,7 +229,7 @@ def test_eu_delete_gantt_event(driver_eu_login):
     with allure.step(f'Проверить, что мероприятие "{event_name}" пустое'):
         assert events_plan.get_event_data() == empty_data
         events_plan.find_and_click(events_plan.LOCATOR_CANCEL_BUTTON)
-    '''
+
     with allure.step(f'Выбрать версию плана "{versions[2]}"'):
         events_plan.set_version(versions[2])
 
@@ -247,7 +247,7 @@ def test_eu_delete_gantt_event(driver_eu_login):
 
     with allure.step(f'Проверить, что мероприятие "{event_name}" пустое'):
         assert events_plan.get_event_data() == empty_data
-    '''
+
 
 
 @allure.feature('Интерфейс КП')
@@ -410,7 +410,7 @@ def test_eu_modify_gantt_event(driver_eu_login):
     with allure.step(f'Проверить, что измененные данные мероприятия "{event_name}" в версии "{versions[0]}" не изменились'):
         assert event_modal.check_event(new_event_data_plan), f'Данные мероприятия "{event_name}" не соответствуют указанным при редактировании для версии "{versions[0]}"'
         event_modal.find_and_click(event_modal.LOCATOR_CANCEL_BUTTON)
-    '''
+
     with allure.step(f'Выбрать версию плана "{versions[2]}"'):
         events_plan.set_version(versions[2])
 
@@ -427,4 +427,4 @@ def test_eu_modify_gantt_event(driver_eu_login):
             driver_eu_login.refresh()
             time.sleep(PkmVars.PKM_USER_WAIT_TIME)
             assert event_modal.check_event(empty_data), f'Мероприятие "{event_name}" не пустое в версии "{versions[2]}"'
-    '''
+
