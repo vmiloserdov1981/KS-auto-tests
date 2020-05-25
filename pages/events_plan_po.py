@@ -1,3 +1,5 @@
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as ec
 from core import BasePage
 from pages.components.eu_header import EuHeader
 from selenium.webdriver.common.by import By
@@ -14,6 +16,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
     LOCATOR_VERSION_INPUT = (By.XPATH, "//div[@class='controls-base-block']//input[contains(@class, 'dropdown-input')]")
     LOCATOR_VERSION_INPUT_VALUE = (By.XPATH, "//div[@class='controls-base-block']//div[@class='display-value-text']")
     LOCATOR_EVENT_NAME = (By.XPATH, "//div[contains(@class, 'gantt-indicator-name-value ')]")
+    LOCATOR_LAST_EVENT_NAME = (By.XPATH, "(//div[contains(@class, 'gantt-indicator-name-value ')])[last()]")
     LOCATOR_ADD_EVENT_BUTTON = (By.XPATH, "//div[contains(@class, 'controls-base-block')]//fa-icon[@icon='plus']")
     LOCATOR_TRASH_ICON = (By.XPATH, "//div[@class='controls-base-block']//fa-icon[@icon='trash']")
 
@@ -31,13 +34,57 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
             time.sleep(Vars.PKM_USER_WAIT_TIME)
 
     def get_event_names(self):
+        '''
+        last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
+        rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
+        prelast_row_locator = (By.XPATH, "(//div[contains(@class, 'gantt_row')])[last()-1]")
         names = []
-        self.find_element(self.LOCATOR_EVENT_NAME)
-        names_elements = self.driver.find_elements(*self.LOCATOR_EVENT_NAME)
-        for name in names_elements:
-            self.driver.execute_script("arguments[0].scrollIntoView();", name)
-            event_name = name.text
-            names.append(event_name)
+        new_height = 0
+
+        try:
+            self.find_element(rows_locator)
+        except TimeoutException:
+            return names
+
+        time.sleep(3)
+        rows = self.driver.find_elements(*rows_locator)
+        for row in rows:
+            row_text = row.text
+            if row_text != '':
+                row_name = row_text.split('\n')[1]
+                names.append(row_name)
+        scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
+        try:
+            scrollbar = self.find_element(scroll_area, time=2)
+        except TimeoutException:
+            return names
+
+        start_height = self.driver.execute_script("return arguments[0].clientHeight", scrollbar)
+        step = self.driver.execute_script("return arguments[0].clientHeight", self.find_element(last_row_locator))
+        total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
+        while True:
+            if new_height + step + start_height >= total_height:
+                names = names[:len(names) - 1]
+                self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, step)
+                last_row_text = self.get_element_text(last_row_locator)
+                last_row_name = last_row_text.split('\n')[1]
+                names.append(last_row_name)
+                return names
+
+            # Scroll down
+            last_row = self.find_element(last_row_locator)
+            self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, step)
+            try:
+                self.wait_element_changing(last_row, last_row_locator, time=3)
+            except TimeoutException:
+                pass
+            prelast_row = self.find_element(prelast_row_locator)
+            prelast_row_text = prelast_row.text
+            name = prelast_row_text.split('\n')[1]
+            names.append(name)
+            new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
+        '''
+        names = [event for event in self.tasks_generator(names_only=True)]
         return names
 
     def is_event_exists(self, event_name):
@@ -45,11 +92,8 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
             self.find_element(self.LOCATOR_EVENT_NAME)
         except TimeoutException:
             return False
-        names_elements = self.driver.find_elements(*self.LOCATOR_EVENT_NAME)
-        for name in names_elements:
-            self.driver.execute_script("arguments[0].scrollIntoView();", name)
-            exists_event_name = name.text
-            if exists_event_name == event_name:
+        for event in self.tasks_generator(names_only=True):
+            if event_name == event:
                 return True
         return False
 
@@ -118,28 +162,104 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
             NewEventModal.save_event(self)
             return completed_data
 
-    @BasePage.antistale
-    def check_event(self, name, start_date, end_date):
-        grid_data_locator = (By.XPATH, "//div[@class='gantt_grid_data']")
-        self.find_element(grid_data_locator)
-        event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{name}')]")
-        self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(event_locator))
-        aria_label = self.find_element(event_locator).get_attribute('aria-label')
-        aria_name = aria_label.split(' Start date: ')[0].split(' Task: ')[1]
-        aria_start = aria_label.split(' Start date: ')[1].split(' End date: ')[0].split('-')[::-1]
-        aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
-        assert aria_name == name
-        assert aria_start == start_date
-        assert aria_end == end_date
+    def tasks_generator(self, names_only=False):
+        last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
+        rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
+        prelast_row_locator = (By.XPATH, "(//div[contains(@class, 'gantt_row')])[last()-1]")
+        new_height = 0
+        stop_gen = False
+        try:
+            scrollbar = self.find_element((By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]"), time=5)
+            self.driver.execute_script("arguments[0].scrollTop = 0;", scrollbar)
+            time.sleep(5)
+        except TimeoutException:
+            pass
 
-    @BasePage.antistale
+        while not stop_gen:
+            try:
+                self.find_element(rows_locator, time=5)
+            except TimeoutException:
+                stop_gen = True
+                yield None
+
+            if not stop_gen:
+                time.sleep(3)
+                rows = self.driver.find_elements(*rows_locator)
+                for row in rows:
+                    if row.text != '' and '\n' in row.text:
+                        if names_only:
+                            row_text = row.text
+                            row_name = row_text.split('\n')[1]
+                            yield row_name
+                        else:
+                            yield row
+                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
+                try:
+                    scrollbar = self.find_element(scroll_area, time=2)
+                except TimeoutException:
+                    stop_gen = True
+
+            if not stop_gen:
+                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
+                scrollbar = self.find_element(scroll_area, time=2)
+                start_height = self.driver.execute_script("return arguments[0].clientHeight", scrollbar)
+                step = self.driver.execute_script("return arguments[0].clientHeight", self.find_element(last_row_locator))
+                total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
+                while True:
+                    if new_height + step + start_height >= total_height:
+                        self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, step)
+                        if names_only:
+                            last_row_text = self.get_element_text(last_row_locator)
+                            last_row_name = last_row_text.split('\n')[1]
+                            yield last_row_name
+                        else:
+                            yield self.find_element(last_row_locator)
+                        stop_gen = True
+                        break
+
+                    # Scroll down
+                    last_row = self.find_element(last_row_locator)
+                    self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, step)
+                    new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
+                    if new_height + step + start_height < total_height:
+                        try:
+                            self.wait_element_changing(last_row, last_row_locator, time=3)
+                        except TimeoutException:
+                            pass
+                        prelast_row = self.find_element(prelast_row_locator)
+                        #if prelast_row.text != '' and '\n' in prelast_row.text:
+                        if names_only:
+                            prelast_row_text = prelast_row.text
+                            name = prelast_row_text.split('\n')[1]
+                            yield name
+                        else:
+                            yield prelast_row
+
+    def check_event(self, name, start_date, end_date):
+        for event in self.tasks_generator():
+            if event.text.split('\n')[1] == name:
+                aria_label = event.get_attribute('aria-label')
+                aria_name = aria_label.split(' Start date: ')[0].split(' Task: ')[1]
+                aria_start = aria_label.split(' Start date: ')[1].split(' End date: ')[0].split('-')[::-1]
+                aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
+                assert aria_name == name
+                assert aria_start == start_date
+                assert aria_end == end_date
+                return True
+        raise AssertionError(f'Мероприятие "{name}" не найдено')
+
+
     def select_event(self, name):
-        grid_data_locator = (By.XPATH, "//div[@class='gantt_grid_data']")
-        self.find_element(grid_data_locator)
-        event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{name}')]")
-        self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(event_locator))
-        self.find_and_click(event_locator)
-        assert 'gantt_selected' in self.find_element(event_locator).get_attribute('class')
+        for event in self.tasks_generator():
+            try:
+                if event.text.split('\n')[1] == name:
+                    self.driver.execute_script("arguments[0].scrollIntoView();", event)
+                    event.click()
+                    # assert 'gantt_selected' in event.get_attribute('class')
+                    return True
+            except IndexError:
+                pass
+        raise AssertionError(f'Мероприятие "{name}" не найдено')
 
     def delete_event(self, name):
         with allure.step(f'Удалить мероприятие'):
@@ -150,17 +270,34 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
             event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{name}')]")
             assert self.is_element_disappearing(event_locator, wait_display=False), 'Мероприятие не исчезает после удаления'
 
-    @BasePage.antistale
-    def open_event(self, event_name):
-        grid_data_locator = (By.XPATH, "//div[@class='gantt_grid_data']")
-        self.find_element(grid_data_locator)
-        event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{event_name}')]")
-        action = ActionChains(self.driver)
-        self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(event_locator))
-        action.double_click(self.find_element(event_locator)).perform()
-        try:
-            assert self.get_title() == event_name
-        except TimeoutException:
-            self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(event_locator))
-            action.double_click(self.find_element(event_locator)).perform()
-            assert self.get_title() == event_name
+
+    def open_event(self, event_name, start_date=None, end_date=None):
+        names = []
+        for event in self.tasks_generator():
+            names.append(event.text)
+            try:
+                if event.text.split('\n')[1] == event_name:
+                    action = ActionChains(self.driver)
+                    self.driver.execute_script("arguments[0].scrollIntoView();", event)
+                    aria_label = event.get_attribute('aria-label')
+                    aria_name = aria_label.split(' Start date: ')[0].split(' Task: ')[1]
+                    assert aria_name == event_name
+                    if start_date:
+                        aria_start = aria_label.split(' Start date: ')[1].split(' End date: ')[0].split('-')[::-1]
+                        assert aria_start == start_date
+                    if end_date:
+                        aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
+                        assert aria_end == end_date
+                    action.double_click(event).perform()
+                    try:
+                        assert self.get_title() == event_name
+                        return True
+                    except TimeoutException:
+                        self.driver.execute_script("arguments[0].scrollIntoView();", event)
+                        action.double_click(event).perform()
+                        assert self.get_title() == event_name
+                        return True
+            except IndexError:
+                pass
+        return names
+        # raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')

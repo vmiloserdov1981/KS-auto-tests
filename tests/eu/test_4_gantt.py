@@ -7,6 +7,8 @@ from api.api import ApiEu
 from variables import PkmVars as Vars
 import users as user
 import allure
+import time
+from variables import PkmVars
 
 
 @allure.feature('Интерфейс КП')
@@ -66,11 +68,8 @@ def test_eu_create_gantt_event(driver_eu_login):
             'is_need_attention': False
         }
 
-    with allure.step(f'Проверить отображение мероприятия на Ганте'):
-        events_plan.check_event(plan_event_data.get('event_name'), plan_event_data.get('start_date'), plan_event_data.get('end_date'))
-
-    with allure.step(f'Открыть созданное мероприятие "{event_name}" на Ганте'):
-        events_plan.open_event(event_name)
+    with allure.step(f'Проверить созданное мероприятие "{event_name}" на Ганте и открыть его'):
+        events_plan.open_event(event_name, start_date=plan_event_data.get('start_date'), end_date=plan_event_data.get('end_date'))
 
     with allure.step(f'Проверить, что параметры созданного мероприятия "{event_name}" не изменились'):
         assert events_plan.get_event_data() == plan_event_data
@@ -78,11 +77,8 @@ def test_eu_create_gantt_event(driver_eu_login):
     with allure.step('Обновить страницу'):
         driver_eu_login.refresh()
 
-    with allure.step(f'Проверить отображение мероприятия на Ганте'):
-        events_plan.check_event(plan_event_data.get('event_name'), plan_event_data.get('start_date'), plan_event_data.get('end_date'))
-
-    with allure.step(f'Открыть созданное мероприятие "{event_name}" на Ганте'):
-        events_plan.open_event(event_name)
+    with allure.step(f'Проверить созданное мероприятие "{event_name}" на Ганте и открыть его'):
+        events_plan.open_event(event_name, start_date=plan_event_data.get('start_date'), end_date=plan_event_data.get('end_date'))
 
     with allure.step(f'Проверить, что параметры созданного мероприятия "{event_name}" не изменились'):
         assert events_plan.get_event_data() == plan_event_data
@@ -213,7 +209,7 @@ def test_eu_delete_gantt_event(driver_eu_login):
     with allure.step(f'Проверить, что при удалении мероприятия "{event_name}", у него удалились только даты и длительность'):
         assert events_plan.get_event_data() == deleted_event_data or events_plan.get_event_data() == deleted_event_data_2
         events_plan.find_and_click(events_plan.LOCATOR_CANCEL_BUTTON)
-
+    
     with allure.step(f'Выбрать версию плана "{versions[1]}"'):
         events_plan.set_version(versions[1])
 
@@ -398,6 +394,7 @@ def test_eu_modify_gantt_event(driver_eu_login):
     with allure.step(f'Проверить, что данные мероприятие "{event_name}" соответствуют указанным при редактировании'):
         assert event_modal.check_event(new_event_data_fact), f'Данные мероприятия "{event_name}" не соответствуют указанным при создании через API для версии "{versions[1]}"'
         event_modal.find_and_click(event_modal.LOCATOR_CANCEL_BUTTON)
+        time.sleep(PkmVars.PKM_USER_WAIT_TIME)
 
     with allure.step(f'Выбрать версию плана "{versions[0]}"'):
         events_plan.set_version(versions[0])

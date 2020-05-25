@@ -14,6 +14,10 @@ from datetime import date
 from datetime import timedelta
 
 
+
+
+
+
 class BasePage:
     LOCATOR_PAGE_TITLE_BLOCK = (By.XPATH, "//div[@class='page-title-container']//div[@class='title-value']")
     LOCATOR_TITLE_INPUT = (By.XPATH, "(//div[@class='page-title-container']//input)[1]")
@@ -42,6 +46,14 @@ class BasePage:
     def find_element(self, locator, time=10):
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),
                                                       message=f"Can't find element by locator {locator}")
+
+    def wait_dom_changing(self, dom, time=10):
+        return WebDriverWait(self.driver, time).until(DomChanged(dom),
+                                                      message=f"DOM hasn`t been changed")
+
+    def wait_element_changing(self, element, locator, time=10):
+        return WebDriverWait(self.driver, time).until(ElementChanged(element, locator),
+                                                      message=f"Element hasn`t been changed")
 
     def is_element_disappearing(self, locator, time=10, wait_display=True):
         if wait_display:
@@ -156,6 +168,30 @@ class BasePage:
     def get_input_value(self, input_locator):
         input_element = self.find_element(input_locator)
         return input_element.get_attribute('value')
+
+
+class DomChanged(object):
+    def __init__(self, dom):
+        self.dom = dom
+
+    def __call__(self, driver):
+        new_dom = driver.execute_script("return document.documentElement.outerHTML")
+        if self.dom != new_dom:
+            return True
+        else:
+            return False
+
+class ElementChanged(object):
+    def __init__(self, element, locator):
+        self.element = element
+        self.locator = locator
+
+    def __call__(self, driver):
+        new_element = driver.find_element(*self.locator)
+        if self.element != new_element:
+            return True
+        else:
+            return False
 
 
 class BaseApi:
