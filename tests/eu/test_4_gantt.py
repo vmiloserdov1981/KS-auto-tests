@@ -9,6 +9,7 @@ import users as user
 import allure
 import time
 from variables import PkmVars
+from selenium.common.exceptions import TimeoutException
 
 
 @allure.feature('Интерфейс КП')
@@ -419,4 +420,11 @@ def test_eu_modify_gantt_event(driver_eu_login):
         events_plan.open_event(event_name)
 
     with allure.step(f'Проверить, что мероприятие "{event_name}" пустое (указано только название мероприятия)'):
-        assert event_modal.check_event(empty_data), f'Мероприятие "{event_name}" не пустое в версии "{versions[2]}"'
+        try:
+            assert event_modal.check_event(empty_data), f'Мероприятие "{event_name}" не пустое в версии "{versions[2]}"'
+        except TimeoutException:
+            driver_eu_login.refresh()
+            time.sleep(PkmVars.PKM_USER_WAIT_TIME)
+            assert event_modal.check_event(empty_data), f'Мероприятие "{event_name}" не пустое в версии "{versions[2]}"'
+
+
