@@ -208,6 +208,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
                 while True:
                     if new_height + step + start_height >= total_height:
                         self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, step)
+                        self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(last_row_locator))
                         if names_only:
                             last_row_text = self.get_element_text(last_row_locator)
                             last_row_name = last_row_text.split('\n')[1]
@@ -227,6 +228,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
                         except TimeoutException:
                             pass
                         prelast_row = self.find_element(prelast_row_locator)
+                        self.driver.execute_script("arguments[0].scrollIntoView();", prelast_row)
                         #if prelast_row.text != '' and '\n' in prelast_row.text:
                         if names_only:
                             prelast_row_text = prelast_row.text
@@ -272,9 +274,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
 
 
     def open_event(self, event_name, start_date=None, end_date=None):
-        names = []
         for event in self.tasks_generator():
-            names.append(event.text)
             try:
                 if event.text.split('\n')[1] == event_name:
                     action = ActionChains(self.driver)
@@ -289,15 +289,8 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
                         aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
                         assert aria_end == end_date
                     action.double_click(event).perform()
-                    try:
-                        assert self.get_title() == event_name
-                        return True
-                    except TimeoutException:
-                        self.driver.execute_script("arguments[0].scrollIntoView();", event)
-                        action.double_click(event).perform()
-                        assert self.get_title() == event_name
-                        return True
+                    assert self.get_title() == event_name
+                    return True
             except IndexError:
                 pass
-        return names
-        # raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
+        raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')

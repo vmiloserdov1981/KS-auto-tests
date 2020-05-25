@@ -95,7 +95,7 @@ class NewEventModal(Calendar, BasePage):
     LOCATOR_CANCEL_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Отмена ']")
 
     def get_title(self):
-        title = self.get_element_text(self.LOCATOR_MODAL_TITLE)
+        title = self.get_element_text(self.LOCATOR_MODAL_TITLE, time=15)
         return title
 
     def fill_name(self, text):
