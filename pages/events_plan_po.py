@@ -1,5 +1,3 @@
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as ec
 from core import BasePage
 from pages.components.eu_header import EuHeader
 from selenium.webdriver.common.by import By
@@ -34,7 +32,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
             time.sleep(Vars.PKM_USER_WAIT_TIME)
 
     def get_event_names(self):
-        '''
+        """
         last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
         rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
         prelast_row_locator = (By.XPATH, "(//div[contains(@class, 'gantt_row')])[last()-1]")
@@ -83,7 +81,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
             name = prelast_row_text.split('\n')[1]
             names.append(name)
             new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
-        '''
+        """
         names = [event for event in self.tasks_generator(names_only=True)]
         return names
 
@@ -166,7 +164,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
     def tasks_generator(self, names_only=False):
         last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
         rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
-        prelast_row_locator = (By.XPATH, "(//div[contains(@class, 'gantt_row')])[last()-1]")
+        # prelast_row_locator = (By.XPATH, "(//div[contains(@class, 'gantt_row')])[last()-1]")
         new_height = 0
         stop_gen = False
         try:
@@ -197,7 +195,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
 
                 scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
                 try:
-                    scrollbar = self.find_element(scroll_area, time=2)
+                    self.find_element(scroll_area, time=2)
                 except TimeoutException:
                     stop_gen = True
 
@@ -209,6 +207,14 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
                 total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
                 while True:
                     if new_height + step + start_height >= total_height:
+                        self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, step)
+                        self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(last_row_locator))
+                        if names_only:
+                            last_row_text = self.get_element_text(last_row_locator)
+                            last_row_name = last_row_text.split('\n')[1]
+                            yield last_row_name
+                        else:
+                            yield self.find_element(last_row_locator)
                         stop_gen = True
                         break
 
@@ -223,7 +229,6 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
                             pass
                         last_row = self.find_element(last_row_locator)
                         self.driver.execute_script("arguments[0].scrollIntoView();", last_row)
-                        #if prelast_row.text != '' and '\n' in prelast_row.text:
                         if names_only:
                             last_row_text = last_row.text
                             name = last_row_text.split('\n')[1]
@@ -243,7 +248,6 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
                 assert aria_end == end_date
                 return True
         raise AssertionError(f'Мероприятие "{name}" не найдено')
-
 
     def select_event(self, name):
         for event in self.tasks_generator():
@@ -265,7 +269,6 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
         with allure.step(f'Проверить исчезание мероприятия после удаления'):
             event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{name}')]")
             assert self.is_element_disappearing(event_locator, wait_display=False), 'Мероприятие не исчезает после удаления'
-
 
     def open_event(self, event_name, start_date=None, end_date=None):
         for event in self.tasks_generator():

@@ -103,7 +103,7 @@ def test_eu_create_gantt_event(driver_eu_login):
     with allure.step(f'Проверить, что мероприятие "{event_name}" пустое'):
         assert events_plan.get_event_data() == empty_data
 
-'''
+
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Удаление мероприятия')
@@ -247,7 +247,6 @@ def test_eu_delete_gantt_event(driver_eu_login):
 
     with allure.step(f'Проверить, что мероприятие "{event_name}" пустое'):
         assert events_plan.get_event_data() == empty_data
-
 
 
 @allure.feature('Интерфейс КП')
@@ -427,4 +426,3 @@ def test_eu_modify_gantt_event(driver_eu_login):
             driver_eu_login.refresh()
             time.sleep(PkmVars.PKM_USER_WAIT_TIME)
             assert event_modal.check_event(empty_data), f'Мероприятие "{event_name}" не пустое в версии "{versions[2]}"'
-'''
