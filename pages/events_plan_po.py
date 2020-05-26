@@ -160,6 +160,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
                 NewEventModal.check_option(self, 'Требует повышенного внимания')
             completed_data = NewEventModal.get_event_data(self)
             NewEventModal.save_event(self)
+            time.sleep(Vars.PKM_API_WAIT_TIME)
             return completed_data
 
     def tasks_generator(self, names_only=False):
