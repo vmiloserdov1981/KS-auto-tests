@@ -253,7 +253,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
         for event in self.tasks_generator():
             try:
                 if event.text.split('\n')[1] == name:
-                    self.driver.execute_script("arguments[0].scrollIntoView();", event)
+                    # self.driver.execute_script("arguments[0].scrollIntoView();", event)
                     event.click()
                     # assert 'gantt_selected' in event.get_attribute('class')
                     return True
