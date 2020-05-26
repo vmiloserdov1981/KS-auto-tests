@@ -268,7 +268,7 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
             self.find_and_click(Modals.LOCATOR_ACCEPT_BUTTON)
         with allure.step(f'Проверить исчезание мероприятия после удаления'):
             event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{name}')]")
-            assert self.is_element_disappearing(event_locator, wait_display=False), 'Мероприятие не исчезает после удаления'
+            assert self.is_element_disappearing(event_locator, wait_display=False, time=15), 'Мероприятие не исчезает после удаления'
 
     def open_event(self, event_name, start_date=None, end_date=None):
         for event in self.tasks_generator():
