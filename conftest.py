@@ -34,9 +34,10 @@ def driver_init(maximize=True, impl_wait=3):
         driver = webdriver.Chrome(ChromeDriverManager().install())
     else:
         ip = os.getenv('SELENOID_IP', 'http://127.0.0.1:4444/wd/hub')
+        # ip = os.getenv('SELENOID_IP', 'http://10.10.20.39:4444/wd/hub')
         capabilities = {
             "browserName": "chrome",
-            "version": "81.0",
+            "version": "83.0",
             "enableVNC": True,
             "enableVideo": False
         }

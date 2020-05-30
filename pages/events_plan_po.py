@@ -1,5 +1,7 @@
 from core import BasePage
 from pages.components.eu_header import EuHeader
+from api.api import ApiEu
+from pages.components.eu_filter import EuFilter
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from pages.components.modals import NewEventModal
@@ -10,13 +12,20 @@ import time
 from variables import PkmVars as Vars
 
 
-class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
+class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
     LOCATOR_VERSION_INPUT = (By.XPATH, "//div[@class='controls-base-block']//input[contains(@class, 'dropdown-input')]")
     LOCATOR_VERSION_INPUT_VALUE = (By.XPATH, "//div[@class='controls-base-block']//div[@class='display-value-text']")
     LOCATOR_EVENT_NAME = (By.XPATH, "//div[contains(@class, 'gantt-indicator-name-value ')]")
     LOCATOR_LAST_EVENT_NAME = (By.XPATH, "(//div[contains(@class, 'gantt-indicator-name-value ')])[last()]")
     LOCATOR_ADD_EVENT_BUTTON = (By.XPATH, "//div[contains(@class, 'controls-base-block')]//fa-icon[@icon='plus']")
     LOCATOR_TRASH_ICON = (By.XPATH, "//div[@class='controls-base-block']//fa-icon[@icon='trash']")
+    LOCATOR_GANTT_DATA = (By.XPATH, "//div[@class='gantt_grid_data']")
+    LOCATOR_GANTT_LAST_ROW = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
+
+    def __init__(self, driver, login=None, password=None, token=None):
+        BasePage.__init__(self, driver)
+        ApiEu.__init__(self, login, password, token=token)
+
 
     def set_version(self, version_name):
         current_version = self.get_element_text(self.LOCATOR_VERSION_INPUT_VALUE)
@@ -339,3 +348,23 @@ class EventsPlan(NewEventModal, EuHeader, Modals, BasePage):
                 assert self.get_title() == event_name
                 return True
         raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
+
+    def check_plan_events(self, plan_uuid, version, login):
+
+        def anti_doublespacing(string):
+            if '  ' in string:
+                string_list = string.split(' ')
+                new_string_list = [elem for elem in string_list if elem != '']
+                string = ' '.join(new_string_list)
+                return string
+            else:
+                return string
+
+        api_events = []
+        for event in self.api_event_names_generator(version, plan_uuid, login):
+            api_events.append(anti_doublespacing(event))
+        self.switch_on_empty_events()
+        ui_events = [event for event in self.events_generator(names_only=True)]
+        assert self.compare_lists(api_events, ui_events), 'Мероприятия на диаграмме и в API не совпадают'
+
+

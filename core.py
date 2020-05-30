@@ -12,6 +12,7 @@ from datetime import datetime
 import time
 from datetime import date
 from datetime import timedelta
+import collections
 
 
 
@@ -47,7 +48,8 @@ class BasePage:
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),
                                                       message=f"Can't find element by locator {locator}")
 
-    def wait_dom_changing(self, dom, time=10):
+    def wait_dom_changing(self, time=10):
+        dom = self.driver.execute_script('return document.body')
         return WebDriverWait(self.driver, time).until(DomChanged(dom),
                                                       message=f"DOM hasn`t been changed")
 
@@ -169,6 +171,10 @@ class BasePage:
         input_element = self.find_element(input_locator)
         return input_element.get_attribute('value')
 
+    @staticmethod
+    def compare_lists(list_a, list_b):
+        return collections.Counter(list_a) == collections.Counter(list_b)
+
 
 class DomChanged(object):
     def __init__(self, dom):
@@ -181,6 +187,8 @@ class DomChanged(object):
         else:
             return False
 
+
+
 class ElementChanged(object):
     def __init__(self, element, locator):
         self.element = element
@@ -192,6 +200,9 @@ class ElementChanged(object):
             return True
         else:
             return False
+
+
+
 
 
 class BaseApi:
