@@ -147,21 +147,6 @@ def test_eu_delete_gantt_event(driver_eu_login):
         'is_need_attention': event_data.get('is_need_attention'),
     }
 
-    deleted_event_data_2 = {
-        'event_name': event_name,
-        'start_date': [''],
-        'duration': '',
-        'end_date': ['Invalid date'],
-        'event_type': event_data.get('event_type'),
-        'works_type': event_data.get('works_type'),
-        'plan': event_data.get('plan'),
-        'ready': event_data.get('ready'),
-        'comment': event_data.get('comment'),
-        'responsible': event_data.get('responsible'),
-        'is_cross_platform': event_data.get('is_cross_platform'),
-        'is_need_attention': event_data.get('is_need_attention'),
-    }
-
     empty_data = {
         'event_name': event_name,
         'start_date': [''],
@@ -208,7 +193,7 @@ def test_eu_delete_gantt_event(driver_eu_login):
         events_plan.open_event(event_name)
 
     with allure.step(f'Проверить, что при удалении мероприятия "{event_name}", у него удалились только даты и длительность'):
-        assert events_plan.get_event_data() == deleted_event_data or events_plan.get_event_data() == deleted_event_data_2
+        assert events_plan.get_event_data() == deleted_event_data
         events_plan.find_and_click(events_plan.LOCATOR_CANCEL_BUTTON)
     
     with allure.step(f'Выбрать версию плана "{versions[1]}"'):
