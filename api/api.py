@@ -1,5 +1,7 @@
 from core import BaseApi
 from variables import PkmVars as Vars
+import time
+import users
 
 
 class ApiClasses(BaseApi):
@@ -249,9 +251,23 @@ class ApiEu(BaseApi):
         request = self.post(f'{Vars.PKM_API_URL}access-control/set-role', self.token, payload)
         assert not request.get('error'), f'Ошибка при назначении роли "{Vars.PKM_ADMIN_ROLE_NAME}" пользователю'
 
-    def api_get_plans(self):
+    def api_get_plans(self, names_only=False):
         request = self.post(f'{Vars.PKM_API_URL}plans/get-list', self.token, {})
-        return request.get('data')
+        plans = request.get('data')
+        if names_only:
+            names = []
+            for plan in plans:
+                plan_name = plan.get('name')
+                names.append(plan_name)
+            return names
+        else:
+            return plans
+
+    def api_get_plan_by_uuid(self, plan_uuid):
+        plans = self.api_get_plans()
+        for plan in plans:
+            if plan.get('uuid') == plan_uuid:
+                return plan
 
     def api_get_k6_plans(self):
         k6_plans = []
@@ -688,6 +704,12 @@ class ApiEu(BaseApi):
             names.append(name)
         return names
 
+    def api_event_names_generator(self, version, plan_uuid, login):
+        gantt = self.api_get_gantt(version, plan_uuid, login)
+        tasks = gantt.get('data').get('tasks')
+        for task in tasks:
+            yield task.get('object').get('name')
+
     def api_create_unique_event_name(self, base_name, versions, plan_uuid, login, subname=None):
         events_list = []
         for version in versions:
@@ -705,3 +727,52 @@ class ApiEu(BaseApi):
             else:
                 new_name = "{0}_{1}_{2}".format(base_name, subname, count)
         return new_name
+
+    def api_create_plan(self, plan_data):
+        """
+        plan_data = {
+            'comment': 'test',
+            'name': 'name',
+            'planStart': '2020-05-28T00:00:00.000Z',
+            'planType': 14,
+            'responsibleUuid': '7989e70a-8a2a-11ea-bf82-02000a0a140c',
+            'sourceModelUuid': '01ea9444-bd74-9f28-5b11-00b15c0c400',
+            'sourceVersionUuid': '01ea9444-bd87-a506-c853-00b15c0c4000'
+        }
+        """
+        request = self.post(f'{Vars.PKM_API_URL}plans/create', self.token, plan_data)
+        assert not request.get('error'), f'Ошибка при создании версии'
+        assert request.get('uuid') is not None, 'Невозможно получить uuid созданного плана'
+        uuid = request.get('uuid')
+        time.sleep(Vars.PKM_API_WAIT_TIME*2)
+        plans = self.api_get_plans()
+        for plan in plans:
+            if plan.get('uuid') == uuid:
+                return plan
+        raise AssertionError(f'План "{plan_data}" не сохранился в системе')
+
+    def check_k6_plan_copy(self, k6_plan_comment, k6_plan_uuid):
+        copy_comment = f'{k6_plan_comment[3:]}-autotest_copy'
+        plans = self.api_get_plans()
+        for plan in plans:
+            if plan.get('settings').get('plan').get('comment') == copy_comment:
+                plan['is_new_created'] = False
+                return plan
+
+        today = self.get_utc_date()
+        start_date = f'{today[2]}-{today[1]}-{today[0]}T00:00:00.000Z'
+        version = self.api_get_version_uuid(k6_plan_uuid, 'Проект плана')
+        user = self.api_get_user_by_login(users.eu_user.login)
+        copied_plan_data = {
+            'comment': copy_comment,
+            'name': 'name',
+            'planStart': start_date,
+            'planType': 14,
+            'responsibleUuid': user.get('uuid'),
+            'sourceModelUuid': k6_plan_uuid,
+            'sourceVersionUuid': version
+        }
+        plan = self.api_create_plan(copied_plan_data)
+        plan['is_new_created'] = True
+        return plan
+

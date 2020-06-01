@@ -98,4 +98,4 @@ def test_pkm_logout(driver_login):
         login_page.check_page()
 
     with allure.step('Проверить отсутствие токена'):
-        assert login_page.get_local_token() is None, 'Неверный токен'
+        assert login_page.get_local_token() is None or login_page.get_local_token() == 'null', 'Неверный токен'
