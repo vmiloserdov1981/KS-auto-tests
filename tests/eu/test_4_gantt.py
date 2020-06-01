@@ -11,7 +11,7 @@ import time
 from variables import PkmVars
 from selenium.common.exceptions import TimeoutException
 
-
+'''
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Создание мероприятия')
@@ -411,3 +411,49 @@ def test_eu_modify_gantt_event(driver_eu_login):
             driver_eu_login.refresh()
             time.sleep(PkmVars.PKM_USER_WAIT_TIME)
             assert event_modal.check_event(empty_data), f'Мероприятие "{event_name}" не пустое в версии "{versions[2]}"'
+'''
+
+@allure.feature('Интерфейс КП')
+@allure.story('План мероприятий')
+@allure.title('Фильтр незаполненных мероприятий')
+@allure.severity(allure.severity_level.CRITICAL)
+def test_eu_unfilled_events_filter(driver_eu_login):
+    api = ApiEu(None, None, token=driver_eu_login.token)
+    header = EuHeader(driver_eu_login)
+    eu_filter = EuFilter(driver_eu_login)
+    k6_plan_comment = driver_eu_login.test_data.get('last_k6_plan').get('settings').get('plan').get('comment')
+    plan_registry_page = PlanRegistry(driver_eu_login)
+    events_plan = EventsPlan(driver_eu_login, token=driver_eu_login.token)
+    event_modal = NewEventModal(driver_eu_login)
+    plan_uuid = driver_eu_login.test_data.get('last_k6_plan').get('uuid')
+    login = user.system_user.login
+    versions = ('Проект плана', 'Факт', 'План потребности')
+    event_name = api.api_create_unique_event_name(Vars.PKM_BASE_EVENT_NAME, versions, plan_uuid, login, subname='Изменение')
+
+    events_plan.check_plan_events(plan_uuid, versions[0], login, get_deleted=False)
+    asy=56
+
+    with allure.step('Перейти на страницу "Реестр ИП"'):
+        header.navigate_to_page('Реестр интегрированных планов')
+
+    with allure.step(f'Посмотреть на плане мероприятий последний план, созданный в к6 (с комментарием "{k6_plan_comment}")'):
+        plan_registry_page.watch_plan_by_comment(k6_plan_comment)
+
+    with allure.step(f'Выбрать версию плана "{versions[0]}"'):
+        events_plan.set_version(versions[0])
+
+    with allure.step(f'Открыть созданное мероприятие "{event_name}" на Ганте'):
+        events_plan.open_event(event_name)
+
+    with allure.step(f'Проверить, что данные мероприятия "{event_name}" соответствуют указанным при создании через API для версии "{versions[0]}"'):
+        assert event_modal.check_event(created_event_data_plan), f'Данные мероприятия "{event_name}" не соответствуют указанным при создании через API для версии "{versions[0]}"'
+
+    with allure.step(f'Редактировать мероприятие "{event_name}" и сохранить его'):
+        new_event_data_plan = event_modal.modify_event(new_event_data_plan)
+
+    with allure.step(f'Открыть отредактированное мероприятие "{event_name}" на Ганте'):
+        events_plan.open_event(event_name)
+
+    with allure.step(f'Проверить, что данные мероприятие "{event_name}" соответствуют указанным при редактировании'):
+        assert event_modal.check_event(new_event_data_plan), f'Данные мероприятия "{event_name}" не соответствуют указанным при создании через API для версии "{versions[0]}"'
+        event_modal.find_and_click(event_modal.LOCATOR_CANCEL_BUTTON)
