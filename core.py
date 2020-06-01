@@ -15,10 +15,6 @@ from datetime import timedelta
 import collections
 
 
-
-
-
-
 class BasePage:
     LOCATOR_PAGE_TITLE_BLOCK = (By.XPATH, "//div[@class='page-title-container']//div[@class='title-value']")
     LOCATOR_TITLE_INPUT = (By.XPATH, "(//div[@class='page-title-container']//input)[1]")
@@ -53,8 +49,12 @@ class BasePage:
         return WebDriverWait(self.driver, time).until(DomChanged(dom),
                                                       message=f"DOM hasn`t been changed")
 
-    def wait_element_changing(self, element, locator, time=10):
-        return WebDriverWait(self.driver, time).until(ElementChanged(element, locator),
+    def wait_element_replacing(self, element, locator, time=10):
+        return WebDriverWait(self.driver, time).until(ElementReplaced(element, locator),
+                                                      message=f"Element hasn`t been replaced")
+
+    def wait_element_changing(self, html, locator, time=10):
+        return WebDriverWait(self.driver, time).until(ElementChanged(html, locator),
                                                       message=f"Element hasn`t been changed")
 
     def is_element_disappearing(self, locator, time=10, wait_display=True):
@@ -188,8 +188,7 @@ class DomChanged(object):
             return False
 
 
-
-class ElementChanged(object):
+class ElementReplaced(object):
     def __init__(self, element, locator):
         self.element = element
         self.locator = locator
@@ -202,7 +201,18 @@ class ElementChanged(object):
             return False
 
 
+class ElementChanged(object):
+    def __init__(self, html, locator):
+        self.html = html
+        self.locator = locator
 
+    def __call__(self, driver):
+        old_html = self.html
+        new_html = driver.find_element(*self.locator).get_attribute('innerHTML')
+        if old_html != new_html:
+            return True
+        else:
+            return False
 
 
 class BaseApi:

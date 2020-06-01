@@ -74,12 +74,12 @@ def test_eu_create_gantt_event(driver_eu_login):
             f'Выбрать план "{k6_plan_name}", в дропдауне выбора версий и проверить что активный план в списке ИП обновился'):
         star = plans_registry.find_element(plans_registry.LOCATOR_STAR)
         header.select_plan(plan_uuid=k6_plan_uuid, plan_name=k6_plan_name)
-        plans_registry.wait_element_changing(star, plans_registry.LOCATOR_STAR)
+        plans_registry.wait_element_replacing(star, plans_registry.LOCATOR_STAR)
         assert plans_registry.get_selected_plan().get('uuid') == k6_plan_uuid, 'Неверный план отображается выбранным'
 
     with allure.step(
             f'Выбрать план "{copy_name}", в дропдауне выбора версий и проверить что активный план в списке ИП обновился'):
         star = plans_registry.find_element(plans_registry.LOCATOR_STAR)
         header.select_plan(plan_uuid=copy_uuid, plan_name=copy_name)
-        plans_registry.wait_element_changing(star, plans_registry.LOCATOR_STAR)
+        plans_registry.wait_element_replacing(star, plans_registry.LOCATOR_STAR)
         assert plans_registry.get_selected_plan().get('uuid') == copy_uuid, 'Неверный план отображается выбранным'

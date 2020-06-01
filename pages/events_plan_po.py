@@ -171,7 +171,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                     self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, step)
                     new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
                     try:
-                        self.wait_element_changing(last_row, last_row_locator, time=3)
+                        self.wait_element_replacing(last_row, last_row_locator, time=3)
                     except TimeoutException:
                         pass
                     rows = self.driver.find_elements(*rows_locator)
@@ -202,7 +202,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                             self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar,
                                                        cell_height)
                             try:
-                                self.wait_element_changing(last_row, last_row_locator, time=3)
+                                self.wait_element_replacing(last_row, last_row_locator, time=3)
                             except TimeoutException:
                                 pass
                             new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
@@ -283,7 +283,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                     new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
                     if new_height + step + start_height < total_height:
                         try:
-                            self.wait_element_changing(last_row, last_row_locator, time=3)
+                            self.wait_element_replacing(last_row, last_row_locator, time=3)
                         except TimeoutException:
                             pass
                         last_row = self.find_element(last_row_locator)
