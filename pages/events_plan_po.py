@@ -26,9 +26,12 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         BasePage.__init__(self, driver)
         ApiEu.__init__(self, login, password, token=token)
 
-    def set_version(self, version_name):
+    def get_active_version_name(self):
         current_version = self.get_element_text(self.LOCATOR_VERSION_INPUT_VALUE)
-        if current_version == version_name:
+        return current_version
+
+    def set_version(self, version_name):
+        if self.get_active_version_name() == version_name:
             pass
         else:
             target_version = (By.XPATH, f"//div[@class='content' and text()=' {version_name} ']")
@@ -386,7 +389,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 api_events = self.api_get_event_names(version, plan_uuid, login, get_deleted=True)
             else:
                 api_events = self.api_get_event_names(version, plan_uuid, login, get_deleted=False)
-        ui_events = [event for event in self.events_generator(names_only=True)]
+        ui_events = [event for event in self.events_generator(names_only=True) if event is not None]
         assert self.compare_lists(api_events, ui_events), 'Мероприятия на диаграмме и в API не совпадают'
 
 

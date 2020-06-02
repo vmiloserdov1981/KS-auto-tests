@@ -700,9 +700,17 @@ class ApiEu(BaseApi):
             string_list = string.split(' ')
             new_string_list = [elem for elem in string_list if elem != '']
             string = ' '.join(new_string_list)
-            return string
-        else:
-            return string
+
+        if string[0] == ' ':
+            string = string[1:]
+
+        if string[len(string) - 1] == ' ':
+            string = string[:len(string) - 1]
+
+        return string
+
+
+
 
     def api_get_event_names(self, version, plan_uuid, login, deleleted_only=False, get_deleted=True):
         if deleleted_only:
