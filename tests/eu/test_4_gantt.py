@@ -11,7 +11,7 @@ import time
 from variables import PkmVars
 from selenium.common.exceptions import TimeoutException
 
-
+'''
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Создание мероприятия')
@@ -412,7 +412,7 @@ def test_eu_modify_gantt_event(driver_eu_login):
             time.sleep(PkmVars.PKM_USER_WAIT_TIME)
             assert event_modal.check_event(empty_data), f'Мероприятие "{event_name}" не пустое в версии "{versions[2]}"'
 
-
+'''
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Фильтр незаполненных мероприятий')
