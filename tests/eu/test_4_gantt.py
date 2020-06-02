@@ -504,7 +504,7 @@ def test_eu_unfilled_events_filter(driver_eu_login):
         filter_set = {
                     "unfilled_events_filter": {
                         'deleted_only': False,
-                        'get_deleted': True
+                        'get_deleted': False
                     },
                     "custom_relations_filter": {}
                 }

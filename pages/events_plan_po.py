@@ -390,6 +390,5 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
             else:
                 api_events = self.api_get_event_names(version, plan_uuid, login, get_deleted=False)
         ui_events = [event for event in self.events_generator(names_only=True) if event is not None]
-        assert self.compare_lists(api_events, ui_events), 'Мероприятия на диаграмме и в API не совпадают'
-
-
+        not_in_ui = [api_event for api_event in api_events if api_event not in ui_events]
+        assert self.compare_lists(api_events, ui_events), f'Мероприятия на диаграмме и в API не совпадают, в ui не отображаются мероприятия "{not_in_ui}"'
