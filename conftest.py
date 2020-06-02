@@ -39,7 +39,7 @@ def driver_init(maximize=True, impl_wait=3):
             "browserName": "chrome",
             "version": "83.0",
             "enableVNC": True,
-            "enableVideo": False
+            "enableVideo": True
         }
         driver = webdriver.Remote(
             command_executor=ip,
