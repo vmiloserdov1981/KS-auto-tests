@@ -52,14 +52,28 @@ def test_eu_create_gantt_event(driver_eu_login):
         events_plan.wait_dom_changing()
 
     with allure.step(f'Проверить что диаграмма Ганта отображается в соответствии с выбранной версией'):
-        events_plan.check_plan_events(k6_plan_uuid, 'Проект плана', login)
+        filter_set = {
+            "unfilled_events_filter": {
+                'deleted_only': events_plan.is_show_empty_events_only(),
+                'get_deleted': events_plan.is_show_empty_events()
+            },
+            "custom_relations_filter": {}
+        }
+        events_plan.check_plan_events(k6_plan_uuid, 'Проект плана', login, filter_set=filter_set)
 
     with allure.step(f'Выбрать план "{copy_name}", в дропдауне выбора версий'):
         header.select_plan(plan_uuid=copy_uuid, plan_name=copy_name)
         events_plan.wait_dom_changing()
 
     with allure.step(f'Проверить что диаграмма Ганта отображается в соответствии с выбранной версией'):
-        events_plan.check_plan_events(copy_uuid, 'Проект плана', login)
+        filter_set = {
+            "unfilled_events_filter": {
+                'deleted_only': events_plan.is_show_empty_events_only(),
+                'get_deleted': events_plan.is_show_empty_events()
+            },
+            "custom_relations_filter": {}
+        }
+        events_plan.check_plan_events(copy_uuid, 'Проект плана', login, filter_set=filter_set)
 
     with allure.step('Перейти на страницу "Реестр ИП"'):
         header.navigate_to_page('Реестр интегрированных планов')

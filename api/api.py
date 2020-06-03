@@ -695,20 +695,47 @@ class ApiEu(BaseApi):
         }
         return event_data
 
-    def api_get_event_names(self, version, plan_uuid, login):
-        names = []
-        gantt = self.api_get_gantt(version, plan_uuid, login)
-        tasks = gantt.get('data').get('tasks')
-        for task in tasks:
-            name = task.get('object').get('name')
-            names.append(name)
-        return names
+    def anti_doublespacing(self, string):
+        if '  ' in string:
+            string_list = string.split(' ')
+            new_string_list = [elem for elem in string_list if elem != '']
+            string = ' '.join(new_string_list)
 
-    def api_event_names_generator(self, version, plan_uuid, login):
+        if string[0] == ' ':
+            string = string[1:]
+
+        if string[len(string) - 1] == ' ':
+            string = string[:len(string) - 1]
+
+        return string
+
+
+
+
+    def api_get_event_names(self, version, plan_uuid, login, deleleted_only=False, get_deleted=True):
+        if deleleted_only:
+            return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, deleleted_only=True)]
+        else:
+            if get_deleted:
+                return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, get_deleted=True)]
+            else:
+                return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, get_deleted=False)]
+
+    def api_event_names_generator(self, version, plan_uuid, login, deleleted_only=False, get_deleted=True):
         gantt = self.api_get_gantt(version, plan_uuid, login)
         tasks = gantt.get('data').get('tasks')
-        for task in tasks:
-            yield task.get('object').get('name')
+        if deleleted_only:
+            for task in tasks:
+                if task.get('start') is None and task.get('end') is None:
+                    yield task.get('object').get('name')
+        else:
+            if get_deleted:
+                for task in tasks:
+                    yield task.get('object').get('name')
+            else:
+                for task in tasks:
+                    if task.get('start') is not None and task.get('end') is not None:
+                        yield task.get('object').get('name')
 
     def api_create_unique_event_name(self, base_name, versions, plan_uuid, login, subname=None):
         events_list = []

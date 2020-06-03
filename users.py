@@ -9,5 +9,5 @@ admin = PkmUsers('admin', 'admin', name='Администратор Не зап�
 invalid_pass_user = PkmUsers('admin', 'asdf')
 invalid_login_user = PkmUsers('asdf', 'admin')
 invalid_user = PkmUsers('asdf', 'asdf')
-eu_user = PkmUsers('eu_user', 'eu_user', name='Иванов Андрей')
+eu_user = PkmUsers('eu_user', 'Euuser01', name='Иванов Андрей')
 system_user = PkmUsers('system', None)

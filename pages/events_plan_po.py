@@ -26,10 +26,12 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         BasePage.__init__(self, driver)
         ApiEu.__init__(self, login, password, token=token)
 
+    def get_active_version_name(self):
+        current_version = self.get_element_text(self.LOCATOR_VERSION_INPUT_VALUE)
+        return current_version
 
     def set_version(self, version_name):
-        current_version = self.get_element_text(self.LOCATOR_VERSION_INPUT_VALUE)
-        if current_version == version_name:
+        if self.get_active_version_name() == version_name:
             pass
         else:
             target_version = (By.XPATH, f"//div[@class='content' and text()=' {version_name} ']")
@@ -349,22 +351,44 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 return True
         raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
 
-    def check_plan_events(self, plan_uuid, version, login):
+    def set_gantt_filter(self, filter_set):
+        """
+                        filter_set = {
+                            "unfilled_events_filter": {
+                                'deleted_only': False,
+                                'get_deleted': True
+                            },
+                            "custom_relations_filter": {}
+                        }
+        """
 
-        def anti_doublespacing(string):
-            if '  ' in string:
-                string_list = string.split(' ')
-                new_string_list = [elem for elem in string_list if elem != '']
-                string = ' '.join(new_string_list)
-                return string
+        if filter_set.get('unfilled_events_filter'):
+            pass
+
+    def check_plan_events(self, plan_uuid, version, login, filter_set=None):
+        """
+                filter_set = {
+                    "unfilled_events_filter": {
+                        'deleted_only': False,
+                        'get_deleted': True
+                    },
+                    "custom_relations_filter": {}
+                }
+                """
+
+        if filter_set is None:
+            filter_set = {}
+
+        deleted_only = filter_set.get('unfilled_events_filter').get('deleted_only')
+        get_deleted = filter_set.get('unfilled_events_filter').get('get_deleted')
+
+        if deleted_only:
+            api_events = self.api_get_event_names(version, plan_uuid, login, deleleted_only=True)
+        else:
+            if get_deleted:
+                api_events = self.api_get_event_names(version, plan_uuid, login, get_deleted=True)
             else:
-                return string
-
-        api_events = []
-        for event in self.api_event_names_generator(version, plan_uuid, login):
-            api_events.append(anti_doublespacing(event))
-        self.switch_on_empty_events()
-        ui_events = [event for event in self.events_generator(names_only=True)]
-        assert self.compare_lists(api_events, ui_events), 'Мероприятия на диаграмме и в API не совпадают'
-
-
+                api_events = self.api_get_event_names(version, plan_uuid, login, get_deleted=False)
+        ui_events = [event for event in self.events_generator(names_only=True) if event is not None]
+        not_in_ui = [api_event for api_event in api_events if api_event not in ui_events]
+        assert self.compare_lists(api_events, ui_events), f'Мероприятия на диаграмме и в API не совпадают, в ui не отображаются мероприятия "{not_in_ui}"'
