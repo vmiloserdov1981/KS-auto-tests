@@ -350,7 +350,12 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                     aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
                     assert aria_end == end_date
                 action.double_click(event).perform()
-                assert self.get_title() == event_name
+                try:
+                    title = self.get_title()
+                except TimeoutException:
+                    action.double_click(event).perform()
+                    title = self.get_title()
+                assert title == event_name
                 return True
         raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
 

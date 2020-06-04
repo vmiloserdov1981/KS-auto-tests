@@ -85,11 +85,11 @@ class Calendar(BasePage, BaseApi):
 
 class NewEventModal(Calendar, BasePage):
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[@class='modal-window-title']//div[@class='title-text']")
-    LOCATOR_START_DATE_FIELD = (By.XPATH, "//label[text()='Дата начала*']//..//input")
+    LOCATOR_START_DATE_FIELD = (By.XPATH, "//*[contains (text(), 'Дата начала*')]//..//input")
     LOCATOR_EVENT_NAME_FIELD = (By.XPATH, "//input[@id='title']")
-    LOCATOR_EVENT_START_DATE_FIELD = (By.XPATH, f"//div[text()=' Дата начала* ']//..//input[contains(@class,'datepicker-input')]")
-    LOCATOR_EVENT_END_DATE_FIELD = (By.XPATH, f"//div[text()=' Дата окончания ']//..//input[contains(@id,'end-date')]")
-    LOCATOR_EVENT_DURATION_FIELD = (By.XPATH, f"//div[text()=' Длительность* ']//..//input[contains(@id,'duration-period')]")
+    LOCATOR_EVENT_START_DATE_FIELD = (By.XPATH, f"//*[contains(text(), 'Дата начала*')]//..//input[contains(@class,'datepicker-input')]")
+    LOCATOR_EVENT_END_DATE_FIELD = (By.XPATH, f"//*[contains(text(), 'Дата окончания')]//..//input[contains(@id,'end-date')]")
+    LOCATOR_EVENT_DURATION_FIELD = (By.XPATH, f"//*[contains(text(), 'Длительность*')]//..//input[contains(@id,'duration-period')]")
     LOCATOR_NEXT_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Дальше ']")
     LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Сохранить ']")
     LOCATOR_CANCEL_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Отмена ']")
