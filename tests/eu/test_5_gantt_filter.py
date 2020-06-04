@@ -6,6 +6,7 @@ from variables import PkmVars as Vars
 import users as user
 import allure
 import time
+from selenium.common.exceptions import TimeoutException
 
 
 @allure.feature('Интерфейс КП')
@@ -49,6 +50,7 @@ def test_eu_unfilled_events_filter(driver_eu_login):
         events_plan.check_plan_events(plan_uuid, versions[0], login, filter_set=filter_set)
 
     with allure.step('Включить отображение только незаполненных мероприятий'):
+        events_plan.scroll_to_gantt_top()
         eu_filter.switch_on_empty_only_events()
 
     with allure.step('Проверить что на диаграме отображаются только незаполненные мероприятия плана'):
@@ -126,6 +128,7 @@ def test_eu_unfilled_events_filter(driver_eu_login):
         events_plan.check_plan_events(plan_uuid, versions[1], login, filter_set=filter_set)
 
     with allure.step('Включить отображение только незаполненных мероприятий'):
+        events_plan.scroll_to_gantt_top()
         eu_filter.switch_on_empty_only_events()
 
     with allure.step('Проверить что на диаграме отображаются только незаполненные мероприятия плана'):
