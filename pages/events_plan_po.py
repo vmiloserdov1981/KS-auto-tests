@@ -125,16 +125,16 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
 
     def events_generator(self, names_only=False):
         # перебирает мероприятия поэкранно, стабильный
+
         last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
         rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
         stop_gen = False
-        try:
-            scrollbar = self.find_element((By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]"), time=5)
-            self.driver.execute_script("arguments[0].scrollTop = 0;", scrollbar)
-            time.sleep(5)
-        except TimeoutException:
-            pass
 
+        # скролл в начало диаграммы
+        self.scroll_to_gantt_top()
+        time.sleep(5)
+
+        # Перебор мероприятий
         while not stop_gen:
             try:
                 self.find_element(rows_locator, time=5)
@@ -371,6 +371,12 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         """
 
         if filter_set.get('unfilled_events_filter'):
+            pass
+
+    def scroll_to_gantt_top(self):
+        try:
+            self.driver.execute_script("arguments[0].scrollTop = 0;", self.find_element(self.LOCATOR_GANTT_SCROLL, time=3))
+        except TimeoutException:
             pass
 
     def check_plan_events(self, plan_uuid, version, login, filter_set=None):
