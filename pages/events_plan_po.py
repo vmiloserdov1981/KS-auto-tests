@@ -21,6 +21,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
     LOCATOR_TRASH_ICON = (By.XPATH, "//div[@class='controls-base-block']//fa-icon[@icon='trash']")
     LOCATOR_GANTT_DATA = (By.XPATH, "//div[@class='gantt_grid_data']")
     LOCATOR_GANTT_LAST_ROW = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
+    LOCATOR_GANTT_SCROLL = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
 
     def __init__(self, driver, login=None, password=None, token=None):
         BasePage.__init__(self, driver)
@@ -164,29 +165,12 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
                 scrollbar = self.find_element(scroll_area, time=2)
                 start_height = self.driver.execute_script("return arguments[0].clientHeight", scrollbar)
-                cell_height = self.driver.execute_script("return arguments[0].clientHeight", self.find_element(last_row_locator))
+                cell_height = self.driver.execute_script("return arguments[0].clientHeight",
+                                                         self.find_element(last_row_locator))
                 step = ((start_height // cell_height) + 0) * cell_height
                 total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
+                new_height = 0
                 while True:
-                    # Scroll down
-                    last_row = self.find_element(last_row_locator)
-                    self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, step)
-                    new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
-                    try:
-                        self.wait_element_replacing(last_row, last_row_locator, time=3)
-                    except TimeoutException:
-                        pass
-                    rows = self.driver.find_elements(*rows_locator)
-                    for row in rows:
-                        if '\n' in row.text:
-                            # self.driver.execute_script("arguments[0].scrollIntoView();", row)
-                            if names_only:
-                                row_text = row.text
-                                row_name = row_text.split('\n')[1]
-                                yield row_name
-                            else:
-                                yield row
-
                     # last screen actions
                     if new_height + step + start_height >= total_height:
                         self.driver.execute_script("arguments[0].scrollIntoView();",
@@ -218,6 +202,25 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                                 yield self.find_element(last_row_locator)
                         stop_gen = True
                         break
+
+                    # Scroll down
+                    last_row = self.find_element(last_row_locator)
+                    self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, step)
+                    new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
+                    try:
+                        self.wait_element_replacing(last_row, last_row_locator, time=3)
+                    except TimeoutException:
+                        pass
+                    rows = self.driver.find_elements(*rows_locator)
+                    for row in rows:
+                        if '\n' in row.text:
+                            # self.driver.execute_script("arguments[0].scrollIntoView();", row)
+                            if names_only:
+                                row_text = row.text
+                                row_name = row_text.split('\n')[1]
+                                yield row_name
+                            else:
+                                yield row
 
     def events_generator_rows(self, names_only=False):
         # перебирает мероприятия построчно, первый вариант
