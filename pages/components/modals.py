@@ -86,7 +86,7 @@ class Calendar(BasePage, BaseApi):
 class NewEventModal(Calendar, BasePage):
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[@class='modal-window-title']//div[@class='title-text']")
     LOCATOR_START_DATE_FIELD = (By.XPATH, "//label[text()='Дата начала*']//..//input")
-    LOCATOR_EVENT_NAME_FIELD = (By.XPATH, f"input[@id='title']")
+    LOCATOR_EVENT_NAME_FIELD = (By.XPATH, "//input[@id='title']")
     LOCATOR_EVENT_START_DATE_FIELD = (By.XPATH, f"//label[text()='Дата начала*']//..//input[contains(@class,'datepicker-input')]")
     LOCATOR_EVENT_END_DATE_FIELD = (By.XPATH, f"//label[text()='Дата окончания']//..//input[contains(@id,'end-date')]")
     LOCATOR_EVENT_DURATION_FIELD = (By.XPATH, f"//label[text()='Длительность*']//..//input[contains(@id,'duration-period')]")
