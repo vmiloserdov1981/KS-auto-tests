@@ -709,9 +709,6 @@ class ApiEu(BaseApi):
 
         return string
 
-
-
-
     def api_get_event_names(self, version, plan_uuid, login, deleleted_only=False, get_deleted=True):
         if deleleted_only:
             return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, deleleted_only=True)]
@@ -720,6 +717,21 @@ class ApiEu(BaseApi):
                 return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, get_deleted=True)]
             else:
                 return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, get_deleted=False)]
+
+    def api_get_events(self, version, plan_uuid, login, filter_set=None, names_only=True, anti_doublespacing=True):
+        events = []
+        for event in self.api_events_generator(version, plan_uuid, login):
+            if filter_set:
+                pass
+            if names_only:
+                if anti_doublespacing:
+                    pass
+                else:
+                    pass
+            else:
+                pass
+        return events
+
 
     def api_event_names_generator(self, version, plan_uuid, login, deleleted_only=False, get_deleted=True):
         gantt = self.api_get_gantt(version, plan_uuid, login)
@@ -736,6 +748,12 @@ class ApiEu(BaseApi):
                 for task in tasks:
                     if task.get('start') is not None and task.get('end') is not None:
                         yield task.get('object').get('name')
+
+    def api_events_generator(self, version, plan_uuid, login):
+        gantt = self.api_get_gantt(version, plan_uuid, login)
+        tasks = gantt.get('data').get('tasks')
+        for task in tasks:
+            yield task
 
     def api_create_unique_event_name(self, base_name, versions, plan_uuid, login, subname=None):
         events_list = []
@@ -802,4 +820,40 @@ class ApiEu(BaseApi):
         plan = self.api_create_plan(copied_plan_data)
         plan['is_new_created'] = True
         return plan
+
+    def get_object(self, object_uuid):
+        payload = {
+            'uuids': [object_uuid]
+        }
+        pkm_objects = self.post(f'{Vars.PKM_API_URL}objects/get', self.token, payload).get('data')
+        for pkm_object in pkm_objects:
+            if pkm_object.get('uuid') == object_uuid:
+                return pkm_object
+        return None
+
+    def api_get_custom_relation_objects(self, gantt, custom_relation_name):
+        custom_relations = gantt.get('data').get('relations').get('customRelations')
+        relation = {}
+        for relation in custom_relations:
+            if relation.get('name') == custom_relation_name:
+                break
+        relation_objects = relation.get('relatedObjects')
+        return relation_objects
+
+    def api_get_custom_relation_value(self, gantt, custom_relation_name, task_object_uuid):
+        custom_relations_objects = self.api_get_custom_relation_objects(gantt, custom_relation_name)
+        value_object_uuid = None
+        for related_object in custom_relations_objects:
+            if related_object.get('destinationObjectUuid') == task_object_uuid:
+                value_object_uuid = related_object.get('sourceObjectUuid')
+                break
+            elif related_object.get('sourceObjectUuid') == task_object_uuid:
+                value_object_uuid = related_object.get('destinationObjectUuid')
+                break
+        if value_object_uuid:
+            value_object = self.get_object(value_object_uuid)
+            value_name = value_object.get('name')
+            return value_name
+        else:
+            return None
 
