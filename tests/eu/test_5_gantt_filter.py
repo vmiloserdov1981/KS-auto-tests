@@ -128,7 +128,7 @@ def test_eu_unfilled_events_filter(driver_eu_login):
 
     with allure.step('Включить отображение только незаполненных мероприятий'):
         try:
-            driver_eu_login.execute_script("arguments[0].scrollTop = 0;", events_plan.find_element(events_plan.LOCATOR_GANTT_SCROLL), time=3)
+            driver_eu_login.execute_script("arguments[0].scrollTop = 0;", events_plan.find_element(events_plan.LOCATOR_GANTT_SCROLL, time=3))
         except TimeoutException:
             pass
         eu_filter.switch_on_empty_only_events()
