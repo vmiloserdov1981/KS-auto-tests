@@ -28,7 +28,7 @@ def test_eu_unfilled_events_filter(driver_eu_login):
 
     with allure.step(f'Посмотреть на плане мероприятий последний план, созданный в к6 (с комментарием "{k6_plan_comment}")'):
         plan_registry_page.watch_plan_by_comment(k6_plan_comment)
-    '''
+
     with allure.step(f'Выбрать версию плана "{versions[0]}"'):
         events_plan.set_version(versions[0])
 
@@ -105,7 +105,7 @@ def test_eu_unfilled_events_filter(driver_eu_login):
                     "custom_relations_filter": {}
                 }
         events_plan.check_plan_events(plan_uuid, versions[0], login, filter_set=filter_set)
-    '''
+
     with allure.step(f'Выбрать версию плана "{versions[1]}"'):
         events_plan.set_version(versions[1])
 
