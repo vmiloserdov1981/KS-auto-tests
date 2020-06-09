@@ -198,7 +198,26 @@ def test_eu_unfilled_events_filter(driver_eu_login):
     plan_uuid = driver_eu_login.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт')
-    gantt = events_plan.api_get_gantt('Проект плана', plan_uuid, login)
+
+    filter_set = {
+        "unfilled_events_filter": {
+            'Только незаполненные мероприятия': False,
+            'Отображать незаполненные мероприятия': True
+        },
+        "custom_fields_filter": {
+            'Тип одновременных работ': ['(пусто)'],
+            'Готовность': ['Не будет выполнено', 'Выполнено'],
+            'Тип работ': ['ТОРО', 'Текущая'],
+
+        },
+        "custom_relations_filter": {
+            'Персонал': ['(пусто)'],
+            'Зона': ['0 D1L5 8u1'],
+            'Риски': ['0 Риск 2 8u1', '0 Риск 1 8u1'],
+        }
+
+    }
+    events = events_plan.api_get_events(versions[0], plan_uuid, login, filter_set=filter_set)
 
     '''
     with allure.step('Перейти на страницу "Реестр ИП"'):
@@ -206,17 +225,13 @@ def test_eu_unfilled_events_filter(driver_eu_login):
 
     with allure.step(f'Посмотреть на плане мероприятий последний план, созданный в к6 (с комментарием "{k6_plan_comment}")'):
         plan_registry_page.watch_plan_by_comment(k6_plan_comment)
-
+    '''
     with allure.step(f'Выбрать версию плана "{versions[0]}"'):
         events_plan.set_version(versions[0])
 
-    with allure.step('Проерить, что отображение незаполненных мероприятий отключено'):
-        assert not eu_filter.is_show_empty_events(), 'Отображение незаполненных мероприятий включено'
-        assert not eu_filter.is_show_empty_events_only(), 'Отображение только незаполненных мероприятий включено'
+    events_plan.set_gantt_filters(filter_set)
+    events_ui = events_plan.get_event_names()
+    events_plan.compare_lists(events, events_ui)
+    True
 
-    with allure.step('Включить отображение незаполненных мероприятий'):
-        eu_filter.switch_on_empty_events()
-    '''
 
-    value = events_plan.api_get_custom_relation_value(gantt, 'Зона', '01eaa4b0-99d1-e480-a1d3-00b15c0c4000')
-    pass
