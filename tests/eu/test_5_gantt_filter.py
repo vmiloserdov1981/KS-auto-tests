@@ -202,7 +202,8 @@ def test_eu_unfilled_events_filter(driver_eu_login):
     filter_set = {
         "unfilled_events_filter": {
             'Только незаполненные мероприятия': False,
-            'Отображать незаполненные мероприятия': True
+            'Отображать незаполненные мероприятия': True,
+            'Скрывать мероприятия при фильтрации': True
         },
         "custom_fields_filter": {
             'Тип одновременных работ': ['(пусто)'],
@@ -231,7 +232,6 @@ def test_eu_unfilled_events_filter(driver_eu_login):
 
     events_plan.set_gantt_filters(filter_set)
     events_ui = events_plan.get_event_names()
-    events_plan.compare_lists(events, events_ui)
-    True
+    assert events_plan.compare_lists(events, events_ui)
 
 

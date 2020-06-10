@@ -359,57 +359,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 return True
         raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
 
-    def set_gantt_filters(self, filter_set):
-        """
-        filter_set = {
-            "unfilled_events_filter": {
-                'Только незаполненные мероприятия': False,
-                'Отображать незаполненные мероприятия': True
-            },
-            "custom_fields_filter": {
-                'Тип одновременных работ': [],
-                'Функциональный план': [],
-                'Готовность': [],
-                'Тип работ': [],
 
-            },
-            "custom_relations_filter": {
-                'Персонал': [],
-                'Зона': [],
-                'Влияние на показатели': [],
-                'Риски': [],
-                'События для ИМ': []
-            }
-
-        }
-        """
-
-        if filter_set.get('unfilled_events_filter'):
-            if filter_set.get('unfilled_events_filter').get('Отображать незаполненные мероприятия') is True:
-                self.switch_on_empty_events()
-            elif filter_set.get('unfilled_events_filter').get('Отображать незаполненные мероприятия') is False:
-                self.switch_off_empty_events()
-
-            if filter_set.get('unfilled_events_filter').get('Только незаполненные мероприятия') is True:
-                self.switch_on_empty_only_events()
-            elif filter_set.get('unfilled_events_filter').get('Только незаполненные мероприятия') is False:
-                self.switch_off_empty_only_events()
-
-        if filter_set.get('custom_fields_filter'):
-            for field in filter_set.get('custom_fields_filter'):
-                if field == 'Тип работ':
-                    field = 'Тип мероприятия'
-                values = filter_set.get('custom_fields_filter').get(field)
-                if values:
-                    self.clear_filter_values(field)
-                    self.set_filter(field, values)
-
-        if filter_set.get('custom_relations_filter'):
-            for field in filter_set.get('custom_relations_filter'):
-                values = filter_set.get('custom_relations_filter').get(field)
-                if values:
-                    self.clear_filter_values(field)
-                    self.set_filter(field, values)
 
     def scroll_to_gantt_top(self):
         try:

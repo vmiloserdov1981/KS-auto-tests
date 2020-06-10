@@ -8,6 +8,8 @@ from selenium.common.exceptions import TimeoutException
 class EuFilter(BasePage):
     LOCATOR_SHOW_EMPTY_EVENTS_TOGGLE = (By.XPATH, "//div[@class='slide-content' and text()=' Отображать незаполненные мероприятия ']//preceding-sibling::div[contains(@class, 'slide')]")
     LOCATOR_SHOW_EMPTY_EVENTS_ONLY_TOGGLE = (By.XPATH, "//div[@class='slide-content' and text()=' Только незаполненные мероприятия ']//preceding-sibling::div[contains(@class, 'slide')]")
+    LOCATOR_HIDE_EVENTS_TOGGLE = (By.XPATH, "//div[@class='slide-content' and text()=' Скрывать мероприятия при фильтрации ']//preceding-sibling::div[contains(@class, 'slide')]")
+
 
     def is_show_empty_events(self):
         toggle = self.find_element(self.LOCATOR_SHOW_EMPTY_EVENTS_TOGGLE)
@@ -18,6 +20,13 @@ class EuFilter(BasePage):
 
     def is_show_empty_events_only(self):
         toggle = self.find_element(self.LOCATOR_SHOW_EMPTY_EVENTS_ONLY_TOGGLE)
+        if 'slide-selected' in toggle.get_attribute('class'):
+            return True
+        else:
+            return False
+
+    def is_hide_events(self):
+        toggle = self.find_element(self.LOCATOR_HIDE_EVENTS_TOGGLE)
         if 'slide-selected' in toggle.get_attribute('class'):
             return True
         else:
@@ -47,6 +56,20 @@ class EuFilter(BasePage):
     def switch_off_empty_only_events(self):
         if self.is_show_empty_events_only():
             self.find_and_click(self.LOCATOR_SHOW_EMPTY_EVENTS_ONLY_TOGGLE)
+            # time.sleep(Vars.PKM_USER_WAIT_TIME)
+        else:
+            pass
+
+    def switch_on_events_hiding(self):
+        if self.is_hide_events():
+            pass
+        else:
+            self.find_and_click(self.LOCATOR_HIDE_EVENTS_TOGGLE)
+            # time.sleep(Vars.PKM_USER_WAIT_TIME)
+
+    def switch_off_events_hiding(self):
+        if self.is_hide_events():
+            self.find_and_click(self.LOCATOR_HIDE_EVENTS_TOGGLE)
             # time.sleep(Vars.PKM_USER_WAIT_TIME)
         else:
             pass
@@ -91,7 +114,7 @@ class EuFilter(BasePage):
         self.click_filter_dropdown(filter_name)
 
     def is_filter_value_checked(self, value_name):
-        dropdown_item_locator = (By.XPATH, f"//div[@class='content' and text()=' {value_name} ']//..")
+        dropdown_item_locator = (By.XPATH, f"//div[@class='multiple-dropdown-content' and text()=' {value_name} ']//..")
         item = self.find_element(dropdown_item_locator)
         if 'selected' in item.get_attribute('class'):
             return True
@@ -99,7 +122,7 @@ class EuFilter(BasePage):
             return False
 
     def check_value(self, value_name):
-        dropdown_item_locator = (By.XPATH, f"//div[@class='content' and text()=' {value_name} ']//..")
+        dropdown_item_locator = (By.XPATH, f"//div[@class='multiple-dropdown-content' and text()=' {value_name} ']//..")
         if not self.is_filter_value_checked(value_name):
             self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(dropdown_item_locator))
             self.find_and_click(dropdown_item_locator)
@@ -107,13 +130,73 @@ class EuFilter(BasePage):
             pass
 
     def uncheck_value(self, value_name):
-        dropdown_item_locator = (By.XPATH, f"//div[@class='content' and text()=' {value_name} ']//..")
+        dropdown_item_locator = (By.XPATH, f"//div[@class='multiple-dropdown-content' and text()=' {value_name} ']//..")
         if self.is_filter_value_checked(value_name):
             self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(dropdown_item_locator))
             self.find_and_click(dropdown_item_locator)
         else:
             pass
 
+    def set_gantt_filters(self, filter_set):
+        """
+        filter_set = {
+            "unfilled_events_filter": {
+                'Только незаполненные мероприятия': False,
+                'Отображать незаполненные мероприятия': True,
+                'Скрывать мероприятия при фильтрации': True
+            },
+            "custom_fields_filter": {
+                'Тип одновременных работ': [],
+                'Функциональный план': [],
+                'Готовность': [],
+                'Тип работ': [],
+
+            },
+            "custom_relations_filter": {
+                'Персонал': [],
+                'Зона': [],
+                'Влияние на показатели': [],
+                'Риски': [],
+                'События для ИМ': []
+            }
+
+        }
+        """
+
+        if filter_set.get('unfilled_events_filter'):
+            if filter_set.get('unfilled_events_filter').get('Отображать незаполненные мероприятия') is True:
+                self.switch_on_empty_events()
+            elif filter_set.get('unfilled_events_filter').get('Отображать незаполненные мероприятия') is False:
+                self.switch_off_empty_events()
+
+            if filter_set.get('unfilled_events_filter').get('Только незаполненные мероприятия') is True:
+                self.switch_on_empty_only_events()
+            elif filter_set.get('unfilled_events_filter').get('Только незаполненные мероприятия') is False:
+                self.switch_off_empty_only_events()
+
+            if filter_set.get('unfilled_events_filter').get('Скрывать мероприятия при фильтрации') is True:
+                self.switch_on_events_hiding()
+            elif filter_set.get('unfilled_events_filter').get('Скрывать мероприятия при фильтрации') is False:
+                self.switch_off_events_hiding()
+
+        if filter_set.get('custom_fields_filter'):
+            for field in filter_set.get('custom_fields_filter'):
+                if field == 'Тип работ':
+                    field = 'Тип мероприятия'
+                values = filter_set.get('custom_fields_filter').get(field)
+                if values:
+                    self.clear_filter_values(field)
+                    self.set_filter(field, values)
+
+        if filter_set.get('custom_relations_filter'):
+            for field in filter_set.get('custom_relations_filter'):
+                values = filter_set.get('custom_relations_filter').get(field)
+                if values:
+                    self.clear_filter_values(field)
+                    self.set_filter(field, values)
+
+    def reset_filters(self):
+        pass
 
 
 
