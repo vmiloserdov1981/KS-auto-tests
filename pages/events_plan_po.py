@@ -367,17 +367,51 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         except TimeoutException:
             pass
 
-    def check_plan_events(self, plan_uuid, version, login, filter_set=None):
+    def check_plan_events(self, plan_uuid, version, login, filter_set):
         """
-                filter_set = {
-                    "unfilled_events_filter": {
-                        'deleted_only': False,
-                        'get_deleted': True
-                    },
-                    "custom_relations_filter": {}
-                }
-                """
+        filter_set = {
+            "unfilled_events_filter": {
+                'Только незаполненные мероприятия': False,
+                'Отображать незаполненные мероприятия': True,
+                'Скрывать мероприятия при фильтрации': True
+            },
+            "custom_fields_filter": {
+                'Тип одновременных работ': [],
+                'Функциональный план': [],
+                'Готовность': [],
+                'Тип работ': [],
 
+            },
+            "custom_relations_filter": {
+                'Персонал': [],
+                'Зона': [],
+                'Влияние на показатели': [],
+                'Риски': [],
+                'События для ИМ': []
+            }
+
+        }
+        """
+        if filter_set.get('unfilled_events_filter').get('Скрывать мероприятия при фильтрации') is False:
+            all_api_events = self.api_get_events(version, plan_uuid, login)
+            filtered_api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set)
+            ui_events = []
+            for event in self.events_generator():
+                event_name = event.text.split('\n')[1]
+                assert event_name in all_api_events
+                if event_name in all_api_events and event_name in filtered_api_events:
+                    assert 'filter-hide' not in event.get_attribute('class')
+                elif event_name in all_api_events and event_name not in filtered_api_events:
+                    assert 'filter-hide' in event.get_attribute('class')
+                ui_events.append(event_name)
+            assert self.compare_lists(all_api_events, ui_events)
+
+        else:
+            api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set)
+            ui_events = [event for event in self.events_generator(names_only=True)]
+            assert self.compare_lists(api_events, ui_events)
+
+        '''
         if filter_set is None:
             filter_set = {}
 
@@ -394,3 +428,4 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         ui_events = [event for event in self.events_generator(names_only=True) if event is not None]
         not_in_ui = [api_event for api_event in api_events if api_event not in ui_events]
         assert self.compare_lists(api_events, ui_events), f'Мероприятия на диаграмме и в API не совпадают, в ui не отображаются мероприятия "{not_in_ui}"'
+        '''

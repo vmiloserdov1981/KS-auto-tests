@@ -9,7 +9,8 @@ class EuFilter(BasePage):
     LOCATOR_SHOW_EMPTY_EVENTS_TOGGLE = (By.XPATH, "//div[@class='slide-content' and text()=' Отображать незаполненные мероприятия ']//preceding-sibling::div[contains(@class, 'slide')]")
     LOCATOR_SHOW_EMPTY_EVENTS_ONLY_TOGGLE = (By.XPATH, "//div[@class='slide-content' and text()=' Только незаполненные мероприятия ']//preceding-sibling::div[contains(@class, 'slide')]")
     LOCATOR_HIDE_EVENTS_TOGGLE = (By.XPATH, "//div[@class='slide-content' and text()=' Скрывать мероприятия при фильтрации ']//preceding-sibling::div[contains(@class, 'slide')]")
-
+    LOCATOR_CANCEL_BUTTON = (By.XPATH, "//div[@class='gantt-filter-cancel-btn']")
+    LOCATOR_FILTERS_VALUE = (By.XPATH, "//div[@class='gantt-filters-block']//div[contains(@class, 'multiple-dropdown-value')]")
 
     def is_show_empty_events(self):
         toggle = self.find_element(self.LOCATOR_SHOW_EMPTY_EVENTS_TOGGLE)
@@ -83,13 +84,29 @@ class EuFilter(BasePage):
         values = []
         values_locator = (By.XPATH, f"//div[text()='{filter_name}']/..//div[contains(@class, 'multiple-dropdown-value-title')]")
         self.scroll_to_filter(filter_name)
+        try:
+            self.find_element(values_locator, time=0.5)
+        except TimeoutException:
+            return values
         values_elements = self.driver.find_elements(*values_locator)
         for value in values_elements:
             self.driver.execute_script("arguments[0].scrollIntoView();", value)
             values.append(value.text)
         return values
 
-    def clear_filter_values(self, filter_name):
+    def clear_filter_values(self, filter_name, filter_set=None):
+        if filter_set:
+            to_delete = []
+            if filter_set.get('custom_fields_filter'):
+                for custom_field in filter_set.get('custom_fields_filter'):
+                    if filter_set.get('custom_fields_filter').get(custom_field) != []:
+                        to_delete.append(custom_field)
+
+            if filter_set.get('custom_relations_filter'):
+                for custom_relation in filter_set.get('custom_relations_filter'):
+                    if filter_set.get('custom_relations_filter').get(custom_relation) != []:
+                        to_delete.append(custom_relation)
+
         self.scroll_to_filter(filter_name)
         close_icons_locator = (By.XPATH, f"//div[text()='{filter_name}']/..//div[contains(@class, 'multiple-dropdown-value ')]//fa-icon[contains(@class, 'multiple-dropdown-value-close')]")
         try:
@@ -185,18 +202,51 @@ class EuFilter(BasePage):
                     field = 'Тип мероприятия'
                 values = filter_set.get('custom_fields_filter').get(field)
                 if values:
-                    self.clear_filter_values(field)
+                    # self.clear_filter_values(field)
                     self.set_filter(field, values)
 
         if filter_set.get('custom_relations_filter'):
             for field in filter_set.get('custom_relations_filter'):
                 values = filter_set.get('custom_relations_filter').get(field)
                 if values:
-                    self.clear_filter_values(field)
+                    # self.clear_filter_values(field)
                     self.set_filter(field, values)
 
     def reset_filters(self):
-        pass
+        self.find_and_click(self.LOCATOR_CANCEL_BUTTON)
+
+    def is_all_filters_empty(self):
+        filters = self.driver.find_elements(*self.LOCATOR_FILTERS_VALUE)
+        for filter in filters:
+            self.driver.execute_script("arguments[0].scrollIntoView();", filter)
+            if filter.text != '':
+                return False
+        return True
+
+    def get_filter_set(self):
+        filter_set = {
+            "unfilled_events_filter": {
+                'Только незаполненные мероприятия': self.is_show_empty_events_only(),
+                'Отображать незаполненные мероприятия': self.is_show_empty_events(),
+                'Скрывать мероприятия при фильтрации': self.is_hide_events()
+            },
+            "custom_fields_filter": {
+                'Тип одновременных работ': self.get_filter_values('Тип одновременных работ'),
+                'Функциональный план': self.get_filter_values('Функциональный план'),
+                'Готовность': self.get_filter_values('Готовность'),
+                'Тип мероприятия': self.get_filter_values('Тип мероприятия')
+            },
+            "custom_relations_filter": {
+                'Персонал': self.get_filter_values('Персонал'),
+                'Зона': self.get_filter_values('Зона'),
+                'Влияние на показатели': self.get_filter_values('Влияние на показатели'),
+                'Риски': self.get_filter_values('Риски'),
+                'События для ИМ': self.get_filter_values('События для ИМ')
+            }
+
+        }
+        return filter_set
+
 
 
 

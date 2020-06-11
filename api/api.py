@@ -774,36 +774,38 @@ class ApiEu(BaseApi):
                             continue
                 if filter_set.get('custom_fields_filter'):
                     for field in filter_set.get('custom_fields_filter'):
-                        actual = self.api_get_custom_field_value(gantt, field, event)
-                        expected = filter_set.get('custom_fields_filter').get(field)
-                        if filter_set.get('custom_fields_filter').get(field) != '(пусто)':
-                            if actual not in expected:
-                                invalid_field = True
-                                break
+                        if filter_set.get('custom_fields_filter').get(field) != []:
+                            actual = self.api_get_custom_field_value(gantt, field, event)
+                            expected = filter_set.get('custom_fields_filter').get(field)
+                            if filter_set.get('custom_fields_filter').get(field) != '(пусто)':
+                                if actual not in expected:
+                                    invalid_field = True
+                                    break
+                                else:
+                                    invalid_field = False
                             else:
-                                invalid_field = False
-                        else:
-                            if actual is not None:
-                                invalid_field = True
-                                break
-                            else:
-                                invalid_field = False
+                                if actual is not None:
+                                    invalid_field = True
+                                    break
+                                else:
+                                    invalid_field = False
                 if filter_set.get('custom_relations_filter'):
                     for relation in filter_set.get('custom_relations_filter'):
-                        actual = self.api_get_custom_relation_value(gantt, relation, event)
-                        expected = filter_set.get('custom_relations_filter').get(relation)
-                        if filter_set.get('custom_relations_filter').get(relation) != '(пусто)':
-                            if actual not in expected:
-                                invalid_relation = True
-                                break
+                        if filter_set.get('custom_relations_filter').get(relation) != []:
+                            actual = self.api_get_custom_relation_value(gantt, relation, event)
+                            expected = filter_set.get('custom_relations_filter').get(relation)
+                            if filter_set.get('custom_relations_filter').get(relation) != '(пусто)':
+                                if actual not in expected:
+                                    invalid_relation = True
+                                    break
+                                else:
+                                    invalid_relation = False
                             else:
-                                invalid_relation = False
-                        else:
-                            if actual is not None:
-                                invalid_relation = True
-                                break
-                            else:
-                                invalid_relation = False
+                                if actual is not None:
+                                    invalid_relation = True
+                                    break
+                                else:
+                                    invalid_relation = False
             if invalid_field or invalid_relation:
                 continue
 
@@ -950,6 +952,8 @@ class ApiEu(BaseApi):
         return None
 
     def api_get_custom_field_value(self, gantt, custom_field_name, event):
+        if custom_field_name == 'Тип мероприятия':
+            custom_field_name = 'Тип работ'
         custom_field_uuid = self.api_get_custom_field_uuid(gantt, custom_field_name)
         for custom_field in event.get('custom'):
             if custom_field == custom_field_uuid:
