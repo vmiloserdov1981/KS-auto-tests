@@ -146,7 +146,6 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 time.sleep(3)
                 rows = self.driver.find_elements(*rows_locator)
                 for row in rows:
-                    # self.driver.execute_script("arguments[0].scrollIntoView();", row)
                     if '\n' in row.text:
                         if names_only:
                             row_text = row.text
@@ -173,7 +172,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 while True:
                     # last screen actions
                     if new_height + step + start_height >= total_height:
-                        self.driver.execute_script("arguments[0].scrollIntoView();",
+                        self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
                                                    self.find_element(last_row_locator))
                         row = self.find_element(last_row_locator)
                         if names_only:
@@ -192,7 +191,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                             except TimeoutException:
                                 pass
                             new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
-                            self.driver.execute_script("arguments[0].scrollIntoView();",
+                            self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
                                                        self.find_element(last_row_locator))
                             if names_only:
                                 last_row_text = self.get_element_text(last_row_locator)
@@ -214,91 +213,12 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                     rows = self.driver.find_elements(*rows_locator)
                     for row in rows:
                         if '\n' in row.text:
-                            # self.driver.execute_script("arguments[0].scrollIntoView();", row)
                             if names_only:
                                 row_text = row.text
                                 row_name = row_text.split('\n')[1]
                                 yield row_name
                             else:
                                 yield row
-
-    def events_generator_rows(self, names_only=False):
-        # перебирает мероприятия построчно, первый вариант
-        last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
-        rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
-        # prelast_row_locator = (By.XPATH, "(//div[contains(@class, 'gantt_row')])[last()-1]")
-        new_height = 0
-        stop_gen = False
-        try:
-            scrollbar = self.find_element((By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]"), time=5)
-            self.driver.execute_script("arguments[0].scrollTop = 0;", scrollbar)
-            time.sleep(5)
-        except TimeoutException:
-            pass
-
-        while not stop_gen:
-            try:
-                self.find_element(rows_locator, time=5)
-            except TimeoutException:
-                stop_gen = True
-                yield None
-
-            if not stop_gen:
-                time.sleep(3)
-                rows = self.driver.find_elements(*rows_locator)
-                for row in rows:
-                    self.driver.execute_script("arguments[0].scrollIntoView();", row)
-                    if names_only:
-                        row_text = row.text
-                        row_name = row_text.split('\n')[1]
-                        yield row_name
-                    else:
-                        yield row
-
-                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
-                try:
-                    self.find_element(scroll_area, time=2)
-                except TimeoutException:
-                    stop_gen = True
-
-            if not stop_gen:
-                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
-                scrollbar = self.find_element(scroll_area, time=2)
-                start_height = self.driver.execute_script("return arguments[0].clientHeight", scrollbar)
-                step = self.driver.execute_script("return arguments[0].clientHeight",
-                                                  self.find_element(last_row_locator))
-                total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
-                while True:
-                    if new_height + step + start_height >= total_height:
-                        self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, step)
-                        self.driver.execute_script("arguments[0].scrollIntoView();",
-                                                   self.find_element(last_row_locator))
-                        if names_only:
-                            last_row_text = self.get_element_text(last_row_locator)
-                            last_row_name = last_row_text.split('\n')[1]
-                            yield last_row_name
-                        else:
-                            yield self.find_element(last_row_locator)
-                        stop_gen = True
-                        break
-
-                    # Scroll down
-                    last_row = self.find_element(last_row_locator)
-                    self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, step)
-                    new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
-                    if new_height + step + start_height < total_height:
-                        try:
-                            self.wait_element_replacing(last_row, last_row_locator, time=3)
-                        except TimeoutException:
-                            pass
-                        last_row = self.find_element(last_row_locator)
-                        self.driver.execute_script("arguments[0].scrollIntoView();", last_row)
-                        if names_only:
-                            last_row_text = last_row.text
-                            name = last_row_text.split('\n')[1]
-                            yield name
-                        else:
-                            yield last_row
 
     def check_event(self, name, start_date, end_date):
         for event in self.events_generator():
@@ -359,19 +279,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 return True
         raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
 
-    def set_gantt_filter(self, filter_set):
-        """
-                        filter_set = {
-                            "unfilled_events_filter": {
-                                'deleted_only': False,
-                                'get_deleted': True
-                            },
-                            "custom_relations_filter": {}
-                        }
-        """
 
-        if filter_set.get('unfilled_events_filter'):
-            pass
 
     def scroll_to_gantt_top(self):
         try:
@@ -379,17 +287,51 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         except TimeoutException:
             pass
 
-    def check_plan_events(self, plan_uuid, version, login, filter_set=None):
+    def check_plan_events(self, plan_uuid, version, login, filter_set):
         """
-                filter_set = {
-                    "unfilled_events_filter": {
-                        'deleted_only': False,
-                        'get_deleted': True
-                    },
-                    "custom_relations_filter": {}
-                }
-                """
+        filter_set = {
+            "unfilled_events_filter": {
+                'Только незаполненные мероприятия': False,
+                'Отображать незаполненные мероприятия': True,
+                'Скрывать мероприятия при фильтрации': True
+            },
+            "custom_fields_filter": {
+                'Тип одновременных работ': [],
+                'Функциональный план': [],
+                'Готовность': [],
+                'Тип работ': [],
 
+            },
+            "custom_relations_filter": {
+                'Персонал': [],
+                'Зона': [],
+                'Влияние на показатели': [],
+                'Риски': [],
+                'События для ИМ': []
+            }
+
+        }
+        """
+        if filter_set.get('unfilled_events_filter').get('Скрывать мероприятия при фильтрации') is False:
+            all_api_events = self.api_get_events(version, plan_uuid, login)
+            filtered_api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set)
+            ui_events = []
+            for event in self.events_generator():
+                event_name = event.text.split('\n')[1]
+                assert event_name in all_api_events
+                if event_name in all_api_events and event_name in filtered_api_events:
+                    assert 'filter-hide' not in event.get_attribute('class')
+                elif event_name in all_api_events and event_name not in filtered_api_events:
+                    assert 'filter-hide' in event.get_attribute('class')
+                ui_events.append(event_name)
+            assert self.compare_lists(all_api_events, ui_events)
+
+        else:
+            api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set)
+            ui_events = [event for event in self.events_generator(names_only=True)]
+            assert self.compare_lists(api_events, ui_events)
+
+        '''
         if filter_set is None:
             filter_set = {}
 
@@ -406,3 +348,4 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         ui_events = [event for event in self.events_generator(names_only=True) if event is not None]
         not_in_ui = [api_event for api_event in api_events if api_event not in ui_events]
         assert self.compare_lists(api_events, ui_events), f'Мероприятия на диаграмме и в API не совпадают, в ui не отображаются мероприятия "{not_in_ui}"'
+        '''

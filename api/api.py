@@ -2,6 +2,7 @@ from core import BaseApi
 from variables import PkmVars as Vars
 import time
 import users
+import copy
 
 
 class ApiClasses(BaseApi):
@@ -709,9 +710,6 @@ class ApiEu(BaseApi):
 
         return string
 
-
-
-
     def api_get_event_names(self, version, plan_uuid, login, deleleted_only=False, get_deleted=True):
         if deleleted_only:
             return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, deleleted_only=True)]
@@ -720,6 +718,108 @@ class ApiEu(BaseApi):
                 return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, get_deleted=True)]
             else:
                 return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, get_deleted=False)]
+
+    def api_get_events(self, version, plan_uuid, login, filter_set=None, names_only=True, anti_doublespacing=True):
+        """
+        filter_set = {
+            "unfilled_events_filter": {
+                'Только незаполненные мероприятия': False,
+                'Отображать незаполненные мероприятия': True
+            },
+            "custom_fields_filter": {
+                'Тип одновременных работ': [],
+                'Функциональный план': [],
+                'Готовность': [],
+                'Тип работ': [],
+
+            },
+            "custom_relations_filter": {
+                'Персонал': [],
+                'Зона': [],
+                'Влияние на показатели': [],
+                'Риски': [],
+                'События для ИМ': []
+            }
+
+        }
+        """
+        events = []
+        gantt = self.api_get_gantt(version, plan_uuid, login)
+        invalid_field = False
+        invalid_relation = False
+        for event in self.api_events_generator(gantt):
+            if filter_set:
+                filter_set = copy.deepcopy(filter_set)
+
+                def none_converter(value):
+                    if value == '(пусто)':
+                        return None
+                    else:
+                        return value
+
+                if filter_set.get('custom_fields_filter'):
+                    for custom_filter in filter_set.get('custom_fields_filter'):
+                        filter_set['custom_fields_filter'][custom_filter] = list(map(none_converter, filter_set['custom_fields_filter'][custom_filter]))
+
+                if filter_set.get('custom_relations_filter'):
+                    for custom_filter in filter_set.get('custom_relations_filter'):
+                        filter_set['custom_relations_filter'][custom_filter] = list(map(none_converter, filter_set['custom_relations_filter'][custom_filter]))
+
+                if filter_set.get('unfilled_events_filter'):
+                    if filter_set.get('unfilled_events_filter').get('Только незаполненные мероприятия'):
+                        if event.get('start') is not None and event.get('end') is not None:
+                            continue
+                    if not filter_set.get('unfilled_events_filter').get('Отображать незаполненные мероприятия'):
+                        if event.get('start') is None and event.get('end') is None:
+                            continue
+                if filter_set.get('custom_fields_filter'):
+                    for field in filter_set.get('custom_fields_filter'):
+                        if filter_set.get('custom_fields_filter').get(field) != []:
+                            actual = self.api_get_custom_field_value(gantt, field, event)
+                            expected = filter_set.get('custom_fields_filter').get(field)
+                            if filter_set.get('custom_fields_filter').get(field) != '(пусто)':
+                                if actual not in expected:
+                                    invalid_field = True
+                                    break
+                                else:
+                                    invalid_field = False
+                            else:
+                                if actual is not None:
+                                    invalid_field = True
+                                    break
+                                else:
+                                    invalid_field = False
+                if filter_set.get('custom_relations_filter'):
+                    for relation in filter_set.get('custom_relations_filter'):
+                        if filter_set.get('custom_relations_filter').get(relation) != []:
+                            actual = self.api_get_custom_relation_value(gantt, relation, event)
+                            expected = filter_set.get('custom_relations_filter').get(relation)
+                            if filter_set.get('custom_relations_filter').get(relation) != '(пусто)':
+                                if actual not in expected:
+                                    invalid_relation = True
+                                    break
+                                else:
+                                    invalid_relation = False
+                            else:
+                                if actual is not None:
+                                    invalid_relation = True
+                                    break
+                                else:
+                                    invalid_relation = False
+            if invalid_field or invalid_relation:
+                continue
+
+            if names_only:
+                if anti_doublespacing:
+                    event = self.anti_doublespacing(event.get('object').get('name'))
+                    events.append(event)
+                else:
+                    event = event.get('object').get('name')
+                    events.append(event)
+            else:
+                events.append(event)
+        return events
+
 
     def api_event_names_generator(self, version, plan_uuid, login, deleleted_only=False, get_deleted=True):
         gantt = self.api_get_gantt(version, plan_uuid, login)
@@ -736,6 +836,11 @@ class ApiEu(BaseApi):
                 for task in tasks:
                     if task.get('start') is not None and task.get('end') is not None:
                         yield task.get('object').get('name')
+
+    def api_events_generator(self, gantt):
+        tasks = gantt.get('data').get('tasks')
+        for task in tasks:
+            yield task
 
     def api_create_unique_event_name(self, base_name, versions, plan_uuid, login, subname=None):
         events_list = []
@@ -802,4 +907,58 @@ class ApiEu(BaseApi):
         plan = self.api_create_plan(copied_plan_data)
         plan['is_new_created'] = True
         return plan
+
+    def get_object(self, object_uuid):
+        payload = {
+            'uuids': [object_uuid]
+        }
+        pkm_objects = self.post(f'{Vars.PKM_API_URL}objects/get', self.token, payload).get('data')
+        for pkm_object in pkm_objects:
+            if pkm_object.get('uuid') == object_uuid:
+                return pkm_object
+        return None
+
+    def api_get_custom_relation_objects(self, gantt, custom_relation_name):
+        custom_relations = gantt.get('data').get('relations').get('customRelations')
+        relation = {}
+        for relation in custom_relations:
+            if relation.get('name') == custom_relation_name:
+                break
+        relation_objects = relation.get('relatedObjects')
+        return relation_objects
+
+    def api_get_custom_relation_value(self, gantt, custom_relation_name, event):
+        task_object_uuid = event.get('object').get('uuid')
+        custom_relations_objects = self.api_get_custom_relation_objects(gantt, custom_relation_name)
+        value_object_uuid = None
+        for related_object in custom_relations_objects:
+            if related_object.get('destinationObjectUuid') == task_object_uuid:
+                value_object_uuid = related_object.get('sourceObjectUuid')
+                break
+            elif related_object.get('sourceObjectUuid') == task_object_uuid:
+                value_object_uuid = related_object.get('destinationObjectUuid')
+                break
+        if value_object_uuid:
+            value_object = self.get_object(value_object_uuid)
+            value_name = value_object.get('name')
+            return self.anti_doublespacing(value_name)
+        else:
+            return None
+
+    def api_get_custom_field_uuid(self, gantt, custom_field_name):
+        for custom_field_uuid in gantt.get('ganttDiagram').get('options')[0].get('customFields'):
+            if gantt.get('ganttDiagram').get('options')[0].get('customFields').get(custom_field_uuid) == custom_field_name:
+                return custom_field_uuid
+        return None
+
+    def api_get_custom_field_value(self, gantt, custom_field_name, event):
+        if custom_field_name == 'Тип мероприятия':
+            custom_field_name = 'Тип работ'
+        custom_field_uuid = self.api_get_custom_field_uuid(gantt, custom_field_name)
+        for custom_field in event.get('custom'):
+            if custom_field == custom_field_uuid:
+                return event.get('custom').get(custom_field)
+        return None
+
+
 
