@@ -291,9 +291,9 @@ class ApiEu(BaseApi):
         plans = self.api_get_k6_plans()
         comments = plans.get('comments')
         for comment in comments:
-            numbers.append(comment.split(Vars.PKM_DEFAULT_K6_PLAN_COMMENT)[1])
+            numbers.append(int(comment.split(Vars.PKM_DEFAULT_K6_PLAN_COMMENT)[1]))
         numbers.sort(reverse=True)
-        last_number = numbers[0]
+        last_number = str(numbers[0])
         comment = f'{Vars.PKM_DEFAULT_K6_PLAN_COMMENT}{last_number}'
 
         def f_func(x):
