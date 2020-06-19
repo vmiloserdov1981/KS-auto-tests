@@ -160,7 +160,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, login, get_last_k6
 @allure.story('План мероприятий')
 @allure.title('Фильтр custom relation')
 @allure.severity(allure.severity_level.CRITICAL)
-@pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user", True, True)])
+@pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user3", True, True)])
 def test_eu_custom_relations_filter(parametrized_login_driver, login, get_last_k6_plan, select_last_k6_plan):
     eu_filter = EuFilter(parametrized_login_driver)
     events_plan = EventsPlan(parametrized_login_driver, token=parametrized_login_driver.token)
