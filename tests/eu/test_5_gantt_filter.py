@@ -15,21 +15,11 @@ import pytest
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user", True, True)])
 def test_eu_unfilled_events_filter(parametrized_login_driver, login, get_last_k6_plan, select_last_k6_plan):
-    header = EuHeader(parametrized_login_driver)
     eu_filter = EuFilter(parametrized_login_driver)
-    k6_plan_comment = parametrized_login_driver.test_data.get('last_k6_plan').get('settings').get('plan').get('comment')
-    plan_registry_page = PlanRegistry(parametrized_login_driver)
     events_plan = EventsPlan(parametrized_login_driver, token=parametrized_login_driver.token)
     plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт')
-    '''
-    with allure.step('Перейти на страницу "Реестр ИП"'):
-        header.navigate_to_page('Реестр интегрированных планов')
-
-    with allure.step(f'Посмотреть на плане мероприятий последний план, созданный в к6 (с комментарием "{k6_plan_comment}")'):
-        plan_registry_page.watch_plan_by_comment(k6_plan_comment)
-    '''
 
     with allure.step(f'Выбрать версию плана "{versions[0]}"'):
         events_plan.set_version(versions[0])
@@ -165,19 +155,16 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, login, get_last_k6
         }
         events_plan.check_plan_events(plan_uuid, versions[1], login, filter_set=filter_set)
 
-'''
+
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Фильтр custom relation')
 @allure.severity(allure.severity_level.CRITICAL)
-
-def test_eu_custom_relations_filter(driver_eu_login):
-    header = EuHeader(driver_eu_login)
-    eu_filter = EuFilter(driver_eu_login)
-    k6_plan_comment = driver_eu_login.test_data.get('last_k6_plan').get('settings').get('plan').get('comment')
-    plan_registry_page = PlanRegistry(driver_eu_login)
-    events_plan = EventsPlan(driver_eu_login, token=driver_eu_login.token)
-    plan_uuid = driver_eu_login.test_data.get('last_k6_plan').get('uuid')
+@pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user", True, True)])
+def test_eu_custom_relations_filter(parametrized_login_driver, login, get_last_k6_plan, select_last_k6_plan):
+    eu_filter = EuFilter(parametrized_login_driver)
+    events_plan = EventsPlan(parametrized_login_driver, token=parametrized_login_driver.token)
+    plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт')
 
@@ -241,7 +228,7 @@ def test_eu_custom_relations_filter(driver_eu_login):
         },
         "custom_relations_filter": {
             'Персонал': [],
-            'Зона': ['0 D1L5 8u1'],
+            'Зона': ['0 D1L5 11u1'],
             'Влияние на показатели': [],
             'Риски': [],
             'События для ИМ': []
@@ -264,19 +251,13 @@ def test_eu_custom_relations_filter(driver_eu_login):
         },
         "custom_relations_filter": {
             'Персонал': ['(пусто)'],
-            'Зона': ['0 D1L5 8u1'],
+            'Зона': ['0 D1L5 11u1'],
             'Влияние на показатели': [],
-            'Риски': ['0 Риск 2 8u1', '0 Риск 1 8u1'],
+            'Риски': ['0 Риск 2 11u1', '0 Риск 1 11u1'],
             'События для ИМ': []
         }
 
     }
-    with allure.step('Перейти на страницу "Реестр ИП"'):
-        header.navigate_to_page('Реестр интегрированных планов')
-
-    with allure.step(f'Посмотреть на плане мероприятий последний план, созданный в к6 (с комментарием "{k6_plan_comment}")'):
-        plan_registry_page.watch_plan_by_comment(k6_plan_comment)
-
     with allure.step(f'Выбрать версию плана "{versions[0]}"'):
         events_plan.set_version(versions[0])
 
@@ -311,7 +292,7 @@ def test_eu_custom_relations_filter(driver_eu_login):
         events_plan.check_plan_events(plan_uuid, versions[0], login, filter_set_3)
 
     with allure.step(f'Обновить страницу'):
-        driver_eu_login.refresh()
+        parametrized_login_driver.refresh()
 
     with allure.step(f'Проверить, что состояние установленных фильтров не изменилось'):
         time.sleep(Vars.PKM_USER_WAIT_TIME)
@@ -340,4 +321,3 @@ def test_eu_custom_relations_filter(driver_eu_login):
 
     with allure.step(f'Проверить, что на диаграмме Ганта отображаются мероприятия согласно установленных фильтров'):
         events_plan.check_plan_events(plan_uuid, versions[1], login, filter_set_3)
-'''
