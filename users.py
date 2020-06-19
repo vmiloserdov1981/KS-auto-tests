@@ -19,5 +19,6 @@ all_users = {
     'invalid_user': PkmUsers('asdf', 'asdf'),
     'eu_user': PkmUsers('eu_user', 'Euuser01', name='Иванов Андрей'),
     'eu_user2': PkmUsers('eu_user2', 'Euuser01', name='Иванов Второй'),
+    'eu_user3': PkmUsers('eu_user3', 'Euuser01', name='Иванов Третий'),
     'system_user': PkmUsers('system', None)
 }

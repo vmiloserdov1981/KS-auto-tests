@@ -110,7 +110,9 @@ class BasePage:
 
     def find_and_click(self, locator, time=5):
         element = self.find_element_clickable(locator, time)
-        return element.click()
+        action = ActionChains(self.driver)
+        action.move_to_element(element).perform()
+        element.click()
 
     def find_and_click_by_offset(self, locator, x=0, y=0):
         elem = self.find_element(locator)

@@ -10,17 +10,18 @@ import allure
 import time
 from variables import PkmVars
 from selenium.common.exceptions import TimeoutException
+import pytest
 
 
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Создание мероприятия')
 @allure.severity(allure.severity_level.CRITICAL)
-def test_eu_create_gantt_event(driver_eu_login):
+@pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user2", True, False)])
+def test_eu_create_gantt_event(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
     header = EuHeader(driver_eu_login)
     eu_filter = EuFilter(driver_eu_login)
-    k6_plan_comment = driver_eu_login.test_data.get('last_k6_plan').get('settings').get('plan').get('comment')
-    plan_registry_page = PlanRegistry(driver_eu_login)
+    plans_registry = PlanRegistry(driver_eu_login)
     events_plan = EventsPlan(driver_eu_login)
     version1 = 'Проект плана'
     version2 = 'Факт'
@@ -28,12 +29,22 @@ def test_eu_create_gantt_event(driver_eu_login):
     versions = ['Проект плана', 'Факт', 'План потребности']
     plan_uuid = driver_eu_login.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
+    k6_plan = driver_eu_login.test_data.get('last_k6_plan')
+    k6_plan_comment = k6_plan.get('settings').get('plan').get('comment')
+    k6_plan_uuid = k6_plan.get('uuid')
+    k6_plan_name = k6_plan.get('name')
+
+    with allure.step(f'Проверить наличие плана - копии ИП "{k6_plan_name}"'):
+        driver_eu_login.test_data['copy_last_k6_plan'] = api.check_k6_plan_copy(k6_plan_comment, k6_plan_uuid)
+        if driver_eu_login.test_data['copy_last_k6_plan'].get('is_new_created'):
+            driver_eu_login.refresh()
 
     with allure.step('Перейти на страницу "Реестр ИП"'):
         header.navigate_to_page('Реестр интегрированных планов')
 
-    with allure.step(f'Посмотреть на плане мероприятий последний план, созданный в к6 (с комментарием "{k6_plan_comment}")'):
-        plan_registry_page.watch_plan_by_comment(k6_plan_comment)
+    with allure.step(f'Посмотреть на диаграмме Ганта план - копию ИП "{k6_plan_name}"'):
+        plans_registry.watch_plan_by_comment(
+            driver_eu_login.test_data['copy_last_k6_plan'].get('settings').get('plan').get('comment'))
 
     with allure.step(f'Выбрать версию плана "{version1}"'):
         events_plan.set_version(version1)
@@ -108,17 +119,29 @@ def test_eu_create_gantt_event(driver_eu_login):
 @allure.story('План мероприятий')
 @allure.title('Удаление мероприятия')
 @allure.severity(allure.severity_level.CRITICAL)
-def test_eu_delete_gantt_event(driver_eu_login):
+@pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user2", True, False)])
+def test_eu_delete_gantt_event(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
     api = ApiEu(None, None, token=driver_eu_login.token)
     header = EuHeader(driver_eu_login)
     eu_filter = EuFilter(driver_eu_login)
     k6_plan_comment = driver_eu_login.test_data.get('last_k6_plan').get('settings').get('plan').get('comment')
-    plan_registry_page = PlanRegistry(driver_eu_login)
+    plans_registry = PlanRegistry(driver_eu_login)
     events_plan = EventsPlan(driver_eu_login)
     plan_uuid = driver_eu_login.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт', 'План потребности')
-    event_name = api.api_create_unique_event_name(Vars.PKM_BASE_EVENT_NAME, versions, plan_uuid, login, subname='Удаление')
+    k6_plan = driver_eu_login.test_data.get('last_k6_plan')
+    k6_plan_comment = k6_plan.get('settings').get('plan').get('comment')
+    k6_plan_uuid = k6_plan.get('uuid')
+    k6_plan_name = k6_plan.get('name')
+
+    with allure.step(f'Проверить наличие плана - копии ИП "{k6_plan_name}"'):
+        driver_eu_login.test_data['copy_last_k6_plan'] = api.check_k6_plan_copy(k6_plan_comment, k6_plan_uuid)
+        if driver_eu_login.test_data['copy_last_k6_plan'].get('is_new_created'):
+            driver_eu_login.refresh()
+
+    k6_copy_plan_uuid = driver_eu_login.test_data.get('copy_last_k6_plan').get('uuid')
+    event_name = api.api_create_unique_event_name(Vars.PKM_BASE_EVENT_NAME, versions, k6_copy_plan_uuid, login, subname='Удаление')
     event_data = {
         'event_name': event_name,
         'start_day': '10',
@@ -163,13 +186,14 @@ def test_eu_delete_gantt_event(driver_eu_login):
     }
 
     with allure.step('Создать тестовое мероприятие через API"'):
-        api.api_create_event(event_name, plan_uuid, 'Проект плана', login, event_data)
+        api.api_create_event(event_name, k6_copy_plan_uuid, 'Проект плана', login, event_data)
 
     with allure.step('Перейти на страницу "Реестр ИП"'):
         header.navigate_to_page('Реестр интегрированных планов')
 
-    with allure.step(f'Посмотреть на плане мероприятий последний план, созданный в к6 (с комментарием "{k6_plan_comment}")'):
-        plan_registry_page.watch_plan_by_comment(k6_plan_comment)
+    with allure.step(f'Посмотреть на диаграмме Ганта план - копию ИП "{k6_plan_name}"'):
+        plans_registry.watch_plan_by_comment(
+            driver_eu_login.test_data['copy_last_k6_plan'].get('settings').get('plan').get('comment'))
 
     with allure.step(f'Выбрать версию плана "{versions[0]}"'):
         events_plan.set_version(versions[0])
@@ -238,18 +262,27 @@ def test_eu_delete_gantt_event(driver_eu_login):
 @allure.story('План мероприятий')
 @allure.title('Редактирование мероприятия')
 @allure.severity(allure.severity_level.CRITICAL)
-def test_eu_modify_gantt_event(driver_eu_login):
+@pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user2", True, False)])
+def test_eu_modify_gantt_event(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
     api = ApiEu(None, None, token=driver_eu_login.token)
     header = EuHeader(driver_eu_login)
     eu_filter = EuFilter(driver_eu_login)
-    k6_plan_comment = driver_eu_login.test_data.get('last_k6_plan').get('settings').get('plan').get('comment')
-    plan_registry_page = PlanRegistry(driver_eu_login)
+    plans_registry = PlanRegistry(driver_eu_login)
     events_plan = EventsPlan(driver_eu_login)
     event_modal = NewEventModal(driver_eu_login)
-    plan_uuid = driver_eu_login.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт', 'План потребности')
-    event_name = api.api_create_unique_event_name(Vars.PKM_BASE_EVENT_NAME, versions, plan_uuid, login, subname='Изменение')
+
+    k6_plan = driver_eu_login.test_data.get('last_k6_plan')
+    k6_plan_comment = k6_plan.get('settings').get('plan').get('comment')
+    k6_plan_uuid = k6_plan.get('uuid')
+    k6_plan_name = k6_plan.get('name')
+    with allure.step(f'Проверить наличие плана - копии ИП "{k6_plan_name}"'):
+        driver_eu_login.test_data['copy_last_k6_plan'] = api.check_k6_plan_copy(k6_plan_comment, k6_plan_uuid)
+        if driver_eu_login.test_data['copy_last_k6_plan'].get('is_new_created'):
+            driver_eu_login.refresh()
+    k6_copy_plan_uuid = driver_eu_login.test_data.get('copy_last_k6_plan').get('uuid')
+    event_name = api.api_create_unique_event_name(Vars.PKM_BASE_EVENT_NAME, versions, k6_copy_plan_uuid, login, subname='Изменение')
     event_data_plan = {
         'event_name': event_name,
         'start_day': '10',
@@ -306,20 +339,20 @@ def test_eu_modify_gantt_event(driver_eu_login):
     }
 
     with allure.step('Создать тестовое мероприятие через API"'):
-        event_plan = api.api_create_event(event_name, plan_uuid, 'Проект плана', login, event_data_plan)
+        event_plan = api.api_create_event(event_name, k6_copy_plan_uuid, 'Проект плана', login, event_data_plan)
         event_uuid = event_plan.get('event_uuid')
         created_event_data_plan = event_plan.get('event_data')
 
     with allure.step('заполнить версию "Факт" для мероприятия, созданного через API"'):
-        event_fact = api.api_update_event(event_uuid, plan_uuid, versions[1], login, event_data_fact)
+        event_fact = api.api_update_event(event_uuid, k6_copy_plan_uuid, versions[1], login, event_data_fact)
         created_event_data_fact = event_fact.get('event_data')
 
     with allure.step('Перейти на страницу "Реестр ИП"'):
         header.navigate_to_page('Реестр интегрированных планов')
 
-    with allure.step(f'Посмотреть на плане мероприятий последний план, созданный в к6 (с комментарием "{k6_plan_comment}")'):
-        plan_registry_page.watch_plan_by_comment(k6_plan_comment)
-
+    with allure.step(f'Посмотреть на диаграмме Ганта план - копию ИП "{k6_plan_name}"'):
+        plans_registry.watch_plan_by_comment(
+            driver_eu_login.test_data['copy_last_k6_plan'].get('settings').get('plan').get('comment'))
     with allure.step(f'Выбрать версию плана "{versions[0]}"'):
         events_plan.set_version(versions[0])
 
