@@ -120,7 +120,7 @@ def test_eu_create_gantt_event(driver_eu_login, login, get_last_k6_plan, select_
 @allure.title('Удаление мероприятия')
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user2", True, False)])
-def test_eu_delete_gantt_event(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
+def disabledtest_eu_delete_gantt_event(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
     api = ApiEu(None, None, token=driver_eu_login.token)
     header = EuHeader(driver_eu_login)
     eu_filter = EuFilter(driver_eu_login)
@@ -263,7 +263,7 @@ def test_eu_delete_gantt_event(driver_eu_login, login, get_last_k6_plan, select_
 @allure.title('Редактирование мероприятия')
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user2", True, False)])
-def test_eu_modify_gantt_event(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
+def disabledtest_eu_modify_gantt_event(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
     api = ApiEu(None, None, token=driver_eu_login.token)
     header = EuHeader(driver_eu_login)
     eu_filter = EuFilter(driver_eu_login)
