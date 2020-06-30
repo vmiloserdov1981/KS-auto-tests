@@ -332,6 +332,13 @@ class ApiEu(BaseApi):
         assert not request.get('error'), f'Ошибка при получении Ганта'
         return request
 
+    def api_get_dict_element_uuid(self, gantt, dict_name, dict_value):
+        for dict_uuid in gantt.get('data').get('dictionaries'):
+            if gantt.get('data').get('dictionaries').get(dict_uuid).get('name') == dict_name:
+                for element in gantt.get('data').get('dictionaries').get(dict_uuid).get('elements'):
+                    if element.get('name') == dict_value:
+                        return element.get('uuid')
+
     def api_create_event(self, event_name, model_uuid, version_name, login, event_data):
         """
                Пример:
@@ -404,32 +411,32 @@ class ApiEu(BaseApi):
             event_type_uuid: [
                 {
                     "value": {
-                        "data": event_data.get('event_type'),
-                        "type": "string"
+                        "data": self.api_get_dict_element_uuid(gantt, 'Типы работ', event_data.get('event_type')),
+                        "type": "uuid"
                     }
                 }
             ],
             works_type_uuid: [
                 {
                     "value": {
-                        "data": event_data.get('works_type'),
-                        "type": "string"
+                        "data": self.api_get_dict_element_uuid(gantt, 'Типы одновременных работ', event_data.get('works_type')),
+                        "type": "uuid"
                     }
                 }
             ],
             plan_type_uuid: [
                 {
                     "value": {
-                        "data": event_data.get('plan'),
-                        "type": "string"
+                        "data": self.api_get_dict_element_uuid(gantt, 'Функциональные планы', event_data.get('plan')),
+                        "type": "uuid"
                     }
                 }
             ],
             ready_type_uuid: [
                 {
                     "value": {
-                        "data": event_data.get('ready'),
-                        "type": "string"
+                        "data": self.api_get_dict_element_uuid(gantt, 'Типы готовности мероприятий', event_data.get('ready')),
+                        "type": "uuid"
                     }
                 }
             ],
@@ -585,8 +592,8 @@ class ApiEu(BaseApi):
                 'objectUuid': event_uuid,
                 'uuid': None,
                 'value': {
-                    'data': event_data.get('event_type'),
-                    'type': 'string'
+                    'data': self.api_get_dict_element_uuid(gantt, 'Типы работ', event_data.get('event_type')),
+                    'type': 'uuid'
                 }
             },
             {
@@ -597,8 +604,8 @@ class ApiEu(BaseApi):
                 'objectUuid': event_uuid,
                 'uuid': None,
                 'value': {
-                    'data': event_data.get('works_type'),
-                    'type': 'string'
+                    'data': self.api_get_dict_element_uuid(gantt, 'Типы одновременных работ', event_data.get('works_type')),
+                    'type': 'uuid'
                 }
             },
             {
@@ -609,8 +616,8 @@ class ApiEu(BaseApi):
                 'objectUuid': event_uuid,
                 'uuid': None,
                 'value': {
-                    'data': event_data.get('plan'),
-                    'type': 'string'
+                    'data': self.api_get_dict_element_uuid(gantt, 'Функциональные планы', event_data.get('plan')),
+                    'type': 'uuid'
                 }
             },
             {
@@ -621,8 +628,8 @@ class ApiEu(BaseApi):
                 'objectUuid': event_uuid,
                 'uuid': None,
                 'value': {
-                    'data': event_data.get('ready'),
-                    'type': 'string'
+                    'data': self.api_get_dict_element_uuid(gantt, 'Типы готовности мероприятий', event_data.get('ready')),
+                    'type': 'uuid'
                 }
             },
             {

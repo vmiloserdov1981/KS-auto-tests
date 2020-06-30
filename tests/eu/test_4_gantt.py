@@ -120,14 +120,12 @@ def test_eu_create_gantt_event(driver_eu_login, login, get_last_k6_plan, select_
 @allure.title('Удаление мероприятия')
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user2", True, False)])
-def disabledtest_eu_delete_gantt_event(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
+def test_eu_delete_gantt_event(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
     api = ApiEu(None, None, token=driver_eu_login.token)
     header = EuHeader(driver_eu_login)
     eu_filter = EuFilter(driver_eu_login)
-    k6_plan_comment = driver_eu_login.test_data.get('last_k6_plan').get('settings').get('plan').get('comment')
     plans_registry = PlanRegistry(driver_eu_login)
     events_plan = EventsPlan(driver_eu_login)
-    plan_uuid = driver_eu_login.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт', 'План потребности')
     k6_plan = driver_eu_login.test_data.get('last_k6_plan')
@@ -175,10 +173,10 @@ def disabledtest_eu_delete_gantt_event(driver_eu_login, login, get_last_k6_plan,
         'start_date': [''],
         'duration': '',
         'end_date': [''],
-        'event_type': '',
-        'works_type': '',
-        'plan': '',
-        'ready': '',
+        'event_type': 'Не заполнено',
+        'works_type': 'Не заполнено',
+        'plan': 'Не заполнено',
+        'ready': 'Не заполнено',
         'comment': '',
         'responsible': '',
         'is_cross_platform': False,
@@ -203,13 +201,13 @@ def disabledtest_eu_delete_gantt_event(driver_eu_login, login, get_last_k6_plan,
 
     with allure.step('Обновить страницу'):
         driver_eu_login.refresh()
-
+    
     with allure.step('Выключить в фильтре отображение незаполненных мероприятий'):
         eu_filter.switch_off_empty_events()
 
     with allure.step(f'Проверить отсутствие удаленного мероприятия "{event_name}" в списке мероприятий на Ганте'):
         assert not events_plan.is_event_exists(event_name), f'Мероприятие "{event_name}" присутствует в списке мероприятий на Ганте'
-
+    
     with allure.step('Включить в фильтре отображение незаполненных мероприятий'):
         eu_filter.switch_on_empty_events()
 
@@ -263,7 +261,7 @@ def disabledtest_eu_delete_gantt_event(driver_eu_login, login, get_last_k6_plan,
 @allure.title('Редактирование мероприятия')
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user2", True, False)])
-def disabledtest_eu_modify_gantt_event(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
+def test_eu_modify_gantt_event(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
     api = ApiEu(None, None, token=driver_eu_login.token)
     header = EuHeader(driver_eu_login)
     eu_filter = EuFilter(driver_eu_login)
@@ -328,10 +326,10 @@ def disabledtest_eu_modify_gantt_event(driver_eu_login, login, get_last_k6_plan,
         'start_date': [''],
         'duration': '',
         'end_date': [''],
-        'event_type': '',
-        'works_type': '',
-        'plan': '',
-        'ready': '',
+        'event_type': 'Не заполнено',
+        'works_type': 'Не заполнено',
+        'plan': 'Не заполнено',
+        'ready': 'Не заполнено',
         'comment': '',
         'responsible': '',
         'is_cross_platform': False,
@@ -353,6 +351,7 @@ def disabledtest_eu_modify_gantt_event(driver_eu_login, login, get_last_k6_plan,
     with allure.step(f'Посмотреть на диаграмме Ганта план - копию ИП "{k6_plan_name}"'):
         plans_registry.watch_plan_by_comment(
             driver_eu_login.test_data['copy_last_k6_plan'].get('settings').get('plan').get('comment'))
+
     with allure.step(f'Выбрать версию плана "{versions[0]}"'):
         events_plan.set_version(versions[0])
 

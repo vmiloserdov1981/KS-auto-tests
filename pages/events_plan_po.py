@@ -272,7 +272,8 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 action.double_click(event).perform()
                 try:
                     title = self.get_title()
-                except TimeoutException:
+                #except TimeoutException:
+                except:
                     action.double_click(event).perform()
                     title = self.get_title()
                 assert title == event_name
