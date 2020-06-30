@@ -304,7 +304,9 @@ class ApiEu(BaseApi):
 
         plan = filter(f_func, plans.get('plans'))
         plan = list(plan)
-        return plan[0]
+        k6_plan = plan[0]
+        k6_plan['plan_prefix'] = f'{last_number}u1'
+        return k6_plan
 
     def api_get_datasets_by_plan(self, plan_uuid):
         payload = {"modelUuid": plan_uuid}

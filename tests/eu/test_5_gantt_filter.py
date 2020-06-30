@@ -1,5 +1,3 @@
-from pages.components.eu_header import EuHeader
-from pages.plan_registry_po import PlanRegistry
 from pages.events_plan_po import EventsPlan
 from pages.components.eu_filter import EuFilter
 from variables import PkmVars as Vars
@@ -167,6 +165,7 @@ def test_eu_custom_relations_filter(parametrized_login_driver, login, get_last_k
     plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт')
+    prefix = parametrized_login_driver.test_data['last_k6_plan']['plan_prefix']
 
     default_filter_set = {
         "unfilled_events_filter": {
@@ -228,7 +227,7 @@ def test_eu_custom_relations_filter(parametrized_login_driver, login, get_last_k
         },
         "custom_relations_filter": {
             'Персонал': [],
-            'Зона': ['0 D1L5 11u1'],
+            'Зона': [f'0 D1L5 {prefix}'],
             'Влияние на показатели': [],
             'Риски': [],
             'События для ИМ': []
@@ -251,9 +250,9 @@ def test_eu_custom_relations_filter(parametrized_login_driver, login, get_last_k
         },
         "custom_relations_filter": {
             'Персонал': ['(пусто)'],
-            'Зона': ['0 D1L5 11u1'],
+            'Зона': [f'0 D1L5 {prefix}'],
             'Влияние на показатели': [],
-            'Риски': ['0 Риск 2 11u1', '0 Риск 1 11u1'],
+            'Риски': [f'0 Риск 2 {prefix}', f'0 Риск 1 {prefix}'],
             'События для ИМ': []
         }
 
