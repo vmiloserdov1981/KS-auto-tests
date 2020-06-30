@@ -328,7 +328,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
 
         else:
             api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set)
-            ui_events = [event for event in self.events_generator(names_only=True)]
+            ui_events = [event for event in self.events_generator(names_only=True) if event is not None]
             assert self.compare_lists(api_events, ui_events)
 
         '''

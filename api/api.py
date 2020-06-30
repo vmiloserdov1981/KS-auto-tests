@@ -291,9 +291,9 @@ class ApiEu(BaseApi):
         plans = self.api_get_k6_plans()
         comments = plans.get('comments')
         for comment in comments:
-            numbers.append(comment.split(Vars.PKM_DEFAULT_K6_PLAN_COMMENT)[1])
+            numbers.append(int(comment.split(Vars.PKM_DEFAULT_K6_PLAN_COMMENT)[1]))
         numbers.sort(reverse=True)
-        last_number = numbers[0]
+        last_number = str(numbers[0])
         comment = f'{Vars.PKM_DEFAULT_K6_PLAN_COMMENT}{last_number}'
 
         def f_func(x):
@@ -304,7 +304,9 @@ class ApiEu(BaseApi):
 
         plan = filter(f_func, plans.get('plans'))
         plan = list(plan)
-        return plan[0]
+        k6_plan = plan[0]
+        k6_plan['plan_prefix'] = f'{last_number}u1'
+        return k6_plan
 
     def api_get_datasets_by_plan(self, plan_uuid):
         payload = {"modelUuid": plan_uuid}
@@ -952,13 +954,11 @@ class ApiEu(BaseApi):
         return None
 
     def api_get_custom_field_value(self, gantt, custom_field_name, event):
-        if custom_field_name == 'Тип мероприятия':
-            custom_field_name = 'Тип работ'
-        custom_field_uuid = self.api_get_custom_field_uuid(gantt, custom_field_name)
-        for custom_field in event.get('custom'):
-            if custom_field == custom_field_uuid:
-                return event.get('custom').get(custom_field)
+        if event.get('custom') is not None and event.get('custom') != {}:
+            if custom_field_name == 'Тип мероприятия':
+                custom_field_name = 'Тип работ'
+            custom_field_uuid = self.api_get_custom_field_uuid(gantt, custom_field_name)
+            for custom_field in event.get('custom'):
+                if custom_field == custom_field_uuid:
+                    return event.get('custom').get(custom_field)
         return None
-
-
-

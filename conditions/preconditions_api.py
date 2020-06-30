@@ -183,11 +183,19 @@ class EuPreconditions(ApiEu):
             eu_user_uuid = self.api_create_user('autouser@test.com', users.eu_user.login, users.eu_user.password, users.eu_user.name, {})
             self.api_set_admin_role(eu_user_uuid)
 
-    def create_test_data(self):
+    def api_check_user(self, user_login):
+        user = users.all_users[user_login]
+        eu_user = self.api_get_user(user.login, user.name)
+        if not eu_user:
+            eu_user_uuid = self.api_create_user(f'autouser_{user_login}@test.com', user.login, user.password, user.name, {})
+            self.api_set_admin_role(eu_user_uuid)
+    '''
+    def get_last_k6_plan(self):
         data = {
             'last_k6_plan': self.api_get_last_k6_plan()
         }
         return data
+    '''
 
 
 

@@ -34,7 +34,6 @@ def driver_init(maximize=True, impl_wait=3):
         driver = webdriver.Chrome(ChromeDriverManager().install())
     else:
         ip = os.getenv('SELENOID_IP', 'http://127.0.0.1:4444/wd/hub')
-        # ip = os.getenv('SELENOID_IP', 'http://10.10.20.39:4444/wd/hub')
         capabilities = {
             "browserName": "chrome",
             "version": "83.0",
@@ -97,10 +96,30 @@ def driver_eu_login():
     preconditions_api = EuPreconditions(user.admin.login, user.admin.password)
     preconditions = PreconditionsFront(driver)
     preconditions_api.api_check_eu_user()
-    data = preconditions_api.create_test_data()
+    data = {'last_k6_plan': preconditions_api.api_get_last_k6_plan()}
     with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
         driver.test_data = data
     preconditions.login_as_eu(user.eu_user.login, user.eu_user.password)
+    yield driver
+    driver.quit()
+
+
+@pytest.fixture()
+def parametrized_login_driver(login, get_last_k6_plan, select_last_k6_plan):
+    driver = driver_init()
+    preconditions_api = EuPreconditions(user.admin.login, user.admin.password)
+    preconditions = PreconditionsFront(driver)
+    preconditions_api.api_check_user(login)
+    eu_user = user.all_users[login]
+    if get_last_k6_plan:
+        data = {'last_k6_plan': preconditions_api.api_get_last_k6_plan()}
+        with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
+            driver.test_data = data
+        preconditions.login_as_eu(eu_user.login, eu_user.password)
+        if select_last_k6_plan:
+            preconditions.view_last_k6_plan()
+    else:    
+        preconditions.login_as_eu(eu_user.login, eu_user.password)
     yield driver
     driver.quit()
 

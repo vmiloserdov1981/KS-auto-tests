@@ -4,13 +4,15 @@ from pages.events_plan_po import EventsPlan
 from api.api import ApiEu
 import users as user
 import allure
+import pytest
 
 
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Создание мероприятия')
 @allure.severity(allure.severity_level.CRITICAL)
-def test_eu_create_gantt_event(driver_eu_login):
+@pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user", True, False)])
+def test_eu_switch_plans(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
     header = EuHeader(driver_eu_login, token=driver_eu_login.token)
     k6_plan = driver_eu_login.test_data.get('last_k6_plan')
     k6_plan_comment = k6_plan.get('settings').get('plan').get('comment')

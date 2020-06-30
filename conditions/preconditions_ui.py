@@ -4,6 +4,8 @@ from variables import PkmVars as Vars
 from pages.main_po import MainPage
 import allure
 from selenium.webdriver.common.by import By
+from pages.components.eu_header import EuHeader
+from pages.plan_registry_po import PlanRegistry
 
 
 class PreconditionsFront(BasePage):
@@ -36,3 +38,13 @@ class PreconditionsFront(BasePage):
             login_page.login_as_eu()
             main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=20)
             self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
+
+    @allure.title('Посмотреть последний созданный через k6 план мероприятий')
+    def view_last_k6_plan(self):
+        header = EuHeader(self.driver)
+        k6_plan_comment = self.driver.test_data.get('last_k6_plan').get('settings').get('plan').get('comment')
+        plan_registry_page = PlanRegistry(self.driver)
+        with allure.step('Перейти на страницу "Реестр ИП"'):
+            header.navigate_to_page('Реестр интегрированных планов')
+        with allure.step(f'Посмотреть на плане мероприятий последний план, созданный в к6 (с комментарием "{k6_plan_comment}")'):
+            plan_registry_page.watch_plan_by_comment(k6_plan_comment)
