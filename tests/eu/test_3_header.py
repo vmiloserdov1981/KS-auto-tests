@@ -9,7 +9,7 @@ import pytest
 
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
-@allure.title('Создание мероприятия')
+@allure.title('Переключение планов в header')
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user", True, False)])
 def test_eu_switch_plans(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
