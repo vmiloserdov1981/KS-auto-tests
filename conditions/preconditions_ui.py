@@ -6,9 +6,11 @@ import allure
 from selenium.webdriver.common.by import By
 from pages.components.eu_header import EuHeader
 from pages.plan_registry_po import PlanRegistry
+from api.api import ApiEu
 
 
-class PreconditionsFront(BasePage):
+
+class PreconditionsFront(BasePage, ApiEu):
     @allure.title('Перейти к интерфейсу администратора')
     def login_as_admin(self, login, password):
         login_page = LoginPage(self.driver, url=Vars.PKM_MAIN_URL)
@@ -48,3 +50,23 @@ class PreconditionsFront(BasePage):
             header.navigate_to_page('Реестр интегрированных планов')
         with allure.step(f'Посмотреть на плане мероприятий последний план, созданный в к6 (с комментарием "{k6_plan_comment}")'):
             plan_registry_page.watch_plan_by_comment(k6_plan_comment)
+
+    @allure.title('Посмотреть копию последнего созданного через k6 плана мероприятий')
+    def view_last_k6_plan_copy(self):
+        header = EuHeader(self.driver)
+        k6_plan_comment = self.driver.test_data.get('last_k6_plan').get('settings').get('plan').get('comment')
+        plans_registry = PlanRegistry(self.driver)
+        k6_plan = self.driver.test_data.get('last_k6_plan')
+        k6_plan_uuid = k6_plan.get('uuid')
+        k6_plan_name = k6_plan.get('name')
+        with allure.step(f'Проверить наличие плана - копии ИП "{k6_plan_name}"'):
+            self.driver.test_data['copy_last_k6_plan'] = self.check_k6_plan_copy(k6_plan_comment, k6_plan_uuid)
+            if self.driver.test_data['copy_last_k6_plan'].get('is_new_created'):
+                self.driver.refresh()
+
+        with allure.step('Перейти на страницу "Реестр ИП"'):
+            header.navigate_to_page('Реестр интегрированных планов')
+
+        with allure.step(f'Посмотреть на диаграмме Ганта план - копию ИП "{k6_plan_name}"'):
+            plans_registry.watch_plan_by_comment(
+                self.driver.test_data['copy_last_k6_plan'].get('settings').get('plan').get('comment'))

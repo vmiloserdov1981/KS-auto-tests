@@ -11,8 +11,13 @@ import pytest
 @allure.story('План мероприятий')
 @allure.title('Переключение планов в header')
 @allure.severity(allure.severity_level.CRITICAL)
-@pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user", True, False)])
-def test_eu_switch_plans(driver_eu_login, login, get_last_k6_plan, select_last_k6_plan):
+@pytest.mark.parametrize("parameters", [({
+        'login': 'eu_user',
+        'get_last_k6_plan': True,
+        'select_last_k6_plan': False,
+        'select_last_k6_plan_copy': False
+    })])
+def test_eu_switch_plans(driver_eu_login, parameters):
     header = EuHeader(driver_eu_login, token=driver_eu_login.token)
     k6_plan = driver_eu_login.test_data.get('last_k6_plan')
     k6_plan_comment = k6_plan.get('settings').get('plan').get('comment')

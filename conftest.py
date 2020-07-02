@@ -105,19 +105,29 @@ def driver_eu_login():
 
 
 @pytest.fixture()
-def parametrized_login_driver(login, get_last_k6_plan, select_last_k6_plan):
+def parametrized_login_driver(parameters):
+    '''
+    parameters = {
+        'login': 'eu_user',
+        'get_last_k6_plan': True,
+        'select_last_k6_plan': True,
+        'select_last_k6_plan_copy': False
+    }
+    '''
     driver = driver_init()
     preconditions_api = EuPreconditions(user.admin.login, user.admin.password)
     preconditions = PreconditionsFront(driver)
-    preconditions_api.api_check_user(login)
-    eu_user = user.all_users[login]
-    if get_last_k6_plan:
+    preconditions_api.api_check_user(parameters.get('login'))
+    eu_user = user.all_users[parameters.get('login')]
+    if parameters.get('get_last_k6_plan'):
         data = {'last_k6_plan': preconditions_api.api_get_last_k6_plan()}
         with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
             driver.test_data = data
         preconditions.login_as_eu(eu_user.login, eu_user.password)
-        if select_last_k6_plan:
+        if parameters.get('select_last_k6_plan'):
             preconditions.view_last_k6_plan()
+        elif parameters.get('select_last_k6_plan_copy'):
+            preconditions.view_last_k6_plan_copy()
     else:    
         preconditions.login_as_eu(eu_user.login, eu_user.password)
     yield driver
