@@ -367,11 +367,11 @@ class NewEventModal(Calendar, BasePage):
                 """
         actual_data = self.get_event_data()
         for indicator in actual_data:
-            if actual_data.get(indicator) == '' or actual_data.get(indicator) == ['']:
+            if actual_data.get(indicator) == '' or actual_data.get(indicator) == [''] or actual_data.get(indicator) == 'Не заполнено':
                 actual_data[indicator] = None
 
         for indicator in expected_data:
-            if expected_data.get(indicator) == '' or expected_data.get(indicator) == ['']:
+            if expected_data.get(indicator) == '' or expected_data.get(indicator) == [''] or expected_data.get(indicator) == 'Не заполнено':
                 expected_data[indicator] = None
 
         if expected_data.get('is_cross_platform') is None:
