@@ -903,7 +903,7 @@ class ApiEu(BaseApi):
         today = self.get_utc_date()
         start_date = f'{today[2]}-{today[1]}-{today[0]}T00:00:00.000Z'
         version = self.api_get_version_uuid(k6_plan_uuid, 'Проект плана')
-        user = self.api_get_user_by_login(users.eu_user.login)
+        user = self.api_get_user_by_login(users.admin.login)
         copied_plan_data = {
             'comment': copy_comment,
             'name': 'name',

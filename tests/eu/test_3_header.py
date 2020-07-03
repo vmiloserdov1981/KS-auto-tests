@@ -15,23 +15,23 @@ import pytest
         'login': 'eu_user',
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
-        'select_last_k6_plan_copy': False
+        'select_last_k6_plan_copy': True
     })])
-def test_eu_switch_plans(driver_eu_login, parameters):
-    header = EuHeader(driver_eu_login, token=driver_eu_login.token)
-    k6_plan = driver_eu_login.test_data.get('last_k6_plan')
+def test_eu_switch_plans(parametrized_login_driver, parameters):
+    header = EuHeader(parametrized_login_driver, token=parametrized_login_driver.token)
+    k6_plan = parametrized_login_driver.test_data.get('last_k6_plan')
     k6_plan_comment = k6_plan.get('settings').get('plan').get('comment')
     k6_plan_uuid = k6_plan.get('uuid')
     k6_plan_name = k6_plan.get('name')
-    events_plan = EventsPlan(driver_eu_login, token=driver_eu_login.token)
-    plans_registry = PlanRegistry(driver_eu_login, token=driver_eu_login.token)
-    api = ApiEu(None, None, token=driver_eu_login.token)
+    events_plan = EventsPlan(parametrized_login_driver, token=parametrized_login_driver.token)
+    plans_registry = PlanRegistry(parametrized_login_driver, token=parametrized_login_driver.token)
+    api = ApiEu(None, None, token=parametrized_login_driver.token)
     login = user.system_user.login
 
     with allure.step(f'Проверить наличие плана - копии ИП "{k6_plan_name}"'):
-        driver_eu_login.test_data['copy_last_k6_plan'] = api.check_k6_plan_copy(k6_plan_comment, k6_plan_uuid)
-        if driver_eu_login.test_data['copy_last_k6_plan'].get('is_new_created'):
-            driver_eu_login.refresh()
+        parametrized_login_driver.test_data['copy_last_k6_plan'] = api.check_k6_plan_copy(k6_plan_comment, k6_plan_uuid)
+        if parametrized_login_driver.test_data['copy_last_k6_plan'].get('is_new_created'):
+            parametrized_login_driver.refresh()
 
     with allure.step('Перейти на страницу "Реестр ИП"'):
         header.navigate_to_page('Реестр интегрированных планов')
@@ -44,11 +44,11 @@ def test_eu_switch_plans(driver_eu_login, parameters):
 
     with allure.step(f'Посмотреть на диаграмме Ганта план - копию ИП "{k6_plan_name}"'):
         plans_registry.watch_plan_by_comment(
-            driver_eu_login.test_data['copy_last_k6_plan'].get('settings').get('plan').get('comment'))
+            parametrized_login_driver.test_data['copy_last_k6_plan'].get('settings').get('plan').get('comment'))
 
     header.wait_until_text_in_element(header.LOCATOR_EU_PAGE_TITLE, 'ПЛАН МЕРОПРИЯТИЙ (ГЛАВНАЯ)')
-    copy_name = driver_eu_login.test_data['copy_last_k6_plan'].get('name')
-    copy_uuid = driver_eu_login.test_data['copy_last_k6_plan'].get('uuid')
+    copy_name = parametrized_login_driver.test_data['copy_last_k6_plan'].get('name')
+    copy_uuid = parametrized_login_driver.test_data['copy_last_k6_plan'].get('uuid')
 
     with allure.step(
             f'Проверить, что в дропдауне выбора планов отображается план "{copy_name}", выбранный в реестре ИП'):

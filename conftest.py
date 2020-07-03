@@ -116,7 +116,7 @@ def parametrized_login_driver(parameters):
     '''
     driver = driver_init()
     preconditions_api = EuPreconditions(user.admin.login, user.admin.password)
-    preconditions = PreconditionsFront(driver)
+    preconditions = PreconditionsFront(driver, login=user.admin.login, password=user.admin.password)
     preconditions_api.api_check_user(parameters.get('login'))
     eu_user = user.all_users[parameters.get('login')]
     if parameters.get('get_last_k6_plan'):

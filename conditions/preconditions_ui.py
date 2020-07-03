@@ -9,8 +9,12 @@ from pages.plan_registry_po import PlanRegistry
 from api.api import ApiEu
 
 
-
 class PreconditionsFront(BasePage, ApiEu):
+
+    def __init__(self, driver, login=None, password=None, token=None):
+        BasePage.__init__(self, driver)
+        ApiEu.__init__(self, login, password, token=token)
+
     @allure.title('Перейти к интерфейсу администратора')
     def login_as_admin(self, login, password):
         login_page = LoginPage(self.driver, url=Vars.PKM_MAIN_URL)
