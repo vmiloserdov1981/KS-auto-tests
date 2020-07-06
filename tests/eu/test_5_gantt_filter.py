@@ -6,7 +6,7 @@ import allure
 import time
 import pytest
 
-
+'''
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Фильтр незаполненных мероприятий')
@@ -158,7 +158,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
         }
         events_plan.check_plan_events(plan_uuid, versions[1], login, filter_set=filter_set)
 
-
+'''
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Фильтр custom relation')
@@ -175,7 +175,7 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
     plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт')
-    # prefix = parametrized_login_driver.test_data['last_k6_plan']['plan_prefix']
+    prefix = parametrized_login_driver.test_data['last_k6_plan']['plan_prefix']
 
     default_filter_set = {
         "unfilled_events_filter": {
@@ -237,8 +237,7 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
         },
         "custom_relations_filter": {
             'Персонал': [],
-            # 'Зона': [f'0 D1L5 {prefix}'],
-            'Зона': [f'D1L5'],
+            'Зона': [f'0 D1L5 {prefix}'],
             'Влияние на показатели': [],
             'Риски': [],
             'События для ИМ': []
@@ -261,11 +260,9 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
         },
         "custom_relations_filter": {
             'Персонал': ['(пусто)'],
-            # 'Зона': [f'0 D1L5 {prefix}'],
-            'Зона': [f'D1L5'],
+            'Зона': [f'0 D1L5 {prefix}'],
             'Влияние на показатели': [],
-            # 'Риски': [f'0 Риск 2 {prefix}', f'0 Риск 1 {prefix}'],
-            'Риски': [f'Риск 1', f'Риск 2'],
+            'Риски': [f'0 Риск 1 {prefix}', f'0 Риск 2 {prefix}'],
             'События для ИМ': []
         }
 
