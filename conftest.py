@@ -118,7 +118,7 @@ def parametrized_login_driver(parameters):
     preconditions_api = EuPreconditions(user.admin.login, user.admin.password)
     preconditions = PreconditionsFront(driver, login=user.admin.login, password=user.admin.password)
     preconditions_api.api_check_user(parameters.get('login'))
-    eu_user = user.all_users[parameters.get('login')]
+    eu_user = user.test_users[parameters.get('login')]
     if parameters.get('get_last_k6_plan'):
         data = {'last_k6_plan': preconditions_api.api_get_last_k6_plan()}
         with allure.step(f'Сохранить тестовые данные {data} в драйвере'):

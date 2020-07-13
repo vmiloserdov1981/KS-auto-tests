@@ -219,7 +219,7 @@ class ApiEu(BaseApi):
             if user.get('login') == login and user.get('fullName') == name:
                 return user
 
-    def api_create_user(self, email, login, password, user_name, settings):
+    def api_create_user(self, email, login, password, user_name, settings, ignore_error=False):
         fname = user_name.split(' ')[1]
         lname = user_name.split(' ')[0]
         payload = {
@@ -231,7 +231,9 @@ class ApiEu(BaseApi):
             "settings": settings
         }
         request = self.post(f'{Vars.PKM_API_URL}users/create', self.token, payload)
-        assert not request.get('error'), f'Ошибка при создании пользователя "{user_name}"'
+        if not ignore_error:
+            assert not request.get('error'), f'Ошибка при создании пользователя "{user_name}"'
+            assert request.get('uuid'), f'Невозможно получить uuid пользователя "{user_name}"'
         return request.get('uuid')
 
     def api_set_admin_role(self, user_uuid):
@@ -869,7 +871,7 @@ class ApiEu(BaseApi):
                 new_name = "{0}_{1}_{2}".format(base_name, subname, count)
         return new_name
 
-    def api_create_plan(self, plan_data):
+    def api_create_plan(self, plan_data, ignore_error=False):
         """
         plan_data = {
             'comment': 'test',
@@ -882,9 +884,12 @@ class ApiEu(BaseApi):
         }
         """
         request = self.post(f'{Vars.PKM_API_URL}plans/create', self.token, plan_data)
-        assert not request.get('error'), f'Ошибка при создании версии'
-        assert request.get('uuid') is not None, 'Невозможно получить uuid созданного плана'
+        if not ignore_error:
+            assert not request.get('error'), f'Ошибка при создании версии'
+            assert request.get('uuid') is not None, 'Невозможно получить uuid созданного плана'
         uuid = request.get('uuid')
+        if ignore_error and not uuid:
+            return None
         time.sleep(Vars.PKM_API_WAIT_TIME*2)
         plans = self.api_get_plans()
         for plan in plans:
@@ -892,7 +897,7 @@ class ApiEu(BaseApi):
                 return plan
         raise AssertionError(f'План "{plan_data}" не сохранился в системе')
 
-    def check_k6_plan_copy(self, k6_plan_comment, k6_plan_uuid):
+    def check_k6_plan_copy(self, k6_plan_comment, k6_plan_uuid, ignore_error=False):
         copy_comment = f'{k6_plan_comment[3:]}-autotest_copy'
         plans = self.api_get_plans()
         for plan in plans:
@@ -913,7 +918,7 @@ class ApiEu(BaseApi):
             'sourceModelUuid': k6_plan_uuid,
             'sourceVersionUuid': version
         }
-        plan = self.api_create_plan(copied_plan_data)
+        plan = self.api_create_plan(copied_plan_data, ignore_error=ignore_error)
         plan['is_new_created'] = True
         return plan
 
