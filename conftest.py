@@ -90,6 +90,10 @@ def driver_login():
     driver.quit()
 
 
+'''
+Фикстура больше  не используется, вместо нее используется parametrized_login_driver
+
+
 @pytest.fixture()
 def driver_eu_login():
     driver = driver_init()
@@ -99,21 +103,23 @@ def driver_eu_login():
     data = {'last_k6_plan': preconditions_api.api_get_last_k6_plan()}
     with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
         driver.test_data = data
-    preconditions.login_as_eu(user.eu_user.login, user.eu_user.password)
+    eu_user = user.test_users['eu_user']    
+    preconditions.login_as_eu(eu_user.login, eu_user.password)
     yield driver
     driver.quit()
+'''
 
 
 @pytest.fixture()
 def parametrized_login_driver(parameters):
-    '''
+    """
     parameters = {
         'login': 'eu_user',
         'get_last_k6_plan': True,
         'select_last_k6_plan': True,
         'select_last_k6_plan_copy': False
     }
-    '''
+    """
     driver = driver_init()
     preconditions_api = EuPreconditions(user.admin.login, user.admin.password)
     preconditions = PreconditionsFront(driver, login=user.admin.login, password=user.admin.password)

@@ -6,7 +6,7 @@ import allure
 import time
 import pytest
 
-'''
+
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Фильтр незаполненных мероприятий')
@@ -158,7 +158,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
         }
         events_plan.check_plan_events(plan_uuid, versions[1], login, filter_set=filter_set)
 
-'''
+
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Фильтр custom relation')
