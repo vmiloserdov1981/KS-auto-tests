@@ -176,19 +176,21 @@ class ClassesPreconditions(ApiClasses):
 class EuPreconditions(ApiEu):
 
     def api_check_eu_user(self):
-        eu_user = self.api_get_user(users.eu_user.login, users.eu_user.name)
+        eu = users.test_users['eu_user']
+        eu_user = self.api_get_user(eu.login, eu.name)
         if eu_user:
             return eu_user
         else:
-            eu_user_uuid = self.api_create_user('autouser@test.com', users.eu_user.login, users.eu_user.password, users.eu_user.name, {})
+            eu_user_uuid = self.api_create_user('autouser@test.com', eu.login, eu.password, eu.name, {})
             self.api_set_admin_role(eu_user_uuid)
 
-    def api_check_user(self, user_login):
-        user = users.all_users[user_login]
+    def api_check_user(self, user_login, ignore_error=False):
+        user = users.test_users[user_login]
         eu_user = self.api_get_user(user.login, user.name)
         if not eu_user:
-            eu_user_uuid = self.api_create_user(f'autouser_{user_login}@test.com', user.login, user.password, user.name, {})
-            self.api_set_admin_role(eu_user_uuid)
+            eu_user_uuid = self.api_create_user(f'autouser_{user_login}@test.com', user.login, user.password, user.name, {}, ignore_error=ignore_error)
+            if eu_user_uuid:
+                self.api_set_admin_role(eu_user_uuid)
     '''
     def get_last_k6_plan(self):
         data = {

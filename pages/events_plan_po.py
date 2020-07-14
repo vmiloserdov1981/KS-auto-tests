@@ -19,6 +19,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
     LOCATOR_LAST_EVENT_NAME = (By.XPATH, "(//div[contains(@class, 'gantt-indicator-name-value ')])[last()]")
     LOCATOR_ADD_EVENT_BUTTON = (By.XPATH, "//div[contains(@class, 'controls-base-block')]//fa-icon[@icon='plus']")
     LOCATOR_TRASH_ICON = (By.XPATH, "//div[@class='controls-base-block']//fa-icon[@icon='trash']")
+    LOCATOR_COPY_ICON = (By.XPATH, "//div[@class='controls-base-block']//fa-icon[@icon='clone']")
     LOCATOR_GANTT_DATA = (By.XPATH, "//div[@class='gantt_grid_data']")
     LOCATOR_GANTT_LAST_ROW = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
     LOCATOR_GANTT_SCROLL = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
@@ -31,10 +32,14 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         current_version = self.get_element_text(self.LOCATOR_VERSION_INPUT_VALUE)
         return current_version
 
-    def set_version(self, version_name):
-        if self.get_active_version_name() == version_name:
-            pass
+    def set_version(self, version_name, force=False):
+        if force:
+            do = True
+        elif self.get_active_version_name() == version_name:
+            do = False
         else:
+            do = True
+        if do:
             target_version = (By.XPATH, f"//div[@class='content' and text()=' {version_name} ']")
             self.find_and_click(self.LOCATOR_VERSION_INPUT)
             self.find_and_click(target_version)
@@ -254,6 +259,12 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
             event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, '{name}')]")
             assert self.is_element_disappearing(event_locator, wait_display=False, time=15), 'Мероприятие не исчезает после удаления'
 
+    def copy_event(self, name):
+        self.select_event(name)
+        self.find_and_click(self.LOCATOR_COPY_ICON)
+        self.find_element(self.LOCATOR_MODAL_TITLE, time=10)
+
+
     def open_event(self, event_name, start_date=None, end_date=None):
         # names = []
         for event in self.events_generator():
@@ -269,13 +280,10 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 if end_date:
                     aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
                     assert aria_end == end_date
-                action.double_click(event).perform()
-                try:
-                    title = self.get_title()
-                #except TimeoutException:
-                except:
-                    action.double_click(event).perform()
-                    title = self.get_title()
+                event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
+                self.find_and_click(event_locator)
+                action.double_click(self.find_element(event_locator)).perform()
+                title = self.get_title()
                 assert title == event_name
                 return True
         raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')

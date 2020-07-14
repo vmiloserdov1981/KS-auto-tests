@@ -11,8 +11,13 @@ import pytest
 @allure.story('План мероприятий')
 @allure.title('Фильтр незаполненных мероприятий')
 @allure.severity(allure.severity_level.CRITICAL)
-@pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user3", True, True)])
-def test_eu_unfilled_events_filter(parametrized_login_driver, login, get_last_k6_plan, select_last_k6_plan):
+@pytest.mark.parametrize("parameters", [({
+        'login': 'eu_user3',
+        'get_last_k6_plan': True,
+        'select_last_k6_plan': True,
+        'select_last_k6_plan_copy': False
+    })])
+def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
     eu_filter = EuFilter(parametrized_login_driver)
     events_plan = EventsPlan(parametrized_login_driver, token=parametrized_login_driver.token)
     plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
@@ -158,8 +163,13 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, login, get_last_k6
 @allure.story('План мероприятий')
 @allure.title('Фильтр custom relation')
 @allure.severity(allure.severity_level.CRITICAL)
-@pytest.mark.parametrize("login, get_last_k6_plan, select_last_k6_plan", [("eu_user3", True, True)])
-def test_eu_custom_relations_filter(parametrized_login_driver, login, get_last_k6_plan, select_last_k6_plan):
+@pytest.mark.parametrize("parameters", [({
+        'login': 'eu_user3',
+        'get_last_k6_plan': True,
+        'select_last_k6_plan': True,
+        'select_last_k6_plan_copy': False
+    })])
+def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
     eu_filter = EuFilter(parametrized_login_driver)
     events_plan = EventsPlan(parametrized_login_driver, token=parametrized_login_driver.token)
     plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
@@ -244,15 +254,15 @@ def test_eu_custom_relations_filter(parametrized_login_driver, login, get_last_k
         "custom_fields_filter": {
             'Тип одновременных работ': ['(пусто)'],
             'Функциональный план': [],
-            'Готовность': ['Не будет выполнено', 'Выполнено'],
-            'Тип мероприятия': ['ТОРО', 'Текущая'],
+            'Готовность': ['Выполнено', 'Не будет выполнено'],
+            'Тип мероприятия': ['Текущая', 'ТОРО'],
 
         },
         "custom_relations_filter": {
             'Персонал': ['(пусто)'],
             'Зона': [f'0 D1L5 {prefix}'],
             'Влияние на показатели': [],
-            'Риски': [f'0 Риск 2 {prefix}', f'0 Риск 1 {prefix}'],
+            'Риски': [f'0 Риск 1 {prefix}', f'0 Риск 2 {prefix}'],
             'События для ИМ': []
         }
 

@@ -109,10 +109,9 @@ class BasePage:
                                                       message=f"Can't find element by locator {locator}")
 
     def find_and_click(self, locator, time=5):
-        element = self.find_element_clickable(locator, time)
         action = ActionChains(self.driver)
-        action.move_to_element(element).perform()
-        element.click()
+        action.move_to_element(self.find_element_clickable(locator, time)).perform()
+        self.find_element_clickable(locator, time).click()
 
     def find_and_click_by_offset(self, locator, x=0, y=0):
         elem = self.find_element(locator)
