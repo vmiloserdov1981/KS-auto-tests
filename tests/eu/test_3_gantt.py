@@ -489,13 +489,13 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
 
     with allure.step(f'Выбрать версию плана "{versions[1]}"'):
         events_plan.set_version(versions[1])
-    '''
+
     with allure.step('Выключить в фильтре отображение незаполненных мероприятий'):
         eu_filter.switch_off_empty_events()
 
     with allure.step(f'Проверить отсутствие скопированного мероприятия "{copied_event_name}" в списке мероприятий на Ганте'):
         assert not events_plan.is_event_exists(copied_event_name), f'Мероприятие "{copied_event_name}" присутствует в списке мероприятий на Ганте'
-    '''
+
     with allure.step('Включить в фильтре отображение незаполненных мероприятий'):
         eu_filter.switch_on_empty_events()
 
@@ -509,7 +509,7 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
 
     with allure.step(f'Выбрать версию плана "{versions[2]}"'):
         events_plan.set_version(versions[2])
-    '''
+
     with allure.step('Выключить в фильтре отображение незаполненных мероприятий'):
         eu_filter.switch_off_empty_events()
 
@@ -517,7 +517,7 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
             f'Проверить отсутствие скопированного мероприятия "{copied_event_name}" в списке мероприятий на Ганте'):
         assert not events_plan.is_event_exists(
             copied_event_name), f'Мероприятие "{copied_event_name}" присутствует в списке мероприятий на Ганте'
-    '''
+
     with allure.step('Включить в фильтре отображение незаполненных мероприятий'):
         eu_filter.switch_on_empty_events()
 
