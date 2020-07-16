@@ -277,3 +277,19 @@ class BaseApi:
         response = self.post(f'{Vars.PKM_API_URL}users/get-user-by-login', self.token, payload)
         assert not response.get('error'), f'Ошибка при получении данных пользователя'
         return response.get('user')
+
+
+def antistale(func):
+    def wrap(*args, **kwargs):
+        stale = True
+        count = 0
+        while stale:
+            if count > 3:
+                break
+            stale = False
+            try:
+                func(*args, **kwargs)
+            except StaleElementReferenceException:
+                stale = True
+                count += 1
+    return wrap

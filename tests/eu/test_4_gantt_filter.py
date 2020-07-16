@@ -23,6 +23,18 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
     plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт')
+    time.sleep(5)
+    events_plan.set_version(versions[0], force=True)
+    time.sleep(5)
+    events_plan.set_version(versions[0], force=True)
+    time.sleep(5)
+    events_plan.set_version(versions[0], force=True)
+    time.sleep(5)
+    events_plan.set_version(versions[0], force=True)
+    time.sleep(5)
+    events_plan.set_version(versions[0], force=True)
+    time.sleep(5)
+    events_plan.set_version(versions[0], force=True)
 
     with allure.step(f'Выбрать версию плана "{versions[0]}"'):
         events_plan.set_version(versions[0])
@@ -262,7 +274,7 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
             'Персонал': ['(пусто)'],
             'Зона': [f'0 D1L5 {prefix}'],
             'Влияние на показатели': [],
-            'Риски': [f'0 Риск 1 {prefix}', f'0 Риск 2 {prefix}'],
+            'Риски': [f'0 Риск 2 {prefix}', f'0 Риск 1 {prefix}'],
             'События для ИМ': []
         }
 

@@ -1,5 +1,5 @@
 from core import BasePage
-from pages.components.eu_header import EuHeader
+from core import antistale
 from api.api import ApiEu
 from pages.components.eu_filter import EuFilter
 from selenium.webdriver.common.by import By
@@ -52,6 +52,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         names = [event for event in self.events_generator(names_only=True)]
         return names
 
+    @antistale
     def is_event_exists(self, event_name):
         try:
             self.find_element(self.LOCATOR_EVENT_NAME)
@@ -238,12 +239,14 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 return True
         raise AssertionError(f'Мероприятие "{name}" не найдено')
 
+    @antistale
     def select_event(self, name):
-        for event in self.events_generator():
+        for event in self.events_generator(names_only=True):
             try:
-                if event.text.split('\n')[1] == name:
+                if event == name:
+                    event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {name} ')]")
                     # self.driver.execute_script("arguments[0].scrollIntoView();", event)
-                    event.click()
+                    self.find_and_click(event_locator)
                     # assert 'gantt_selected' in event.get_attribute('class')
                     return True
             except IndexError:
@@ -264,8 +267,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         self.find_and_click(self.LOCATOR_COPY_ICON)
         self.find_element(self.LOCATOR_MODAL_TITLE, time=10)
 
-
-    def open_event(self, event_name, start_date=None, end_date=None):
+    def open_event_old(self, event_name, start_date=None, end_date=None):
         # names = []
         for event in self.events_generator():
             # names.append(event.text)
@@ -281,6 +283,30 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                     aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
                     assert aria_end == end_date
                 event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
+                self.find_and_click(event_locator)
+                action.double_click(self.find_element(event_locator)).perform()
+                title = self.get_title()
+                assert title == event_name
+                return True
+        raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
+
+    @antistale
+    def open_event(self, event_name, start_date=None, end_date=None):
+        # names = []
+        for event in self.events_generator(names_only=True):
+            # names.append(event.text)
+            if event == event_name:
+                event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
+                action = ActionChains(self.driver)
+                aria_label = self.find_element(event_locator).get_attribute('aria-label')
+                aria_name = aria_label.split(' Start date: ')[0].split(' Task: ')[1]
+                assert aria_name == event_name
+                if start_date:
+                    aria_start = aria_label.split(' Start date: ')[1].split(' End date: ')[0].split('-')[::-1]
+                    assert aria_start == start_date
+                if end_date:
+                    aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
+                    assert aria_end == end_date
                 self.find_and_click(event_locator)
                 action.double_click(self.find_element(event_locator)).perform()
                 title = self.get_title()
