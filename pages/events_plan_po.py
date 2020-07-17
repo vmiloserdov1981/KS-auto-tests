@@ -322,6 +322,27 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         except TimeoutException:
             pass
 
+    @antistale
+    def get_grouped_events(self):
+        events = {}
+
+        def add_in_group(item, dictionary, group_value):
+            if group_value in dictionary.keys():
+                dictionary[group_value].append(item)
+            else:
+                dictionary[group_value] = [item]
+            return dictionary
+        summary = None
+        for event in self.events_generator():
+            if 'summary-bar' in event.get_attribute('class'):
+                summary = event.text.split('\n')[1]
+            else:
+                add_in_group(event.text.split('\n')[1], events, summary)
+        return events
+
+
+
+
     def check_plan_events(self, plan_uuid, version, login, filter_set):
         """
         filter_set = {

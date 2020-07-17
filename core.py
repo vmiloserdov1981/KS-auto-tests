@@ -288,7 +288,7 @@ def antistale(func):
                 break
             stale = False
             try:
-                func(*args, **kwargs)
+                return func(*args, **kwargs)
             except StaleElementReferenceException:
                 stale = True
                 count += 1

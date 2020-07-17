@@ -28,27 +28,19 @@ def test_eu_create_gantt_event(parametrized_login_driver, parameters):
     version2 = 'Факт'
     api = ApiEu(None, None, token=parametrized_login_driver.token)
     versions = ['Проект плана', 'Факт', 'План потребности']
-    plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
+    plan_uuid = parametrized_login_driver.test_data.get('copy_last_k6_plan').get('uuid')
     login = user.system_user.login
-    prefix = parametrized_login_driver.test_data['last_k6_plan']['plan_prefix']
 
     filter_set = {
         "unfilled_events_filter": {
             'Только незаполненные мероприятия': False,
-            'Отображать незаполненные мероприятия': True,
+            'Отображать незаполненные мероприятия': False,
             'Скрывать мероприятия при фильтрации': False
-        },
-        "custom_relations_filter": {
-            'Персонал': ['(пусто)'],
-            'Зона': [f'0 D1L5 {prefix}'],
-            'Влияние на показатели': [],
-            'Риски': [f'0 Риск 2 {prefix}', f'0 Риск 1 {prefix}'],
-            'События для ИМ': []
         }
-
     }
-    events = api.api_get_events(versions[0], plan_uuid, login, filter_set=filter_set, group_by='Комментарий')
-    a=3
+    api_events = api.api_get_events(versions[0], plan_uuid, login, filter_set, group_by='Комментарий')
+    events = events_plan.get_grouped_events()
+    assert api_events == events
 
     with allure.step(f'Выбрать версию плана "{version1}"'):
         events_plan.set_version(version1)
