@@ -30,6 +30,25 @@ def test_eu_create_gantt_event(parametrized_login_driver, parameters):
     versions = ['Проект плана', 'Факт', 'План потребности']
     plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
+    prefix = parametrized_login_driver.test_data['last_k6_plan']['plan_prefix']
+
+    filter_set = {
+        "unfilled_events_filter": {
+            'Только незаполненные мероприятия': False,
+            'Отображать незаполненные мероприятия': True,
+            'Скрывать мероприятия при фильтрации': False
+        },
+        "custom_relations_filter": {
+            'Персонал': ['(пусто)'],
+            'Зона': [f'0 D1L5 {prefix}'],
+            'Влияние на показатели': [],
+            'Риски': [f'0 Риск 2 {prefix}', f'0 Риск 1 {prefix}'],
+            'События для ИМ': []
+        }
+
+    }
+    events = api.api_get_events(versions[0], plan_uuid, login, filter_set=filter_set, group_by='Комментарий')
+    a=3
 
     with allure.step(f'Выбрать версию плана "{version1}"'):
         events_plan.set_version(version1)
@@ -99,7 +118,7 @@ def test_eu_create_gantt_event(parametrized_login_driver, parameters):
     with allure.step(f'Проверить, что мероприятие "{event_name}" пустое'):
         assert events_plan.get_event_data() == empty_data
 
-
+'''
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Удаление мероприятия')
@@ -528,3 +547,4 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
             f'Проверить, что мероприятие "{copied_event_name}" пустое'):
         assert event_modal.check_event(empty_data), f'Мероприятие "{copied_event_name}" не пустое'
         event_modal.find_and_click(event_modal.LOCATOR_CANCEL_BUTTON)
+'''
