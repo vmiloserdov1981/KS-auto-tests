@@ -28,7 +28,7 @@ def test_eu_create_gantt_event(parametrized_login_driver, parameters):
     version2 = 'Факт'
     api = ApiEu(None, None, token=parametrized_login_driver.token)
     versions = ['Проект плана', 'Факт', 'План потребности']
-    plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
+    plan_uuid = parametrized_login_driver.test_data.get('copy_last_k6_plan').get('uuid')
     login = user.system_user.login
 
     with allure.step(f'Выбрать версию плана "{version1}"'):
