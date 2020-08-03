@@ -23,18 +23,6 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
     plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт')
-    time.sleep(5)
-    events_plan.set_version(versions[0], force=True)
-    time.sleep(5)
-    events_plan.set_version(versions[0], force=True)
-    time.sleep(5)
-    events_plan.set_version(versions[0], force=True)
-    time.sleep(5)
-    events_plan.set_version(versions[0], force=True)
-    time.sleep(5)
-    events_plan.set_version(versions[0], force=True)
-    time.sleep(5)
-    events_plan.set_version(versions[0], force=True)
 
     with allure.step(f'Выбрать версию плана "{versions[0]}"'):
         events_plan.set_version(versions[0])
