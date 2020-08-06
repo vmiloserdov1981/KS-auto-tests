@@ -757,6 +757,8 @@ class ApiEu(BaseApi):
         gantt = self.api_get_gantt(version, plan_uuid, login)
         invalid_field = False
         invalid_relation = False
+        if filter_set is None:
+            filter_set = {}
 
         def none_converter(value):
             if value == '(пусто)':

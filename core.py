@@ -176,6 +176,14 @@ class BasePage:
     def compare_lists(list_a, list_b):
         return collections.Counter(list_a) == collections.Counter(list_b)
 
+    def compare_dicts(self, dict_a, dict_b):
+        assert self.compare_lists(dict_a.keys(), dict_b.keys())
+        for key in dict_a:
+            if type(dict_a.get(key)) is list:
+                assert self.compare_lists(dict_a.get(key), dict_b.get(key))
+            else:
+                assert dict_a.get(key) == dict_b.get(key)
+
 
 class DomChanged(object):
     def __init__(self, dom):

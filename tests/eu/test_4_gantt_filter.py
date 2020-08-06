@@ -306,13 +306,16 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
     with allure.step(f'Проверить, что состояние установленных фильтров не изменилось'):
         time.sleep(Vars.PKM_USER_WAIT_TIME)
         actual_filters = eu_filter.get_filter_set()
-        assert actual_filters == filter_set_3
+        for i in actual_filters:
+            eu_filter.compare_dicts(actual_filters.get(i), filter_set_3.get(i))
 
     with allure.step(f'Выбрать версию плана "{versions[1]}"'):
         events_plan.set_version(versions[1])
 
     with allure.step(f'Проверить, что состояние установленных фильтров не изменилось'):
-        assert eu_filter.get_filter_set() == filter_set_3
+        actual_filters = eu_filter.get_filter_set()
+        for i in actual_filters:
+            eu_filter.compare_dicts(actual_filters.get(i), filter_set_3.get(i))
 
     with allure.step(f'Проверить, что на диаграмме Ганта отображаются мероприятия согласно установленных фильтров'):
         events_plan.check_plan_events(plan_uuid, versions[1], login, filter_set_3)

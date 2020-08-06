@@ -131,8 +131,8 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
 
     def events_generator(self, names_only=False):
         # перебирает мероприятия поэкранно, стабильный
-
         last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
+        prelast_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()-1]")
         rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
         stop_gen = False
 
@@ -177,10 +177,11 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 new_height = 0
                 while True:
                     # last screen actions
-                    if new_height + step + start_height >= total_height:
+
+                    if new_height + step + start_height > total_height:
+                        row = self.find_element(prelast_row_locator)
                         self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
-                                                   self.find_element(last_row_locator))
-                        row = self.find_element(last_row_locator)
+                                                   row)
                         if names_only:
                             row_text = row.text
                             row_name = row_text.split('\n')[1]
@@ -198,13 +199,13 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                                 pass
                             new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
                             self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
-                                                       self.find_element(last_row_locator))
+                                                       last_row)
                             if names_only:
-                                last_row_text = self.get_element_text(last_row_locator)
+                                last_row_text = last_row.text
                                 last_row_name = last_row_text.split('\n')[1]
                                 yield last_row_name
                             else:
-                                yield self.find_element(last_row_locator)
+                                yield last_row
                         stop_gen = True
                         break
 
@@ -293,12 +294,12 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
     @antistale
     def open_event(self, event_name, start_date=None, end_date=None):
         # names = []
-        for event in self.events_generator(names_only=True):
-            # names.append(event.text)
-            if event == event_name:
-                event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
+        for event in self.events_generator(names_only=False):
+            # names.append(event)
+            if event.text.split('\n')[1] == event_name:
+                # event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
                 action = ActionChains(self.driver)
-                aria_label = self.find_element(event_locator).get_attribute('aria-label')
+                aria_label = event.get_attribute('aria-label')
                 aria_name = aria_label.split(' Start date: ')[0].split(' Task: ')[1]
                 assert aria_name == event_name
                 if start_date:
@@ -307,8 +308,8 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 if end_date:
                     aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
                     assert aria_end == end_date
-                self.find_and_click(event_locator)
-                action.double_click(self.find_element(event_locator)).perform()
+                event.click()
+                action.double_click(event).perform()
                 title = self.get_title()
                 assert title == event_name
                 return True
@@ -340,8 +341,10 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 add_in_group(event.text.split('\n')[1], events, summary)
         return events
 
-
-
+    @antistale
+    def get_events(self, names_only=False):
+        events = [event for event in self.events_generator(names_only=names_only) if event is not None]
+        return events
 
     def check_plan_events(self, plan_uuid, version, login, filter_set):
         """
@@ -384,24 +387,8 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
 
         else:
             api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set)
-            ui_events = [event for event in self.events_generator(names_only=True) if event is not None]
-            assert self.compare_lists(api_events, ui_events)
-
-        '''
-        if filter_set is None:
-            filter_set = {}
-
-        deleted_only = filter_set.get('unfilled_events_filter').get('deleted_only')
-        get_deleted = filter_set.get('unfilled_events_filter').get('get_deleted')
-
-        if deleted_only:
-            api_events = self.api_get_event_names(version, plan_uuid, login, deleleted_only=True)
-        else:
-            if get_deleted:
-                api_events = self.api_get_event_names(version, plan_uuid, login, get_deleted=True)
+            ui_events = self.get_events(names_only=True)
+            if not self.compare_lists(api_events, ui_events):
+                raise AssertionError('Мероприятия в API и UI не совпадают')
             else:
-                api_events = self.api_get_event_names(version, plan_uuid, login, get_deleted=False)
-        ui_events = [event for event in self.events_generator(names_only=True) if event is not None]
-        not_in_ui = [api_event for api_event in api_events if api_event not in ui_events]
-        assert self.compare_lists(api_events, ui_events), f'Мероприятия на диаграмме и в API не совпадают, в ui не отображаются мероприятия "{not_in_ui}"'
-        '''
+                return True
