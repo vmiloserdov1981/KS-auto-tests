@@ -20,6 +20,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
     LOCATOR_ADD_EVENT_BUTTON = (By.XPATH, "//div[contains(@class, 'controls-base-block')]//fa-icon[@icon='plus']")
     LOCATOR_TRASH_ICON = (By.XPATH, "//div[@class='controls-base-block']//fa-icon[@icon='trash']")
     LOCATOR_COPY_ICON = (By.XPATH, "//div[@class='controls-base-block']//fa-icon[@icon='clone']")
+    LOCATOR_GROUPING_ICON = (By.XPATH, "//div[@class='controls-base-block']//fa-icon[@icon='indent']")
     LOCATOR_GANTT_DATA = (By.XPATH, "//div[@class='gantt_grid_data']")
     LOCATOR_GANTT_LAST_ROW = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
     LOCATOR_GANTT_SCROLL = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
@@ -291,8 +292,11 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 return True
         raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
 
+    '''
+    С привязкой к элементу
+    
     @antistale
-    def open_event(self, event_name, start_date=None, end_date=None):
+    def open_event_ver1(self, event_name, start_date=None, end_date=None):
         # names = []
         for event in self.events_generator(names_only=False):
             # names.append(event)
@@ -314,8 +318,31 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 assert title == event_name
                 return True
         raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
+    '''
 
-
+    @antistale
+    def open_event(self, event_name, start_date=None, end_date=None):
+        # names = []
+        for event in self.events_generator(names_only=False):
+            # names.append(event)
+            if event.text.split('\n')[1] == event_name:
+                event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
+                action = ActionChains(self.driver)
+                aria_label = self.find_element(event_locator).get_attribute('aria-label')
+                aria_name = aria_label.split(' Start date: ')[0].split(' Task: ')[1]
+                assert aria_name == event_name
+                if start_date:
+                    aria_start = aria_label.split(' Start date: ')[1].split(' End date: ')[0].split('-')[::-1]
+                    assert aria_start == start_date
+                if end_date:
+                    aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
+                    assert aria_end == end_date
+                self.find_and_click(event_locator)
+                action.double_click(self.find_element(event_locator)).perform()
+                title = self.get_title()
+                assert title == event_name
+                return True
+        raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
 
     def scroll_to_gantt_top(self):
         try:
@@ -342,11 +369,32 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         return events
 
     @antistale
-    def get_events(self, names_only=False):
-        events = [event for event in self.events_generator(names_only=names_only) if event is not None]
-        return events
+    def get_events(self, names_only=False, grouped=False):
+        if grouped:
+            events = {}
 
-    def check_plan_events(self, plan_uuid, version, login, filter_set):
+            def add_in_group(item, dictionary, group_value):
+                if group_value in dictionary.keys():
+                    dictionary[group_value].append(item)
+                else:
+                    dictionary[group_value] = [item]
+                return dictionary
+
+            summary = None
+            for event in self.events_generator():
+                if 'summary-bar' in event.get_attribute('class'):
+                    summary = event.text.split('\n')[1]
+                else:
+                    if names_only:
+                        add_in_group(event.text.split('\n')[1], events, summary)
+                    else:
+                        add_in_group(event, events, summary)
+            return events
+        else:
+            events = [event for event in self.events_generator(names_only=names_only) if event is not None]
+            return events
+
+    def check_plan_events(self, plan_uuid, version, login, filter_set, group_by=None):
         """
         filter_set = {
             "unfilled_events_filter": {
@@ -371,10 +419,14 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
 
         }
         """
+
         if filter_set.get('unfilled_events_filter').get('Скрывать мероприятия при фильтрации') is False:
-            all_api_events = self.api_get_events(version, plan_uuid, login)
+            all_api_events = self.api_get_events(version, plan_uuid, login, group_by=group_by)
             filtered_api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set)
-            ui_events = []
+            if group_by:
+                ui_events = {}
+            else:
+                ui_events = []
             for event in self.events_generator():
                 event_name = event.text.split('\n')[1]
                 assert event_name in all_api_events
@@ -382,13 +434,55 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                     assert 'filter-hide' not in event.get_attribute('class')
                 elif event_name in all_api_events and event_name not in filtered_api_events:
                     assert 'filter-hide' in event.get_attribute('class')
-                ui_events.append(event_name)
+                if group_by:
+                    summary = None
+                    if 'summary-bar' in event.get_attribute('class'):
+                        summary = event.text.split('\n')[1]
+                    self.add_in_group(event_name, ui_events, summary)
+                else:
+                    ui_events.append(event_name)
             assert self.compare_lists(all_api_events, ui_events)
 
         else:
-            api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set)
-            ui_events = self.get_events(names_only=True)
-            if not self.compare_lists(api_events, ui_events):
-                raise AssertionError('Мероприятия в API и UI не совпадают')
+            api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set, group_by=group_by)
+            ui_events = self.get_events(grouped=group_by, names_only=True)
+            if type(ui_events) is dict:
+                self.compare_dicts(ui_events, api_events)
             else:
-                return True
+                assert self.compare_lists(api_events, ui_events), 'Мероприятия в API и UI не совпадают'
+
+    def set_grouping(self, group_value):
+        self.find_and_click(self.LOCATOR_GROUPING_ICON)
+        value_locator = (By.XPATH, f"//div[contains(@class, 'gantt-overlay-menu')]//div[contains(@class, 'filter-dropdown-item') and text()=' {group_value} ']")
+        value = self.find_element(value_locator)
+        if 'selected' in value.get_attribute('class'):
+            pass
+        else:
+            value.click()
+        self.find_and_click(self.LOCATOR_GROUPING_ICON)
+
+    def unset_grouping(self, group_value):
+        self.find_and_click(self.LOCATOR_GROUPING_ICON)
+        value_locator = (By.XPATH, f"//div[contains(@class, 'gantt-overlay-menu')]//div[contains(@class, 'filter-dropdown-item') and text()=' {group_value} '")
+        value = self.find_element(value_locator)
+        if 'selected' in value.get_attribute('class'):
+            value.click()
+        else:
+            pass
+        self.find_and_click(self.LOCATOR_GROUPING_ICON)
+
+    def get_grouping_value(self):
+        values_list = []
+        self.find_and_click(self.LOCATOR_GROUPING_ICON)
+        values_locator = (By.XPATH, f"//div[contains(@class, 'gantt-overlay-menu')]//div[contains(@class, 'filter-dropdown-item')]")
+        values = self.driver.find_elements(*values_locator)
+        for value in values:
+            if 'selected' in value.get_attribute('class'):
+                values_list.append(value.text)
+        self.find_and_click(self.LOCATOR_GROUPING_ICON)
+        if len(values_list) == 1:
+            return values_list[0]
+        elif len(values_list) == 0:
+            return None
+        else:
+            raise AssertionError('В качестве группирующего показателя выбрано более одного значения')

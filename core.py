@@ -184,6 +184,14 @@ class BasePage:
             else:
                 assert dict_a.get(key) == dict_b.get(key)
 
+    @staticmethod
+    def add_in_group(item, dictionary, group_value):
+        if group_value in dictionary.keys():
+            dictionary[group_value].append(item)
+        else:
+            dictionary[group_value] = [item]
+        return dictionary
+
 
 class DomChanged(object):
     def __init__(self, dom):

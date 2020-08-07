@@ -10,7 +10,7 @@ from variables import PkmVars
 from selenium.common.exceptions import TimeoutException
 import pytest
 
-
+'''
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Создание мероприятия')
@@ -528,4 +528,49 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
             f'Проверить, что мероприятие "{copied_event_name}" пустое'):
         assert event_modal.check_event(empty_data), f'Мероприятие "{copied_event_name}" не пустое'
         event_modal.find_and_click(event_modal.LOCATOR_CANCEL_BUTTON)
+
+'''
+@allure.feature('Интерфейс КП')
+@allure.story('План мероприятий')
+@allure.title('Группировка мероприятий')
+@allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.parametrize("parameters", [({
+        'login': 'eu_user3',
+        'get_last_k6_plan': True,
+        'select_last_k6_plan': True,
+        'select_last_k6_plan_copy': False
+    })])
+def test_eu_group_gantt_events(parametrized_login_driver, parameters):
+    api = ApiEu(None, None, token=parametrized_login_driver.token)
+    eu_filter = EuFilter(parametrized_login_driver)
+    events_plan = EventsPlan(parametrized_login_driver, token=parametrized_login_driver.token)
+    event_modal = NewEventModal(parametrized_login_driver)
+    login = user.system_user.login
+    versions = ('Проект плана', 'Факт', 'План потребности')
+    k6_plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
+    group_values = ['Комментарий', 'Зона']
+    filter_set = {
+        "unfilled_events_filter": {
+            'Только незаполненные мероприятия': False,
+            'Отображать незаполненные мероприятия': False
+        }
+    }
+
+    with allure.step(f'Выбрать версию плана "{versions[0]}"'):
+        events_plan.set_version(versions[0])
+
+    with allure.step(f'Установить группировку мероприятий по значению "{group_values[0]}"'):
+        events_plan.set_grouping(group_values[0])
+
+    with allure.step(f'Проверить что на диаграме отображаются все мероприятия плана, сгруппированные по значению "{group_values[0]}"'):
+        events_plan.check_plan_events(k6_plan_uuid, versions[0], login, filter_set=filter_set, group_by=group_values[0])
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_driver.refresh()
+
+    with allure.step(f'Проверить что на диаграмме Ганта установлена группировка по значению "{group_values[0]}"'):
+        assert events_plan.get_grouping_value() == group_values[0]
+
+
+
 
