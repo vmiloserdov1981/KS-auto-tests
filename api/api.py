@@ -826,7 +826,7 @@ class ApiEu(BaseApi):
                     if event.get('start') is not None and event.get('end') is not None:
                         continue
                 if not filter_set.get('unfilled_events_filter').get('Отображать незаполненные мероприятия'):
-                    if event.get('start') is None and event.get('end') is None:
+                    if event.get('start') is None or event.get('end') is None:
                         continue
             if filter_set.get('custom_fields_filter'):
                 for field in filter_set.get('custom_fields_filter'):

@@ -10,7 +10,7 @@ from variables import PkmVars
 from selenium.common.exceptions import TimeoutException
 import pytest
 
-'''
+
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Создание мероприятия')
@@ -529,7 +529,7 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
         assert event_modal.check_event(empty_data), f'Мероприятие "{copied_event_name}" не пустое'
         event_modal.find_and_click(event_modal.LOCATOR_CANCEL_BUTTON)
 
-'''
+
 @allure.feature('Интерфейс КП')
 @allure.story('План мероприятий')
 @allure.title('Группировка мероприятий')

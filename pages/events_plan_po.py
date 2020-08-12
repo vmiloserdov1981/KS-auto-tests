@@ -174,13 +174,17 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 cell_height = self.driver.execute_script("return arguments[0].clientHeight",
                                                          self.find_element(last_row_locator))
                 step = ((start_height // cell_height) + 0) * cell_height
+                delta = start_height % step
                 total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
                 new_height = 0
                 while True:
                     # last screen actions
 
                     if new_height + step + start_height > total_height:
-                        row = self.find_element(prelast_row_locator)
+                        if new_height + start_height + (cell_height * 2) - delta < total_height:
+                            row = self.find_element(prelast_row_locator)
+                        else:
+                            row = self.find_element(last_row_locator)
                         self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
                                                    row)
                         if names_only:
@@ -441,7 +445,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                     self.add_in_group(event_name, ui_events, summary)
                 else:
                     ui_events.append(event_name)
-            assert self.compare_lists(all_api_events, ui_events)
+            assert self.compare_lists(all_api_events, ui_events), f'Мероприятия в API и UI не совпадают. API - {len(all_api_events)} шт, UI - {len(ui_events)} шт'
 
         else:
             api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set, group_by=group_by)
@@ -449,7 +453,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
             if type(ui_events) is dict:
                 self.compare_dicts(ui_events, api_events)
             else:
-                assert self.compare_lists(api_events, ui_events), 'Мероприятия в API и UI не совпадают'
+                assert self.compare_lists(api_events, ui_events), f'Мероприятия в API и UI не совпадают. API - {len(api_events)} шт, UI - {len(ui_events)} шт'
 
     def set_grouping(self, group_value):
         self.find_and_click(self.LOCATOR_GROUPING_ICON)

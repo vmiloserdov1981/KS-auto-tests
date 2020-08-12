@@ -60,7 +60,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
         parametrized_login_driver.refresh()
 
     with allure.step('Проерить, что отображение незаполненных мероприятий включено'):
-        time.sleep(Vars.PKM_USER_WAIT_TIME)
+        time.sleep(Vars.PKM_USER_WAIT_TIME * 2)
         assert eu_filter.is_show_empty_events(), 'Отображение незаполненных мероприятий отключено'
         assert eu_filter.is_show_empty_events_only(), 'Отображение только незаполненных мероприятий отключено'
 
@@ -89,6 +89,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
                 'Отображать незаполненные мероприятия': False
             }
         }
+        parametrized_login_driver.refresh()
         events_plan.check_plan_events(plan_uuid, versions[0], login, filter_set=filter_set)
 
     with allure.step(f'Выбрать версию плана "{versions[1]}"'):
@@ -127,7 +128,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
         parametrized_login_driver.refresh()
 
     with allure.step('Проерить, что отображение незаполненных мероприятий включено'):
-        time.sleep(Vars.PKM_USER_WAIT_TIME)
+        time.sleep(Vars.PKM_USER_WAIT_TIME * 2)
         assert eu_filter.is_show_empty_events(), 'Отображение незаполненных мероприятий отключено'
         assert eu_filter.is_show_empty_events_only(), 'Отображение только незаполненных мероприятий отключено'
 
@@ -156,6 +157,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
                 'Отображать незаполненные мероприятия': False
             }
         }
+        parametrized_login_driver.refresh()
         events_plan.check_plan_events(plan_uuid, versions[1], login, filter_set=filter_set)
 
 
@@ -323,8 +325,8 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
     with allure.step(f'Сбросить настройки фильтров'):
         eu_filter.reset_filters()
 
-    for filter in filter_set_3.get("custom_fields_filter"):
-        filter_set_3["custom_fields_filter"][filter] = []
+    for filter_val in filter_set_3.get("custom_fields_filter"):
+        filter_set_3["custom_fields_filter"][filter_val] = []
     for relation in filter_set_3.get("custom_relations_filter"):
         filter_set_3['custom_relations_filter'][relation] = []
 
