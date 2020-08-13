@@ -342,6 +342,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                     aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
                     assert aria_end == end_date
                 self.find_and_click(event_locator)
+                time.sleep(2)
                 action.double_click(self.find_element(event_locator)).perform()
                 title = self.get_title()
                 assert title == event_name
@@ -479,6 +480,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         values_list = []
         self.find_and_click(self.LOCATOR_GROUPING_ICON)
         values_locator = (By.XPATH, f"//div[contains(@class, 'gantt-overlay-menu')]//div[contains(@class, 'filter-dropdown-item')]")
+        self.find_element(values_locator, time=15)
         values = self.driver.find_elements(*values_locator)
         for value in values:
             if 'selected' in value.get_attribute('class'):

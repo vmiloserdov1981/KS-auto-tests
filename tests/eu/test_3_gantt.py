@@ -19,7 +19,8 @@ import pytest
         'login': 'eu_user2',
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
-        'select_last_k6_plan_copy': True
+        'select_last_k6_plan_copy': True,
+        'name': 'Создание мероприятия'
     })])
 def test_eu_create_gantt_event(parametrized_login_driver, parameters):
     eu_filter = EuFilter(parametrized_login_driver)
@@ -108,7 +109,8 @@ def test_eu_create_gantt_event(parametrized_login_driver, parameters):
         'login': 'eu_user2',
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
-        'select_last_k6_plan_copy': True
+        'select_last_k6_plan_copy': True,
+        'name': 'Удаление мероприятия'
     })])
 def test_eu_delete_gantt_event(parametrized_login_driver, parameters):
     api = ApiEu(None, None, token=parametrized_login_driver.token)
@@ -235,7 +237,8 @@ def test_eu_delete_gantt_event(parametrized_login_driver, parameters):
         'login': 'eu_user2',
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
-        'select_last_k6_plan_copy': True
+        'select_last_k6_plan_copy': True,
+        'name': 'Редактирование мероприятия'
     })])
 def test_eu_modify_gantt_event(parametrized_login_driver, parameters):
     api = ApiEu(None, None, token=parametrized_login_driver.token)
@@ -411,8 +414,9 @@ def test_eu_modify_gantt_event(parametrized_login_driver, parameters):
         'login': 'eu_user2',
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
-        'select_last_k6_plan_copy': True
-    })])
+        'select_last_k6_plan_copy': True,
+        'name': 'Копирование мероприятия'
+})])
 def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
     api = ApiEu(None, None, token=parametrized_login_driver.token)
     eu_filter = EuFilter(parametrized_login_driver)
@@ -538,7 +542,8 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
         'login': 'eu_user3',
         'get_last_k6_plan': True,
         'select_last_k6_plan': True,
-        'select_last_k6_plan_copy': False
+        'select_last_k6_plan_copy': False,
+        'name': 'Группировка мероприятий'
     })])
 def test_eu_group_gantt_events(parametrized_login_driver, parameters):
     api = ApiEu(None, None, token=parametrized_login_driver.token)

@@ -15,7 +15,8 @@ import pytest
         'login': 'eu_user3',
         'get_last_k6_plan': True,
         'select_last_k6_plan': True,
-        'select_last_k6_plan_copy': False
+        'select_last_k6_plan_copy': False,
+        'name': 'Фильтр незаполненных мероприятий'
     })])
 def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
     eu_filter = EuFilter(parametrized_login_driver)
@@ -169,7 +170,8 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
         'login': 'eu_user3',
         'get_last_k6_plan': True,
         'select_last_k6_plan': True,
-        'select_last_k6_plan_copy': False
+        'select_last_k6_plan_copy': False,
+        'name': 'Фильтр custom relation'
     })])
 def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
     eu_filter = EuFilter(parametrized_login_driver)

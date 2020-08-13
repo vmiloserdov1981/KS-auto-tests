@@ -15,7 +15,8 @@ import pytest
         'login': 'eu_user',
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
-        'select_last_k6_plan_copy': True
+        'select_last_k6_plan_copy': True,
+        'name': 'Переключение планов в header'
     })])
 def test_eu_switch_plans(parametrized_login_driver, parameters):
     header = EuHeader(parametrized_login_driver, token=parametrized_login_driver.token)
