@@ -755,6 +755,7 @@ class ApiEu(BaseApi):
         }
         """
         gantt = self.api_get_gantt(version, plan_uuid, login)
+        values_dictionary = gantt.get('uuidValues')
         invalid_field = False
         invalid_relation = False
         if filter_set is None:
@@ -801,6 +802,14 @@ class ApiEu(BaseApi):
                 dictionary[group_value] = [item]
             return dictionary
 
+        def custom_value_to_uuid(value):
+            if value:
+                nonlocal values_dictionary
+                for uuid in values_dictionary:
+                    if values_dictionary.get(uuid) == value:
+                        return uuid
+                raise AssertionError(f'can`t find {value} value in uuids dictionary')
+
         if group_by:
             events = {}
 
@@ -810,17 +819,19 @@ class ApiEu(BaseApi):
         if filter_set:
             filter_set = copy.deepcopy(filter_set)
 
+        if filter_set.get('custom_fields_filter'):
+            for custom_filter in filter_set.get('custom_fields_filter'):
+                filter_set['custom_fields_filter'][custom_filter] = list(
+                    map(none_converter, filter_set['custom_fields_filter'][custom_filter]))
+                filter_set['custom_fields_filter'][custom_filter] = list(
+                    map(custom_value_to_uuid, filter_set['custom_fields_filter'][custom_filter]))
+
+        if filter_set.get('custom_relations_filter'):
+            for custom_filter in filter_set.get('custom_relations_filter'):
+                filter_set['custom_relations_filter'][custom_filter] = list(
+                    map(none_converter, filter_set['custom_relations_filter'][custom_filter]))
+
         for event in self.api_events_generator(gantt):
-            if filter_set.get('custom_fields_filter'):
-                for custom_filter in filter_set.get('custom_fields_filter'):
-                    filter_set['custom_fields_filter'][custom_filter] = list(
-                        map(none_converter, filter_set['custom_fields_filter'][custom_filter]))
-
-            if filter_set.get('custom_relations_filter'):
-                for custom_filter in filter_set.get('custom_relations_filter'):
-                    filter_set['custom_relations_filter'][custom_filter] = list(
-                        map(none_converter, filter_set['custom_relations_filter'][custom_filter]))
-
             if filter_set.get('unfilled_events_filter'):
                 if filter_set.get('unfilled_events_filter').get('Только незаполненные мероприятия'):
                     if event.get('start') is not None and event.get('end') is not None:
