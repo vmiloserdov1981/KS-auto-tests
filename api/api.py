@@ -60,7 +60,7 @@ class ApiClasses(BaseApi):
             "withRelations": False
         }
         url = '{}classes/get-by-ids'.format(Vars.PKM_API_URL)
-        resp = self.post(url, self.driver.token, payload)
+        resp = self.post(url, self.token, payload)
         name = resp.get('data').get(uuid).get('name')
         return name
 
@@ -86,7 +86,7 @@ class ApiClasses(BaseApi):
             "classUuids": class_uuids
         }
         url = f'{Vars.PKM_API_URL}indicators/get'
-        resp = self.post(url, self.driver.token, payload)
+        resp = self.post(url, self.token, payload)
         ind_list = resp.get('data')
         for ind in ind_list:
             names.append(ind.get('name'))
@@ -334,7 +334,22 @@ class ApiEu(BaseApi):
         assert not request.get('error'), f'Ошибка при получении Ганта'
         return request
 
-    def api_get_dict_element_uuid(self, gantt, dict_name, dict_value):
+    @staticmethod
+    def get_plan_prefixes(gantt):
+        prefixes = ('', '')
+        gantt_classes = gantt.get('data').get('classes')
+        if gantt_classes:
+            for i in gantt_classes:
+                if 'Мероприятие' in gantt_classes.get(i).get('name'):
+                    class_name = gantt_classes.get(i).get('name')
+                    if ' ' in class_name:
+                        words = class_name.split(' ')
+                        prefixes = (f'{words[0]} ', f' {words[2]}')
+                        return prefixes
+            return prefixes
+
+    @staticmethod
+    def api_get_dict_element_uuid(gantt, dict_name, dict_value):
         for dict_uuid in gantt.get('data').get('dictionaries'):
             if gantt.get('data').get('dictionaries').get(dict_uuid).get('name') == dict_name:
                 for element in gantt.get('data').get('dictionaries').get(dict_uuid).get('elements'):
@@ -707,7 +722,8 @@ class ApiEu(BaseApi):
         }
         return event_data
 
-    def anti_doublespacing(self, string):
+    @staticmethod
+    def anti_doublespacing(string):
         if '  ' in string:
             string_list = string.split(' ')
             new_string_list = [elem for elem in string_list if elem != '']
@@ -912,7 +928,8 @@ class ApiEu(BaseApi):
                     if task.get('start') is not None and task.get('end') is not None:
                         yield task.get('object').get('name')
 
-    def api_events_generator(self, gantt):
+    @staticmethod
+    def api_events_generator(gantt):
         tasks = gantt.get('data').get('tasks')
         for task in tasks:
             yield task
@@ -996,7 +1013,8 @@ class ApiEu(BaseApi):
                 return pkm_object
         return None
 
-    def api_get_custom_relation_objects(self, gantt, custom_relation_name):
+    @staticmethod
+    def api_get_custom_relation_objects(gantt, custom_relation_name):
         custom_relations = gantt.get('data').get('relations').get('customRelations')
         relation = {}
         for relation in custom_relations:
@@ -1023,7 +1041,8 @@ class ApiEu(BaseApi):
         else:
             return None
 
-    def api_get_custom_field_uuid(self, gantt, custom_field_name):
+    @staticmethod
+    def api_get_custom_field_uuid(gantt, custom_field_name):
         for custom_field_uuid in gantt.get('ganttDiagram').get('options')[0].get('customFields'):
             if gantt.get('ganttDiagram').get('options')[0].get('customFields').get(custom_field_uuid) == custom_field_name:
                 return custom_field_uuid

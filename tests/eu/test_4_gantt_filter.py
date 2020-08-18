@@ -179,7 +179,9 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
     plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт')
-    prefix = parametrized_login_driver.test_data['last_k6_plan']['plan_prefix']
+    # prefix = parametrized_login_driver.test_data['last_k6_plan']['plan_prefix']
+    gantt = events_plan.api_get_gantt(versions[0], plan_uuid, login)
+    prefixes = events_plan.get_plan_prefixes(gantt)
 
     default_filter_set = {
         "unfilled_events_filter": {
@@ -241,7 +243,8 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
         },
         "custom_relations_filter": {
             'Персонал': [],
-            'Зона': [f'0 D1L5 {prefix}'],
+            # 'Зона': [f'0 D1L5 {prefix}'],
+            'Зона': [f'{prefixes[0]}D1L5{prefixes[1]}'],
             'Влияние на показатели': [],
             'Риски': [],
             'События для ИМ': []
@@ -264,9 +267,11 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
         },
         "custom_relations_filter": {
             'Персонал': ['(пусто)'],
-            'Зона': [f'0 D1L5 {prefix}'],
+            # 'Зона': [f'0 D1L5 {prefix}'],
+            'Зона': [f'{prefixes[0]}D1L5{prefixes[1]}'],
             'Влияние на показатели': [],
-            'Риски': [f'0 Риск 2 {prefix}', f'0 Риск 1 {prefix}'],
+            # 'Риски': [f'0 Риск 2 {prefix}', f'0 Риск 1 {prefix}'],
+            'Риски': [f'{prefixes[0]}Риск 1{prefixes[1]}', f'{prefixes[0]}Риск 2{prefixes[1]}'],
             'События для ИМ': []
         }
 
