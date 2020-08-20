@@ -799,8 +799,16 @@ class ApiEu(BaseApi):
             return names
 
         def get_group_value(event, gantt, group_indicator):
+
+            def custom_value_to_text(value):
+                if value != 'Не указано':
+                    nonlocal values_dictionary
+                    return values_dictionary.get(value)
+                else:
+                    return 'Не указано'
+
             if group_indicator in get_custom_fields_names(gantt):
-                value = self.api_get_custom_field_value(gantt, group_indicator, event)
+                value = self.api_get_custom_field_value(gantt, group_indicator, event) if group_indicator == 'Комментарий' else custom_value_to_text(self.api_get_custom_field_value(gantt, group_indicator, event))
                 if not value:
                     value = 'Не указано'
             elif group_indicator in get_custom_relation_names(gantt):

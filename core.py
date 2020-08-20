@@ -186,10 +186,18 @@ class BasePage:
 
     @staticmethod
     def add_in_group(item, dictionary, group_value):
-        if group_value in dictionary.keys():
-            dictionary[group_value].append(item)
+        if ' . ' in group_value:
+            group_values = group_value.split(' . ')
+            for value in group_values:
+                if value in dictionary.keys():
+                    dictionary[value].append(item)
+                else:
+                    dictionary[value] = [item]
         else:
-            dictionary[group_value] = [item]
+            if group_value in dictionary.keys():
+                dictionary[group_value].append(item)
+            else:
+                dictionary[group_value] = [item]
         return dictionary
 
 

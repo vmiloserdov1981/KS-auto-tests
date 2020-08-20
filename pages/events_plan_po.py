@@ -131,9 +131,9 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
             return completed_data
 
     def events_generator_screens(self, names_only=False):
-        # перебирает мероприятия поэкранно, нестабильный но более быстрый
-
+        # перебирает мероприятия поэкранно, менее стабильный, но более быстрый
         last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
+        prelast_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()-1]")
         rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
         stop_gen = False
 
@@ -174,14 +174,19 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 cell_height = self.driver.execute_script("return arguments[0].clientHeight",
                                                          self.find_element(last_row_locator))
                 step = ((start_height // cell_height) + 0) * cell_height
+                delta = start_height % step
                 total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
                 new_height = 0
                 while True:
                     # last screen actions
-                    if new_height + step + start_height >= total_height:
+
+                    if new_height + step + start_height > total_height:
+                        if new_height + start_height + (cell_height * 2) - delta < total_height:
+                            row = self.find_element(prelast_row_locator)
+                        else:
+                            row = self.find_element(last_row_locator)
                         self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
-                                                   self.find_element(last_row_locator))
-                        row = self.find_element(last_row_locator)
+                                                   row)
                         if names_only:
                             row_text = row.text
                             row_name = row_text.split('\n')[1]
@@ -199,13 +204,13 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                                 pass
                             new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
                             self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
-                                                       self.find_element(last_row_locator))
+                                                       last_row)
                             if names_only:
-                                last_row_text = self.get_element_text(last_row_locator)
+                                last_row_text = last_row.text
                                 last_row_name = last_row_text.split('\n')[1]
                                 yield last_row_name
                             else:
-                                yield self.find_element(last_row_locator)
+                                yield last_row
                         stop_gen = True
                         break
 
@@ -413,11 +418,13 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 return True
         raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
 
+    @antistale
     def scroll_to_gantt_top(self):
         try:
-            self.driver.execute_script("arguments[0].scrollTop = 0;", self.find_element(self.LOCATOR_GANTT_SCROLL, time=3))
+            scroll = self.find_element(self.LOCATOR_GANTT_SCROLL, time=3)
         except TimeoutException:
-            pass
+            return None
+        self.driver.execute_script("arguments[0].scrollTop = 0;", scroll)
 
     @antistale
     def get_grouped_events(self):
@@ -443,10 +450,18 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
             events = {}
 
             def add_in_group(item, dictionary, group_value):
-                if group_value in dictionary.keys():
-                    dictionary[group_value].append(item)
+                if ' . ' in group_value:
+                    group_values = group_value.split(' . ')
+                    for value in group_values:
+                        if value in dictionary.keys():
+                            dictionary[value].append(item)
+                        else:
+                            dictionary[value] = [item]
                 else:
-                    dictionary[group_value] = [item]
+                    if group_value in dictionary.keys():
+                        dictionary[group_value].append(item)
+                    else:
+                        dictionary[group_value] = [item]
                 return dictionary
 
             summary = None
@@ -532,7 +547,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
 
     def unset_grouping(self, group_value):
         self.find_and_click(self.LOCATOR_GROUPING_ICON)
-        value_locator = (By.XPATH, f"//div[contains(@class, 'gantt-overlay-menu')]//div[contains(@class, 'filter-dropdown-item') and text()=' {group_value} '")
+        value_locator = (By.XPATH, f"//div[contains(@class, 'gantt-overlay-menu')]//div[contains(@class, 'filter-dropdown-item') and text()=' {group_value} ']")
         value = self.find_element(value_locator)
         if 'selected' in value.get_attribute('class'):
             value.click()

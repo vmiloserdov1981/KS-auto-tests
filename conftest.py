@@ -36,6 +36,7 @@ def driver_init(maximize=True, impl_wait=3, name=None):
         driver = webdriver.Chrome(ChromeDriverManager().install())
     else:
         ip = os.getenv('SELENOID_IP', 'http://127.0.0.1:4444/wd/hub')
+        timeout = os.getenv('TIMEOUT', '90s')
         capabilities = {
             "browserName": "chrome",
             "version": "83.0",
@@ -43,7 +44,7 @@ def driver_init(maximize=True, impl_wait=3, name=None):
             "enableVideo": True,
             'videoName': f'{name}.mp4',
             "name": name,
-            # "sessionTimeout": "300s"
+            "sessionTimeout": timeout
         }
         driver = webdriver.Remote(
             command_executor=ip,
