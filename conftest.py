@@ -43,7 +43,7 @@ def driver_init(maximize=True, impl_wait=3, name=None):
             "enableVideo": True,
             'videoName': f'{name}.mp4',
             "name": name,
-            "sessionTimeout": "120s"
+            # "sessionTimeout": "300s"
         }
         driver = webdriver.Remote(
             command_executor=ip,
