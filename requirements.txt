@@ -20,3 +20,4 @@ zipp
 webdriver_manager
 lxml
 pytest-xdist
+pytest-cov
