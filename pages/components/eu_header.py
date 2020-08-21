@@ -5,6 +5,7 @@ from selenium.common.exceptions import TimeoutException
 from pages.components.modals import Modals
 from api.api import ApiEu
 from api.api import ApiModels
+from pages.login_po import LoginPage
 
 
 class EuHeader(ApiEu, BasePage):
@@ -14,10 +15,12 @@ class EuHeader(ApiEu, BasePage):
     LOCATOR_EU_SELECTED_PLAN_TEXT = (By.XPATH, "//pkm-dropdown[contains(@class, 'plans-dropdown')]//div[@class='display-value-text']")
     LOCATOR_EU_PLAN_DROPDOWN = (By.XPATH, "//pkm-dropdown[contains(@class, 'plans-dropdown')]//div[contains(@class, 'dropdown')]")
     LOCATOR_EU_PLAN_DROPDOWN_VALUES = (By.XPATH, "//div[contains(@class, 'dropdown-list')]//pkm-dropdown-item")
+    LOCATOR_EU_LOGOUT_BUTTON = (By.XPATH, "//div[contains(@class, 'menu-item') and text()=' Выход ']")
 
     def __init__(self, driver, login=None, password=None, token=None):
         BasePage.__init__(self, driver)
         ApiEu.__init__(self, login, password, token=token)
+        self.login_page = LoginPage(driver)
 
     def get_title_text(self):
         text = self.get_element_text(self.LOCATOR_EU_PAGE_TITLE, time=15)
@@ -36,6 +39,11 @@ class EuHeader(ApiEu, BasePage):
             button = (By.XPATH, f"//div[contains(@class, 'menu-item ') and text() = ' {page_name} ']")
             self.find_and_click(button)
             self.wait_until_text_in_element(self.LOCATOR_EU_PAGE_TITLE, page_name.upper())
+
+    def logout(self):
+        self.open_menu()
+        self.find_and_click(self.LOCATOR_EU_LOGOUT_BUTTON)
+        self.login_page.find_element(self.login_page.LOCATOR_PKM_LOGIN_TITLE)
 
     def get_plan_dropdown_placeholder(self):
         value = self.find_element(self.LOCATOR_EU_SELECTED_PLAN_TEXT)

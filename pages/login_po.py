@@ -1,5 +1,6 @@
 from selenium.webdriver.common.by import By
 from core import BasePage
+import users
 
 
 class LoginPage(BasePage):
@@ -36,3 +37,10 @@ class LoginPage(BasePage):
         login_title = self.get_element_text(self.LOCATOR_PKM_LOGIN_TITLE, time=20)
         assert login_title == 'Авторизация', 'неверный тайтл страницы'
         assert self.base_url in self.driver.current_url, 'Неверный url страницы'
+
+    def eu_login(self, login):
+        login = users.test_users.get(login).login
+        password = users.test_users.get(login).password
+        self.enter_login(login)
+        self.enter_pass(password)
+        self.login_as_eu()

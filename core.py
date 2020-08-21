@@ -176,6 +176,30 @@ class BasePage:
     def compare_lists(list_a, list_b):
         return collections.Counter(list_a) == collections.Counter(list_b)
 
+    def compare_dicts(self, dict_a, dict_b):
+        assert self.compare_lists(dict_a.keys(), dict_b.keys())
+        for key in dict_a:
+            if type(dict_a.get(key)) is list:
+                assert self.compare_lists(dict_a.get(key), dict_b.get(key))
+            else:
+                assert dict_a.get(key) == dict_b.get(key)
+
+    @staticmethod
+    def add_in_group(item, dictionary, group_value):
+        if ' . ' in group_value:
+            group_values = group_value.split(' . ')
+            for value in group_values:
+                if value in dictionary.keys():
+                    dictionary[value].append(item)
+                else:
+                    dictionary[value] = [item]
+        else:
+            if group_value in dictionary.keys():
+                dictionary[group_value].append(item)
+            else:
+                dictionary[group_value] = [item]
+        return dictionary
+
 
 class DomChanged(object):
     def __init__(self, dom):
@@ -288,7 +312,7 @@ def antistale(func):
                 break
             stale = False
             try:
-                func(*args, **kwargs)
+                return func(*args, **kwargs)
             except StaleElementReferenceException:
                 stale = True
                 count += 1

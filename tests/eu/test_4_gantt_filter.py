@@ -15,7 +15,8 @@ import pytest
         'login': 'eu_user3',
         'get_last_k6_plan': True,
         'select_last_k6_plan': True,
-        'select_last_k6_plan_copy': False
+        'select_last_k6_plan_copy': False,
+        'name': 'Фильтр незаполненных мероприятий'
     })])
 def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
     eu_filter = EuFilter(parametrized_login_driver)
@@ -60,7 +61,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
         parametrized_login_driver.refresh()
 
     with allure.step('Проерить, что отображение незаполненных мероприятий включено'):
-        time.sleep(Vars.PKM_USER_WAIT_TIME)
+        time.sleep(Vars.PKM_USER_WAIT_TIME * 2)
         assert eu_filter.is_show_empty_events(), 'Отображение незаполненных мероприятий отключено'
         assert eu_filter.is_show_empty_events_only(), 'Отображение только незаполненных мероприятий отключено'
 
@@ -89,6 +90,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
                 'Отображать незаполненные мероприятия': False
             }
         }
+        parametrized_login_driver.refresh()
         events_plan.check_plan_events(plan_uuid, versions[0], login, filter_set=filter_set)
 
     with allure.step(f'Выбрать версию плана "{versions[1]}"'):
@@ -127,7 +129,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
         parametrized_login_driver.refresh()
 
     with allure.step('Проерить, что отображение незаполненных мероприятий включено'):
-        time.sleep(Vars.PKM_USER_WAIT_TIME)
+        time.sleep(Vars.PKM_USER_WAIT_TIME * 2)
         assert eu_filter.is_show_empty_events(), 'Отображение незаполненных мероприятий отключено'
         assert eu_filter.is_show_empty_events_only(), 'Отображение только незаполненных мероприятий отключено'
 
@@ -156,6 +158,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
                 'Отображать незаполненные мероприятия': False
             }
         }
+        parametrized_login_driver.refresh()
         events_plan.check_plan_events(plan_uuid, versions[1], login, filter_set=filter_set)
 
 
@@ -167,7 +170,8 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
         'login': 'eu_user3',
         'get_last_k6_plan': True,
         'select_last_k6_plan': True,
-        'select_last_k6_plan_copy': False
+        'select_last_k6_plan_copy': False,
+        'name': 'Фильтр custom relation'
     })])
 def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
     eu_filter = EuFilter(parametrized_login_driver)
@@ -175,7 +179,9 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
     plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт')
-    prefix = parametrized_login_driver.test_data['last_k6_plan']['plan_prefix']
+    # prefix = parametrized_login_driver.test_data['last_k6_plan']['plan_prefix']
+    gantt = events_plan.api_get_gantt(versions[0], plan_uuid, login)
+    prefixes = events_plan.get_plan_prefixes(gantt)
 
     default_filter_set = {
         "unfilled_events_filter": {
@@ -237,7 +243,8 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
         },
         "custom_relations_filter": {
             'Персонал': [],
-            'Зона': [f'0 D1L5 {prefix}'],
+            # 'Зона': [f'0 D1L5 {prefix}'],
+            'Зона': [f'{prefixes[0]}D1L5{prefixes[1]}'],
             'Влияние на показатели': [],
             'Риски': [],
             'События для ИМ': []
@@ -260,9 +267,11 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
         },
         "custom_relations_filter": {
             'Персонал': ['(пусто)'],
-            'Зона': [f'0 D1L5 {prefix}'],
+            # 'Зона': [f'0 D1L5 {prefix}'],
+            'Зона': [f'{prefixes[0]}D1L5{prefixes[1]}'],
             'Влияние на показатели': [],
-            'Риски': [f'0 Риск 2 {prefix}', f'0 Риск 1 {prefix}'],
+            # 'Риски': [f'0 Риск 2 {prefix}', f'0 Риск 1 {prefix}'],
+            'Риски': [f'{prefixes[0]}Риск 1{prefixes[1]}', f'{prefixes[0]}Риск 2{prefixes[1]}'],
             'События для ИМ': []
         }
 
@@ -306,13 +315,16 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
     with allure.step(f'Проверить, что состояние установленных фильтров не изменилось'):
         time.sleep(Vars.PKM_USER_WAIT_TIME)
         actual_filters = eu_filter.get_filter_set()
-        assert actual_filters == filter_set_3
+        for i in actual_filters:
+            eu_filter.compare_dicts(actual_filters.get(i), filter_set_3.get(i))
 
     with allure.step(f'Выбрать версию плана "{versions[1]}"'):
         events_plan.set_version(versions[1])
 
     with allure.step(f'Проверить, что состояние установленных фильтров не изменилось'):
-        assert eu_filter.get_filter_set() == filter_set_3
+        actual_filters = eu_filter.get_filter_set()
+        for i in actual_filters:
+            eu_filter.compare_dicts(actual_filters.get(i), filter_set_3.get(i))
 
     with allure.step(f'Проверить, что на диаграмме Ганта отображаются мероприятия согласно установленных фильтров'):
         events_plan.check_plan_events(plan_uuid, versions[1], login, filter_set_3)
@@ -320,8 +332,8 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
     with allure.step(f'Сбросить настройки фильтров'):
         eu_filter.reset_filters()
 
-    for filter in filter_set_3.get("custom_fields_filter"):
-        filter_set_3["custom_fields_filter"][filter] = []
+    for filter_val in filter_set_3.get("custom_fields_filter"):
+        filter_set_3["custom_fields_filter"][filter_val] = []
     for relation in filter_set_3.get("custom_relations_filter"):
         filter_set_3['custom_relations_filter'][relation] = []
 

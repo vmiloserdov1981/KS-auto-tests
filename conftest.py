@@ -29,16 +29,22 @@ def driver_init_local(headless=False, size=None, maximize=True, impl_wait=3):
 '''
 
 
-def driver_init(maximize=True, impl_wait=3):
+def driver_init(maximize=True, impl_wait=3, name=None):
+    if name is None:
+        name = 'autotest'
     if os.getenv('IS_LOCAL'):
         driver = webdriver.Chrome(ChromeDriverManager().install())
     else:
         ip = os.getenv('SELENOID_IP', 'http://127.0.0.1:4444/wd/hub')
+        timeout = os.getenv('TIMEOUT', '90s')
         capabilities = {
             "browserName": "chrome",
             "version": "83.0",
             "enableVNC": True,
-            "enableVideo": False
+            "enableVideo": True,
+            'videoName': f'{name}.mp4',
+            "name": name,
+            "sessionTimeout": timeout
         }
         driver = webdriver.Remote(
             command_executor=ip,
@@ -118,9 +124,10 @@ def parametrized_login_driver(parameters):
         'get_last_k6_plan': True,
         'select_last_k6_plan': True,
         'select_last_k6_plan_copy': False
+        'name': 'test_name'
     }
     """
-    driver = driver_init()
+    driver = driver_init(name=parameters.get('name'))
     preconditions_api = EuPreconditions(user.admin.login, user.admin.password)
     preconditions = PreconditionsFront(driver, login=user.admin.login, password=user.admin.password)
     preconditions_api.api_check_user(parameters.get('login'))

@@ -20,6 +20,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
     LOCATOR_ADD_EVENT_BUTTON = (By.XPATH, "//div[contains(@class, 'controls-base-block')]//fa-icon[@icon='plus']")
     LOCATOR_TRASH_ICON = (By.XPATH, "//div[@class='controls-base-block']//fa-icon[@icon='trash']")
     LOCATOR_COPY_ICON = (By.XPATH, "//div[@class='controls-base-block']//fa-icon[@icon='clone']")
+    LOCATOR_GROUPING_ICON = (By.XPATH, "//div[@class='controls-base-block']//fa-icon[@icon='indent']")
     LOCATOR_GANTT_DATA = (By.XPATH, "//div[@class='gantt_grid_data']")
     LOCATOR_GANTT_LAST_ROW = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
     LOCATOR_GANTT_SCROLL = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
@@ -129,10 +130,10 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
             time.sleep(Vars.PKM_API_WAIT_TIME)
             return completed_data
 
-    def events_generator(self, names_only=False):
-        # перебирает мероприятия поэкранно, стабильный
-
+    def events_generator_screens(self, names_only=False):
+        # перебирает мероприятия поэкранно, менее стабильный, но более быстрый
         last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
+        prelast_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()-1]")
         rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
         stop_gen = False
 
@@ -173,14 +174,19 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 cell_height = self.driver.execute_script("return arguments[0].clientHeight",
                                                          self.find_element(last_row_locator))
                 step = ((start_height // cell_height) + 0) * cell_height
+                delta = start_height % step
                 total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
                 new_height = 0
                 while True:
                     # last screen actions
-                    if new_height + step + start_height >= total_height:
+
+                    if new_height + step + start_height > total_height:
+                        if new_height + start_height + (cell_height * 2) - delta < total_height:
+                            row = self.find_element(prelast_row_locator)
+                        else:
+                            row = self.find_element(last_row_locator)
                         self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
-                                                   self.find_element(last_row_locator))
-                        row = self.find_element(last_row_locator)
+                                                   row)
                         if names_only:
                             row_text = row.text
                             row_name = row_text.split('\n')[1]
@@ -198,13 +204,13 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                                 pass
                             new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
                             self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
-                                                       self.find_element(last_row_locator))
+                                                       last_row)
                             if names_only:
-                                last_row_text = self.get_element_text(last_row_locator)
+                                last_row_text = last_row.text
                                 last_row_name = last_row_text.split('\n')[1]
                                 yield last_row_name
                             else:
-                                yield self.find_element(last_row_locator)
+                                yield last_row
                         stop_gen = True
                         break
 
@@ -225,6 +231,75 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                                 yield row_name
                             else:
                                 yield row
+
+    def events_generator(self, names_only=False):
+        # перебирает мероприятия построчно, стабильный но менее быстрый
+        last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
+        rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
+        stop_gen = False
+
+        # скролл в начало диаграммы
+        self.scroll_to_gantt_top()
+        time.sleep(5)
+
+        # Перебор мероприятий которые уже отрисованы
+        while not stop_gen:
+            try:
+                self.find_element(rows_locator, time=5)
+            except TimeoutException:
+                stop_gen = True
+                yield None
+
+            if not stop_gen:
+                time.sleep(3)
+                rows = self.driver.find_elements(*rows_locator)
+                for row in rows:
+                    if '\n' not in row.text:
+                        self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
+                                                   row)
+                    if names_only:
+                        row_text = row.text
+                        row_name = row_text.split('\n')[1]
+                        yield row_name
+                    else:
+                        yield row
+                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
+                try:
+                    self.find_element(scroll_area, time=2)
+                except TimeoutException:
+                    stop_gen = True
+
+            # настройка построчного перебора
+            if not stop_gen:
+                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
+                scrollbar = self.find_element(scroll_area, time=2)
+                start_height = self.driver.execute_script("return arguments[0].clientHeight", scrollbar)
+                cell_height = self.driver.execute_script("return arguments[0].clientHeight",
+                                                         self.find_element(last_row_locator))
+                step = ((start_height // cell_height) + 0) * cell_height
+                delta = start_height % step
+                total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
+                new_height = 0
+                last_row = self.find_element(last_row_locator)
+
+                # построчный перебор
+                while new_height + cell_height + start_height + delta <= total_height:
+                    self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar,
+                                               cell_height)
+                    new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
+                    try:
+                        self.wait_element_replacing(last_row, last_row_locator, time=3)
+                    except TimeoutException:
+                        continue
+                    last_row = self.find_element(last_row_locator)
+                    self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);", last_row)
+                    if names_only:
+                        last_row_text = last_row.text
+                        last_row_name = last_row_text.split('\n')[1]
+                        yield last_row_name
+                    else:
+                        yield last_row
+                break
 
     def check_event(self, name, start_date, end_date):
         for event in self.events_generator():
@@ -290,12 +365,40 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                 return True
         raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
 
+    '''
+    С привязкой к элементу
+    
+    @antistale
+    def open_event_ver1(self, event_name, start_date=None, end_date=None):
+        # names = []
+        for event in self.events_generator(names_only=False):
+            # names.append(event)
+            if event.text.split('\n')[1] == event_name:
+                # event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
+                action = ActionChains(self.driver)
+                aria_label = event.get_attribute('aria-label')
+                aria_name = aria_label.split(' Start date: ')[0].split(' Task: ')[1]
+                assert aria_name == event_name
+                if start_date:
+                    aria_start = aria_label.split(' Start date: ')[1].split(' End date: ')[0].split('-')[::-1]
+                    assert aria_start == start_date
+                if end_date:
+                    aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
+                    assert aria_end == end_date
+                event.click()
+                action.double_click(event).perform()
+                title = self.get_title()
+                assert title == event_name
+                return True
+        raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
+    '''
+
     @antistale
     def open_event(self, event_name, start_date=None, end_date=None):
         # names = []
-        for event in self.events_generator(names_only=True):
-            # names.append(event.text)
-            if event == event_name:
+        for event in self.events_generator(names_only=False):
+            # names.append(event)
+            if event.text.split('\n')[1] == event_name:
                 event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
                 action = ActionChains(self.driver)
                 aria_label = self.find_element(event_locator).get_attribute('aria-label')
@@ -308,21 +411,74 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                     aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
                     assert aria_end == end_date
                 self.find_and_click(event_locator)
+                time.sleep(2)
                 action.double_click(self.find_element(event_locator)).perform()
                 title = self.get_title()
                 assert title == event_name
                 return True
         raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
 
-
-
+    @antistale
     def scroll_to_gantt_top(self):
         try:
-            self.driver.execute_script("arguments[0].scrollTop = 0;", self.find_element(self.LOCATOR_GANTT_SCROLL, time=3))
+            scroll = self.find_element(self.LOCATOR_GANTT_SCROLL, time=3)
         except TimeoutException:
-            pass
+            return None
+        self.driver.execute_script("arguments[0].scrollTop = 0;", scroll)
 
-    def check_plan_events(self, plan_uuid, version, login, filter_set):
+    @antistale
+    def get_grouped_events(self):
+        events = {}
+
+        def add_in_group(item, dictionary, group_value):
+            if group_value in dictionary.keys():
+                dictionary[group_value].append(item)
+            else:
+                dictionary[group_value] = [item]
+            return dictionary
+        summary = None
+        for event in self.events_generator():
+            if 'summary-bar' in event.get_attribute('class'):
+                summary = event.text.split('\n')[1]
+            else:
+                add_in_group(event.text.split('\n')[1], events, summary)
+        return events
+
+    @antistale
+    def get_events(self, names_only=False, grouped=False):
+        if grouped:
+            events = {}
+
+            def add_in_group(item, dictionary, group_value):
+                if ' . ' in group_value:
+                    group_values = group_value.split(' . ')
+                    for value in group_values:
+                        if value in dictionary.keys():
+                            dictionary[value].append(item)
+                        else:
+                            dictionary[value] = [item]
+                else:
+                    if group_value in dictionary.keys():
+                        dictionary[group_value].append(item)
+                    else:
+                        dictionary[group_value] = [item]
+                return dictionary
+
+            summary = None
+            for event in self.events_generator():
+                if 'summary-bar' in event.get_attribute('class'):
+                    summary = event.text.split('\n')[1]
+                else:
+                    if names_only:
+                        add_in_group(event.text.split('\n')[1], events, summary)
+                    else:
+                        add_in_group(event, events, summary)
+            return events
+        else:
+            events = [event for event in self.events_generator(names_only=names_only) if event is not None]
+            return events
+
+    def check_plan_events(self, plan_uuid, version, login, filter_set, group_by=None):
         """
         filter_set = {
             "unfilled_events_filter": {
@@ -347,10 +503,14 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
 
         }
         """
+
         if filter_set.get('unfilled_events_filter').get('Скрывать мероприятия при фильтрации') is False:
-            all_api_events = self.api_get_events(version, plan_uuid, login)
+            all_api_events = self.api_get_events(version, plan_uuid, login, group_by=group_by)
             filtered_api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set)
-            ui_events = []
+            if group_by:
+                ui_events = {}
+            else:
+                ui_events = []
             for event in self.events_generator():
                 event_name = event.text.split('\n')[1]
                 assert event_name in all_api_events
@@ -358,29 +518,56 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
                     assert 'filter-hide' not in event.get_attribute('class')
                 elif event_name in all_api_events and event_name not in filtered_api_events:
                     assert 'filter-hide' in event.get_attribute('class')
-                ui_events.append(event_name)
-            assert self.compare_lists(all_api_events, ui_events)
+                if group_by:
+                    summary = None
+                    if 'summary-bar' in event.get_attribute('class'):
+                        summary = event.text.split('\n')[1]
+                    self.add_in_group(event_name, ui_events, summary)
+                else:
+                    ui_events.append(event_name)
+            assert self.compare_lists(all_api_events, ui_events), f'Мероприятия в API и UI не совпадают. API - {len(all_api_events)} шт, UI - {len(ui_events) if type(ui_events) is list else "None"} шт'
 
         else:
-            api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set)
-            ui_events = [event for event in self.events_generator(names_only=True) if event is not None]
-            assert self.compare_lists(api_events, ui_events)
-
-        '''
-        if filter_set is None:
-            filter_set = {}
-
-        deleted_only = filter_set.get('unfilled_events_filter').get('deleted_only')
-        get_deleted = filter_set.get('unfilled_events_filter').get('get_deleted')
-
-        if deleted_only:
-            api_events = self.api_get_event_names(version, plan_uuid, login, deleleted_only=True)
-        else:
-            if get_deleted:
-                api_events = self.api_get_event_names(version, plan_uuid, login, get_deleted=True)
+            api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set, group_by=group_by)
+            ui_events = self.get_events(grouped=group_by, names_only=True)
+            if type(ui_events) is dict:
+                self.compare_dicts(ui_events, api_events)
             else:
-                api_events = self.api_get_event_names(version, plan_uuid, login, get_deleted=False)
-        ui_events = [event for event in self.events_generator(names_only=True) if event is not None]
-        not_in_ui = [api_event for api_event in api_events if api_event not in ui_events]
-        assert self.compare_lists(api_events, ui_events), f'Мероприятия на диаграмме и в API не совпадают, в ui не отображаются мероприятия "{not_in_ui}"'
-        '''
+                assert self.compare_lists(api_events, ui_events), f'Мероприятия в API и UI не совпадают. API - {len(api_events)} шт, UI - {len(ui_events) if type(ui_events) is list else "None"} шт'
+
+    def set_grouping(self, group_value):
+        self.find_and_click(self.LOCATOR_GROUPING_ICON)
+        value_locator = (By.XPATH, f"//div[contains(@class, 'gantt-overlay-menu')]//div[contains(@class, 'filter-dropdown-item') and text()=' {group_value} ']")
+        value = self.find_element(value_locator)
+        if 'selected' in value.get_attribute('class'):
+            pass
+        else:
+            value.click()
+        self.find_and_click(self.LOCATOR_GROUPING_ICON)
+
+    def unset_grouping(self, group_value):
+        self.find_and_click(self.LOCATOR_GROUPING_ICON)
+        value_locator = (By.XPATH, f"//div[contains(@class, 'gantt-overlay-menu')]//div[contains(@class, 'filter-dropdown-item') and text()=' {group_value} ']")
+        value = self.find_element(value_locator)
+        if 'selected' in value.get_attribute('class'):
+            value.click()
+        else:
+            pass
+        self.find_and_click(self.LOCATOR_GROUPING_ICON)
+
+    def get_grouping_value(self):
+        values_list = []
+        self.find_and_click(self.LOCATOR_GROUPING_ICON)
+        values_locator = (By.XPATH, f"//div[contains(@class, 'gantt-overlay-menu')]//div[contains(@class, 'filter-dropdown-item')]")
+        self.find_element(values_locator, time=15)
+        values = self.driver.find_elements(*values_locator)
+        for value in values:
+            if 'selected' in value.get_attribute('class'):
+                values_list.append(value.text)
+        self.find_and_click(self.LOCATOR_GROUPING_ICON)
+        if len(values_list) == 1:
+            return values_list[0]
+        elif len(values_list) == 0:
+            return None
+        else:
+            raise AssertionError('В качестве группирующего показателя выбрано более одного значения')
