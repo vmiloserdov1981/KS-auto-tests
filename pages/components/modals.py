@@ -215,6 +215,7 @@ class NewEventModal(Calendar, BasePage):
         time.sleep(Vars.PKM_USER_WAIT_TIME)
 
     def get_event_data(self):
+        time.sleep(3)
         data = {
             'event_name': self.get_input_value(self.LOCATOR_EVENT_NAME_FIELD),
             'start_date': self.get_start_date(),
