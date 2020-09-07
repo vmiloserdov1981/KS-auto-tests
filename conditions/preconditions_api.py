@@ -8,10 +8,10 @@ import users
 class ClassesPreconditions(ApiClasses):
 
     def get_last_tree_node(self):
-        '''
+        """
         Используется в идеальных случаях!
         В сломанном дереве не гарантируется правильная работа
-        '''
+        """
         api_nodes_list = self.api_get_nodes()
         root_nodes = []
         for node in api_nodes_list.get('data'):
@@ -191,13 +191,3 @@ class EuPreconditions(ApiEu):
             eu_user_uuid = self.api_create_user(f'autouser_{user_login}@test.com', user.login, user.password, user.name, {}, ignore_error=ignore_error)
             if eu_user_uuid:
                 self.api_set_admin_role(eu_user_uuid)
-    '''
-    def get_last_k6_plan(self):
-        data = {
-            'last_k6_plan': self.api_get_last_k6_plan()
-        }
-        return data
-    '''
-
-
-

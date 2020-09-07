@@ -995,7 +995,10 @@ class ApiEu(BaseApi):
         for plan in plans:
             if plan.get('uuid') == uuid:
                 return plan
-        raise AssertionError(f'План "{plan_data}" не сохранился в системе')
+        if not ignore_error:
+            raise AssertionError(f'План "{plan_data}" не сохранился в системе')
+        else:
+            return {}
 
     def check_k6_plan_copy(self, k6_plan_comment, k6_plan_uuid, ignore_error=False):
         today = self.get_utc_date()
