@@ -998,15 +998,17 @@ class ApiEu(BaseApi):
         raise AssertionError(f'План "{plan_data}" не сохранился в системе')
 
     def check_k6_plan_copy(self, k6_plan_comment, k6_plan_uuid, ignore_error=False):
+        today = self.get_utc_date()
+        start_date = f'{today[2]}-{today[1]}-{today[0]}T00:00:00.000Z'
         copy_comment = f'{k6_plan_comment[3:]}-autotest_copy'
         plans = self.api_get_plans()
         for plan in plans:
             if plan.get('settings').get('plan').get('comment') == copy_comment:
                 plan['is_new_created'] = False
                 return plan
+            if plan.get('uuid') == k6_plan_uuid:
+                start_date = plan.get('timeMeasurement').get('timeStart')
 
-        today = self.get_utc_date()
-        start_date = f'{today[2]}-{today[1]}-{today[0]}T00:00:00.000Z'
         version = self.api_get_version_uuid(k6_plan_uuid, 'Проект плана')
         user = self.api_get_user_by_login(users.admin.login)
         copied_plan_data = {
