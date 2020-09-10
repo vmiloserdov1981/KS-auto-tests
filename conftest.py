@@ -39,7 +39,7 @@ def driver_init(maximize=True, impl_wait=3, name=None):
         timeout = os.getenv('TIMEOUT', '90s')
         capabilities = {
             "browserName": "chrome",
-            "version": "83.0",
+            # "version": "83.0",
             "enableVNC": True,
             "enableVideo": True,
             'videoName': f'{name}.mp4',

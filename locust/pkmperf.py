@@ -1,4 +1,4 @@
-from locust import HttpLocust, TaskSet
+from locust import HttpUser, TaskSet, between
 import json
 from random import randint
 
@@ -99,19 +99,21 @@ class UserTwo(TaskSet):
     }
 
 
-class WebsiteUserOne(HttpLocust):
-    task_set = UserOne
+class WebsiteUserOne(HttpUser):
+    tasks = {
+        UserOne: 1
+    }
     weight = 15
     # host = 'localhost'
-    min_wait = 3000
-    max_wait = 10000
+    wait_time = between(3, 5)
 
 
-class WebsiteUserTwo(HttpLocust):
-    task_set = UserTwo
+class WebsiteUserTwo(HttpUser):
+    tasks = {
+        UserTwo: 1
+    }
     weight = 5
     # host = 'localhost'
-    min_wait = 1000
-    max_wait = 5000
+    wait_time = between(5, 10)
 
 # locust -f locust/pkmperf.py --host=http://pkm.andersenlab.com/api

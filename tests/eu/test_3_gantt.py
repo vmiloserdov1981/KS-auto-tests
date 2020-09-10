@@ -554,7 +554,7 @@ def test_eu_group_gantt_events(parametrized_login_driver, parameters):
     login = user.system_user.login
     versions = ('Проект плана', 'Факт', 'План потребности')
     k6_plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
-    group_values = ['Комментарий', 'Тип одновременных работ']
+    group_values = ['Комментарий', 'Зона']
     filter_set = {
         "unfilled_events_filter": {
             'Только незаполненные мероприятия': False,

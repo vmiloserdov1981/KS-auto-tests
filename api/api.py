@@ -812,18 +812,25 @@ class ApiEu(BaseApi):
                 if not value:
                     value = 'Не указано'
             elif group_indicator in get_custom_relation_names(gantt):
-                value = self.api_get_custom_relation_value(gantt, group_indicator, event)
-                if not value:
+                value = self.api_get_custom_relation_values(gantt, group_indicator, event)
+                if value is None or value == []:
                     value = 'Не указано'
             else:
                 raise AssertionError('Невозможно определить тип группируемого показателя (custom field или custom relation)')
             return value
 
         def add_in_group(item, dictionary, group_value):
-            if group_value in dictionary.keys():
-                dictionary[group_value].append(item)
-            else:
-                dictionary[group_value] = [item]
+            if type(group_value) is str:
+                if group_value in dictionary.keys():
+                    dictionary[group_value].append(item)
+                else:
+                    dictionary[group_value] = [item]
+            elif type(group_value) is list:
+                for i in group_value:
+                    if i in dictionary.keys():
+                        dictionary[i].append(item)
+                    else:
+                        dictionary[i] = [item]
             return dictionary
 
         def custom_value_to_uuid(value):
@@ -883,16 +890,20 @@ class ApiEu(BaseApi):
             if filter_set.get('custom_relations_filter'):
                 for relation in filter_set.get('custom_relations_filter'):
                     if filter_set.get('custom_relations_filter').get(relation) != []:
-                        actual = self.api_get_custom_relation_value(gantt, relation, event)
+                        actual = self.api_get_custom_relation_values(gantt, relation, event)
                         expected = filter_set.get('custom_relations_filter').get(relation)
                         if filter_set.get('custom_relations_filter').get(relation) != '(пусто)':
-                            if actual not in expected:
-                                invalid_relation = True
-                                break
+                            if actual != []:
+                                for actual_value in actual:
+                                    if actual_value not in expected:
+                                        invalid_relation = True
+                                    else:
+                                        invalid_relation = False
+                                        break
                             else:
-                                invalid_relation = False
+                                invalid_relation = True
                         else:
-                            if actual is not None:
+                            if actual != []:
                                 invalid_relation = True
                                 break
                             else:
@@ -984,18 +995,23 @@ class ApiEu(BaseApi):
         for plan in plans:
             if plan.get('uuid') == uuid:
                 return plan
-        raise AssertionError(f'План "{plan_data}" не сохранился в системе')
+        if not ignore_error:
+            raise AssertionError(f'План "{plan_data}" не сохранился в системе')
+        else:
+            return {}
 
     def check_k6_plan_copy(self, k6_plan_comment, k6_plan_uuid, ignore_error=False):
+        today = self.get_utc_date()
+        start_date = f'{today[2]}-{today[1]}-{today[0]}T00:00:00.000Z'
         copy_comment = f'{k6_plan_comment[3:]}-autotest_copy'
         plans = self.api_get_plans()
         for plan in plans:
             if plan.get('settings').get('plan').get('comment') == copy_comment:
                 plan['is_new_created'] = False
                 return plan
+            if plan.get('uuid') == k6_plan_uuid:
+                start_date = plan.get('timeMeasurement').get('timeStart')
 
-        today = self.get_utc_date()
-        start_date = f'{today[2]}-{today[1]}-{today[0]}T00:00:00.000Z'
         version = self.api_get_version_uuid(k6_plan_uuid, 'Проект плана')
         user = self.api_get_user_by_login(users.admin.login)
         copied_plan_data = {
@@ -1048,6 +1064,17 @@ class ApiEu(BaseApi):
             return self.anti_doublespacing(value_name)
         else:
             return None
+
+    def api_get_custom_relation_values(self, gantt, custom_relation_name, event):
+        values = []
+        task_object_uuid = event.get('object').get('uuid')
+        custom_relations_objects = self.api_get_custom_relation_objects(gantt, custom_relation_name)
+        for related_object in custom_relations_objects:
+            if related_object.get('destinationObjectUuid') == task_object_uuid:
+                values.append(self.anti_doublespacing(self.get_object(related_object.get('sourceObjectUuid')).get('name')))
+            elif related_object.get('sourceObjectUuid') == task_object_uuid:
+                values.append(self.anti_doublespacing(self.get_object(related_object.get('destinationObjectUuid')).get('name')))
+        return values
 
     @staticmethod
     def api_get_custom_field_uuid(gantt, custom_field_name):
