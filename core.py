@@ -9,10 +9,10 @@ from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import StaleElementReferenceException
 from datetime import datetime
-import time
 from datetime import date
 from datetime import timedelta
 import collections
+from api.api import ApiCreator
 
 
 class BasePage:
@@ -23,22 +23,7 @@ class BasePage:
     def __init__(self, driver, url=None):
         self.driver = driver
         self.base_url = url
-
-    @staticmethod
-    def antistale(func):
-        def wrap(*args):
-            stale = True
-            start_time = time.time()
-            while stale:
-                stale = False
-                try:
-                    func(*args)
-                except StaleElementReferenceException:
-                    stale = True
-                    execution_time = time.time() - start_time
-                    if int(execution_time) > 19:
-                        break
-        return wrap
+        self.api_creator = ApiCreator(None, None, self.get_local_token())
 
     def find_element(self, locator, time=10):
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),

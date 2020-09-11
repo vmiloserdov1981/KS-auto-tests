@@ -1092,3 +1092,14 @@ class ApiEu(BaseApi):
                 if custom_field == custom_field_uuid:
                     return event.get('custom').get(custom_field)
         return None
+
+
+class ApiCreator(BaseApi):
+    def get_api_eu(self):
+        return ApiEu(self.login, self.password, token=self.token)
+
+    def get_api_classes(self):
+        return ApiClasses(self.login, self.password, token=self.token)
+
+    def get_api_models(self):
+        return ApiModels(self.login, self.password, token=self.token)
