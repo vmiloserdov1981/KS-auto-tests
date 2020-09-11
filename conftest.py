@@ -9,25 +9,6 @@ from conditions.preconditions_api import EuPreconditions
 import os
 from webdriver_manager.chrome import ChromeDriverManager
 
-'''
-первая версия инита
-
-
-def driver_init_local(headless=False, size=None, maximize=True, impl_wait=3):
-    options = webdriver.ChromeOptions()
-    if headless:
-        options.add_argument('--headless')
-    if size:
-        options.add_argument(f"window-size={size[0]},{size[1]}")
-    driver = webdriver.Chrome(ChromeDriverManager().install())
-    driver.test_data = {}
-    driver.implicitly_wait(impl_wait)
-    driver.set_window_position(0, 0)
-    if maximize:
-        driver.maximize_window()
-    return driver
-'''
-
 
 def driver_init(maximize=True, impl_wait=3, name=None):
     if name is None:
@@ -50,6 +31,7 @@ def driver_init(maximize=True, impl_wait=3, name=None):
             command_executor=ip,
             desired_capabilities=capabilities)
     driver.test_data = {}
+    driver.token = None
     driver.implicitly_wait(impl_wait)
     driver.set_window_position(0, 0)
     if maximize:
@@ -94,26 +76,6 @@ def driver_login():
     preconditions.login_as_admin(user.admin.login, user.admin.password)
     yield driver
     driver.quit()
-
-
-'''
-Фикстура больше  не используется, вместо нее используется parametrized_login_driver
-
-
-@pytest.fixture()
-def driver_eu_login():
-    driver = driver_init()
-    preconditions_api = EuPreconditions(user.admin.login, user.admin.password)
-    preconditions = PreconditionsFront(driver)
-    preconditions_api.api_check_eu_user()
-    data = {'last_k6_plan': preconditions_api.api_get_last_k6_plan()}
-    with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
-        driver.test_data = data
-    eu_user = user.test_users['eu_user']    
-    preconditions.login_as_eu(eu_user.login, eu_user.password)
-    yield driver
-    driver.quit()
-'''
 
 
 @pytest.fixture()
