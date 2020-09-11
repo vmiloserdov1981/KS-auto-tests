@@ -13,6 +13,7 @@ from datetime import date
 from datetime import timedelta
 import collections
 from api.api import ApiCreator
+import users
 
 
 class BasePage:
@@ -23,7 +24,7 @@ class BasePage:
     def __init__(self, driver, url=None):
         self.driver = driver
         self.base_url = url
-        self.api_creator = ApiCreator(None, None, self.get_local_token())
+        self.api_creator = ApiCreator(users.admin.login, users.admin.password, token=self.get_local_token())
 
     def find_element(self, locator, time=10):
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),
