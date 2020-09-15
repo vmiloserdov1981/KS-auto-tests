@@ -84,6 +84,7 @@ def parametrized_login_driver(parameters):
     parameters = {
         'login': 'eu_user',
         'get_last_k6_plan': True,
+        'get_last_k6_plan_copy': False,
         'select_last_k6_plan': True,
         'select_last_k6_plan_copy': False
         'name': 'test_name'
@@ -96,6 +97,10 @@ def parametrized_login_driver(parameters):
     eu_user = user.test_users[parameters.get('login')]
     if parameters.get('get_last_k6_plan'):
         data = {'last_k6_plan': preconditions_api.api_get_last_k6_plan()}
+        if parameters.get('get_last_k6_plan_copy'):
+            k6_plan_comment = data.get('last_k6_plan').get('settings').get('plan').get('comment')
+            k6_plan_uuid = data.get('last_k6_plan').get('uuid')
+            data['copy_last_k6_plan'] = preconditions_api.check_k6_plan_copy(k6_plan_comment, k6_plan_uuid)
         with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
             driver.test_data = data
         preconditions.login_as_eu(eu_user.login, eu_user.password)
@@ -103,7 +108,7 @@ def parametrized_login_driver(parameters):
             preconditions.view_last_k6_plan()
         elif parameters.get('select_last_k6_plan_copy'):
             preconditions.view_last_k6_plan_copy()
-    else:    
+    else:
         preconditions.login_as_eu(eu_user.login, eu_user.password)
     yield driver
     driver.quit()

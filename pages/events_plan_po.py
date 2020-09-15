@@ -1,6 +1,5 @@
 from core import BasePage
 from core import antistale
-from api.api import ApiEu
 from pages.components.eu_filter import EuFilter
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -12,7 +11,7 @@ import time
 from variables import PkmVars as Vars
 
 
-class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
+class EventsPlan(NewEventModal, Modals, EuFilter):
     LOCATOR_VERSION_INPUT = (By.XPATH, "//div[@class='controls-base-block']//input[contains(@class, 'dropdown-input')]")
     LOCATOR_VERSION_INPUT_VALUE = (By.XPATH, "//div[@class='controls-base-block']//div[@class='display-value-text']")
     LOCATOR_EVENT_NAME = (By.XPATH, "//div[contains(@class, 'gantt-indicator-name-value ')]")
@@ -27,7 +26,6 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
 
     def __init__(self, driver, login=None, password=None, token=None):
         BasePage.__init__(self, driver)
-        ApiEu.__init__(self, login, password, token=token)
 
     def get_active_version_name(self):
         current_version = self.get_element_text(self.LOCATOR_VERSION_INPUT_VALUE)
@@ -479,6 +477,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
             return events
 
     def check_plan_events(self, plan_uuid, version, login, filter_set, group_by=None):
+        api = self.api_creator.get_api_eu()
         """
         filter_set = {
             "unfilled_events_filter": {
@@ -505,8 +504,8 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
         """
 
         if filter_set.get('unfilled_events_filter').get('Скрывать мероприятия при фильтрации') is False:
-            all_api_events = self.api_get_events(version, plan_uuid, login, group_by=group_by)
-            filtered_api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set)
+            all_api_events = api.api_get_events(version, plan_uuid, login, group_by=group_by)
+            filtered_api_events = api.api_get_events(version, plan_uuid, login, filter_set=filter_set)
             if group_by:
                 ui_events = {}
             else:
@@ -528,7 +527,7 @@ class EventsPlan(NewEventModal, Modals, ApiEu, EuFilter):
             assert self.compare_lists(all_api_events, ui_events), f'Мероприятия в API и UI не совпадают. API - {len(all_api_events)} шт, UI - {len(ui_events) if type(ui_events) is list else "None"} шт'
 
         else:
-            api_events = self.api_get_events(version, plan_uuid, login, filter_set=filter_set, group_by=group_by)
+            api_events = api.api_get_events(version, plan_uuid, login, filter_set=filter_set, group_by=group_by)
             ui_events = self.get_events(grouped=group_by, names_only=True)
             if type(ui_events) is dict:
                 self.compare_dicts(ui_events, api_events)

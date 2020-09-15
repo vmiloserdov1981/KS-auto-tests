@@ -179,9 +179,10 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
     plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт')
+    api = events_plan.api_creator.get_api_eu()
     # prefix = parametrized_login_driver.test_data['last_k6_plan']['plan_prefix']
-    gantt = events_plan.api_get_gantt(versions[0], plan_uuid, login)
-    prefixes = events_plan.get_plan_prefixes(gantt)
+    gantt = api.api_get_gantt(versions[0], plan_uuid, login)
+    prefixes = api.get_plan_prefixes(gantt)
 
     default_filter_set = {
         "unfilled_events_filter": {
