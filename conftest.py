@@ -22,7 +22,7 @@ def driver_init(maximize=True, impl_wait=3, name=None):
             "browserName": "chrome",
             # "version": "83.0",
             "enableVNC": True,
-            "enableVideo": True,
+            "enableVideo": False,
             'videoName': f'{name}.mp4',
             "name": name,
             "sessionTimeout": timeout
@@ -101,6 +101,7 @@ def parametrized_login_driver(parameters):
             k6_plan_comment = data.get('last_k6_plan').get('settings').get('plan').get('comment')
             k6_plan_uuid = data.get('last_k6_plan').get('uuid')
             data['copy_last_k6_plan'] = preconditions_api.check_k6_plan_copy(k6_plan_comment, k6_plan_uuid)
+        data['to_delete'] = {}
         with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
             driver.test_data = data
         preconditions.login_as_eu(eu_user.login, eu_user.password)

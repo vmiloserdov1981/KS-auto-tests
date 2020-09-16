@@ -722,21 +722,6 @@ class ApiEu(BaseApi):
         }
         return event_data
 
-    @staticmethod
-    def anti_doublespacing(string):
-        if '  ' in string:
-            string_list = string.split(' ')
-            new_string_list = [elem for elem in string_list if elem != '']
-            string = ' '.join(new_string_list)
-
-        if string[0] == ' ':
-            string = string[1:]
-
-        if string[len(string) - 1] == ' ':
-            string = string[:len(string) - 1]
-
-        return string
-
     def api_get_event_names(self, version, plan_uuid, login, deleleted_only=False, get_deleted=True):
         if deleleted_only:
             return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, deleleted_only=True)]
@@ -1092,6 +1077,28 @@ class ApiEu(BaseApi):
                 if custom_field == custom_field_uuid:
                     return event.get('custom').get(custom_field)
         return None
+
+    def plan_versions_generator(self, plan_uuid):
+        versions = self.post(f'{Vars.PKM_API_URL}datasets/get-by-model-id', self.token, {'modelUuid': plan_uuid}).get('data')
+        for version in versions:
+            yield version
+
+    def get_last_plan_version_number(self, plan_uuid):
+        numbers = []
+        for version in self.plan_versions_generator(plan_uuid):
+            if '№' in version.get('name'):
+                number = int(version.get('name').split('№')[1].split(' ')[0])
+                numbers.append(number)
+        if numbers != []:
+            numbers.sort(reverse=True)
+            last_number = numbers[0]
+            return last_number
+        return 1
+
+    def get_plan_version_uuid_by_name(self, plan_uuid, name):
+        for version in self.plan_versions_generator(plan_uuid):
+            if version.get('name') == name:
+                return version.get('uuid')
 
 
 class ApiCreator(BaseApi):

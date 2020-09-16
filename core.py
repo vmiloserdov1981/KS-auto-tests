@@ -186,6 +186,28 @@ class BasePage:
                 dictionary[group_value] = [item]
         return dictionary
 
+    def elements_generator(self, locator, time=5):
+        try:
+            self.find_element(locator, time)
+        except TimeoutException:
+            return None
+        elements = self.driver.find_elements(*locator)
+        for element in elements:
+            yield element
+
+    def is_element_clickable(self, locator):
+        try:
+            WebDriverWait(self.driver, 1).until(ec.element_to_be_clickable(locator))
+        except TimeoutException:
+            return False
+        return True
+
+
+
+
+
+
+
 
 class DomChanged(object):
     def __init__(self, dom):
@@ -250,7 +272,9 @@ class BaseApi:
         return json.loads(response.text)
 
     @staticmethod
-    def get(url, params={}):
+    def get(url, params=None):
+        if params is None:
+            params = {}
         headers = {'Content-Type': 'application/json'}
         response = requests.get(url, params=json.dumps(params), headers=headers)
         return json.loads(response.text)
@@ -287,6 +311,21 @@ class BaseApi:
         response = self.post(f'{Vars.PKM_API_URL}users/get-user-by-login', self.token, payload)
         assert not response.get('error'), f'Ошибка при получении данных пользователя'
         return response.get('user')
+
+    @staticmethod
+    def anti_doublespacing(string):
+        if '  ' in string:
+            string_list = string.split(' ')
+            new_string_list = [elem for elem in string_list if elem != '']
+            string = ' '.join(new_string_list)
+
+        if string[0] == ' ':
+            string = string[1:]
+
+        if string[len(string) - 1] == ' ':
+            string = string[:len(string) - 1]
+
+        return string
 
 
 def antistale(func):
