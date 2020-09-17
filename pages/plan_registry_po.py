@@ -44,6 +44,7 @@ class PlanRegistry(EuHeader, BasePage):
     def select_plan_by_uuid(self, uuid):
         target = (By.XPATH, f"//tr[contains(@class, 'plan-row') and @test-plan-uuid='{uuid}']")
         self.find_and_click(target)
+        time.sleep(5)
 
     def check_plan_versions(self, k6_plan_copy_uuid, expected_ui_versions=None):
         api = self.api_creator.get_api_eu()
@@ -127,9 +128,10 @@ class PlanRegistry(EuHeader, BasePage):
 
     def delete_version(self, name):
         self.select_version(name, with_dates=True)
+        #time.sleep(5)
         self.find_and_click(self.LOCATOR_DELETE_VERSION_BUTTON)
         row_locator = (By.XPATH, f"//div[text()=' {name} ']/..")
-        self.is_element_disappearing(row_locator)
+        assert self.is_element_disappearing(row_locator, wait_display=False)
 
     def set_default_version(self, name, with_dates=True):
         self.select_version(name, with_dates=with_dates)
