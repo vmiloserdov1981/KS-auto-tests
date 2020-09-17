@@ -938,6 +938,18 @@ class ApiEu(BaseApi):
         for task in tasks:
             yield task
 
+    def api_get_gantt_tasks(self, gantt):
+        tasks = {}
+        for i in self.api_events_generator(gantt):
+            tasks[i.get('object').get('uuid')] = {
+                'name': i.get('object').get('name'),
+                'start': i.get('start'),
+                'end': i.get('end'),
+                'duration': i.get('duration')
+            }
+        return tasks
+
+
     def api_create_unique_event_name(self, base_name, versions, plan_uuid, login, subname=None):
         events_list = []
         for version in versions:

@@ -19,6 +19,7 @@ class BasePage:
     LOCATOR_PAGE_TITLE_BLOCK = (By.XPATH, "//div[@class='page-title-container']//div[@class='title-value']")
     LOCATOR_TITLE_INPUT = (By.XPATH, "(//div[@class='page-title-container']//input)[1]")
     LOCATOR_TITLE_CHECK_ICON = (By.XPATH, "//div[@class='page-title-container']//fa-icon[@icon='check']")
+    LOCATOR_DROPDOWN_VALUE = (By.XPATH, "//pkm-dropdown-item")
 
     def __init__(self, driver, url=None):
         self.driver = driver
@@ -167,6 +168,8 @@ class BasePage:
         for key in dict_a:
             if type(dict_a.get(key)) is list:
                 assert self.compare_lists(dict_a.get(key), dict_b.get(key))
+            elif type(dict_a.get(key)) is dict:
+                self.compare_dicts(dict_a.get(key), dict_b.get(key))
             else:
                 assert dict_a.get(key) == dict_b.get(key)
 
@@ -201,6 +204,12 @@ class BasePage:
         except TimeoutException:
             return False
         return True
+
+    def get_dropdown_values(self, dropdown_locator):
+        self.find_and_click(dropdown_locator)
+        values = [value.text for value in self.elements_generator(self.LOCATOR_DROPDOWN_VALUE)]
+        self.find_and_click(dropdown_locator)
+        return values
 
 
 

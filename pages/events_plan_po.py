@@ -24,7 +24,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
     LOCATOR_GANTT_LAST_ROW = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
     LOCATOR_GANTT_SCROLL = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
 
-    def __init__(self, driver, login=None, password=None, token=None):
+    def __init__(self, driver):
         BasePage.__init__(self, driver)
 
     def get_active_version_name(self):
@@ -570,3 +570,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             return None
         else:
             raise AssertionError('В качестве группирующего показателя выбрано более одного значения')
+
+    def get_versions_names(self):
+        names = self.get_dropdown_values(self.LOCATOR_VERSION_INPUT)
+        return names

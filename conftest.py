@@ -22,7 +22,7 @@ def driver_init(maximize=True, impl_wait=3, name=None):
             "browserName": "chrome",
             # "version": "83.0",
             "enableVNC": True,
-            "enableVideo": False,
+            "enableVideo": True,
             'videoName': f'{name}.mp4',
             "name": name,
             "sessionTimeout": timeout
