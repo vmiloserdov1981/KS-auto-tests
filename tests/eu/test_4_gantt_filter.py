@@ -314,7 +314,7 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
         parametrized_login_driver.refresh()
 
     with allure.step(f'Проверить, что состояние установленных фильтров не изменилось'):
-        time.sleep(Vars.PKM_USER_WAIT_TIME)
+        time.sleep(10)
         actual_filters = eu_filter.get_filter_set()
         for i in actual_filters:
             eu_filter.compare_dicts(actual_filters.get(i), filter_set_3.get(i))
