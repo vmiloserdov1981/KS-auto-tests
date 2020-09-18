@@ -14,16 +14,18 @@ from webdriver_manager.chrome import ChromeDriverManager
 def driver_init(maximize=True, impl_wait=3, name=None):
     if name is None:
         name = 'autotest'
-    if os.getenv('IS_LOCAL'):
+    if os.getenv('IS_LOCAL') == 'true':
         driver = webdriver.Chrome(ChromeDriverManager().install())
     else:
-        ip = os.getenv('SELENOID_IP', 'http://127.0.0.1:4444/wd/hub')
+        ip = os.getenv('SELENOID_IP', '127.0.0.1')
+        ip = f'http://{ip}:4444/wd/hub'
+        enable_video = True if os.getenv('ENABLE_VIDEO') == 'true' else False
         timeout = os.getenv('TIMEOUT', '90s')
         capabilities = {
             "browserName": "chrome",
             # "version": "83.0",
             "enableVNC": True,
-            "enableVideo": True,
+            "enableVideo": enable_video,
             'videoName': f'{name}.mp4',
             "name": name,
             "sessionTimeout": timeout
