@@ -555,21 +555,12 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         self.find_and_click(self.LOCATOR_GROUPING_ICON)
 
     def get_grouping_value(self):
-        values_list = []
         self.find_and_click(self.LOCATOR_GROUPING_ICON)
-        values_locator = (By.XPATH, f"//div[contains(@class, 'gantt-overlay-menu')]//div[contains(@class, 'filter-dropdown-item')]")
-        self.find_element(values_locator, time=15)
-        values = self.driver.find_elements(*values_locator)
-        for value in values:
-            if 'selected' in value.get_attribute('class'):
-                values_list.append(value.text)
+        values_locator = (By.XPATH, f"//div[contains(@class, 'gantt-overlay-menu')]//div[contains(@class, 'selected')]")
+        row = self.find_element(values_locator)
+        value = row.text.split('\n')[0]
         self.find_and_click(self.LOCATOR_GROUPING_ICON)
-        if len(values_list) == 1:
-            return values_list[0]
-        elif len(values_list) == 0:
-            return None
-        else:
-            raise AssertionError('В качестве группирующего показателя выбрано более одного значения')
+        return value
 
     def get_versions_names(self):
         names = self.get_dropdown_values(self.LOCATOR_VERSION_INPUT)
