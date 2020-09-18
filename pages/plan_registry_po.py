@@ -4,7 +4,6 @@ from pages.components.eu_header import EuHeader
 from selenium.webdriver.common.by import By
 from api.api import ApiEu
 from selenium.common.exceptions import TimeoutException
-import time
 
 
 class PlanRegistry(EuHeader, BasePage):
@@ -13,12 +12,14 @@ class PlanRegistry(EuHeader, BasePage):
     LOCATOR_STAR = (By.XPATH, "//div[@class='plans-table-container']//fa-icon[@icon='star']")
     LOCATOR_VERSIONS_NAMES = (By.XPATH, "//div[contains(@class, 'version-element')]/div[2]")
     LOCATOR_VERSIONS_ROWS = (By.XPATH, "//div[contains(@class, 'version-element')]")
+    LOCATOR_VERSION_FIRST_ROW = (By.XPATH, "//div[contains(@class, 'version-element')][1]")
     LOCATOR_PLAN_CONTROL_BUTTONS = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button")
     LOCATOR_ADD_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@ng-reflect-tooltip='Добавить']")
     LOCATOR_ADD_BASED_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@ng-reflect-tooltip='Создать на основе']")
     LOCATOR_DELETE_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@ng-reflect-tooltip='Удалить']")
     LOCATOR_SELECT_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@ng-reflect-tooltip='Выбрать']")
     LOCATOR_DEFAULT_VERSION_ROW = (By.XPATH, "//div[@class='versions']//fa-icon[@ng-reflect-icon='star']/../..")
+    LOCATOR_VERSION_STAR = (By.XPATH, "//div[@class='versions']//fa-icon[@ng-reflect-icon='star']")
 
     def __init__(self, driver):
         BasePage.__init__(self, driver)
@@ -33,7 +34,7 @@ class PlanRegistry(EuHeader, BasePage):
         selected_row = self.find_element(self.LOCATOR_SELECTED_PLAN_ROW)
         plan_uuid = selected_row.get_attribute('test-plan-uuid')
         assert plan_uuid is not None, 'Невозможно получить uuid выбранного плана'
-        plan = self.api_creator.get_api_eu().api.api_get_plan_by_uuid(plan_uuid)
+        plan = self.api_creator.get_api_eu().api_get_plan_by_uuid(plan_uuid)
         return plan
 
     def check_selected_plan(self):
@@ -43,8 +44,13 @@ class PlanRegistry(EuHeader, BasePage):
 
     def select_plan_by_uuid(self, uuid):
         target = (By.XPATH, f"//tr[contains(@class, 'plan-row') and @test-plan-uuid='{uuid}']")
-        self.find_and_click(target)
-        time.sleep(5)
+        element = self.find_element(target)
+        if "selected_plan" in element.get_attribute('class'):
+            return
+        else:
+            version = self.find_element(self.LOCATOR_VERSION_FIRST_ROW)
+            self.find_and_click(target)
+            self.wait_element_replacing(version, self.LOCATOR_VERSION_FIRST_ROW)
 
     def check_plan_versions(self, k6_plan_copy_uuid, expected_ui_versions=None):
         api = self.api_creator.get_api_eu()
@@ -54,7 +60,8 @@ class PlanRegistry(EuHeader, BasePage):
         if expected_ui_versions:
             assert self.compare_lists(ui_versions, expected_ui_versions), f'Список версий не соответствует ожидаемому, actual_ui = {ui_versions}, expected_ui = {expected_ui_versions} '
 
-    def cut_version_date(self, version):
+    @staticmethod
+    def cut_version_date(version):
         version = version.split(' ')
         version = version[:len(version) - 1]
         version = ' '.join(version)
@@ -90,7 +97,8 @@ class PlanRegistry(EuHeader, BasePage):
                     buttons.append(button.get_attribute('tooltip'))
         return buttons
 
-    def select_version(self, name, with_dates=False):
+    '''
+    def select_version_old(self, name, with_dates=False):
         for version in self.elements_generator(self.LOCATOR_VERSIONS_NAMES):
             if not with_dates:
                 if self.cut_version_date(version.text) == name:
@@ -98,6 +106,19 @@ class PlanRegistry(EuHeader, BasePage):
             else:
                 if version.text == name:
                     return version.click()
+    '''
+
+    def select_version(self, name, with_dates=False):
+        if not with_dates:
+            version_locator = (By.XPATH, f"//div[contains(text(), ' {name} (')]/..")
+        else:
+            version_locator = (By.XPATH, f"//div[text()=' {name} ']/..")
+        self.find_and_click(version_locator)
+        '''
+        webelement = self.find_element(version_locator)
+        elements = (webelement, version_locator)
+        return elements
+        '''
 
     def add_version(self, plan_uuid, based_on=None):
         expected_versions = self.get_versions_names(with_dates=True)
@@ -114,7 +135,8 @@ class PlanRegistry(EuHeader, BasePage):
             self.find_and_click(self.LOCATOR_ADD_VERSION_BUTTON)
         actual_versions = self.get_versions_names(with_dates=True)
         assert self.compare_lists(expected_versions, actual_versions), 'Добавленная версия отображается некорректно'
-        return (expected_name, api.get_plan_version_uuid_by_name(plan_uuid, self.cut_version_date(expected_name)))
+        elements = (expected_name, api.get_plan_version_uuid_by_name(plan_uuid, self.cut_version_date(expected_name)))
+        return elements
 
     def get_version_state(self, name):
         for row in self.elements_generator(self.LOCATOR_VERSIONS_ROWS):
@@ -128,20 +150,17 @@ class PlanRegistry(EuHeader, BasePage):
 
     def delete_version(self, name):
         self.select_version(name, with_dates=True)
-        #time.sleep(5)
         self.find_and_click(self.LOCATOR_DELETE_VERSION_BUTTON)
         row_locator = (By.XPATH, f"//div[text()=' {name} ']/..")
         assert self.is_element_disappearing(row_locator, wait_display=False)
 
     def set_default_version(self, name, with_dates=True):
-        self.select_version(name, with_dates=with_dates)
-        self.find_and_click(self.LOCATOR_SELECT_VERSION_BUTTON)
-        time.sleep(5)
-        actual_default_version = self.get_default_version()
-        assert actual_default_version == name
-
-
-
-
-
-
+        if self.get_default_version() == name:
+            return
+        else:
+            self.select_version(name, with_dates=with_dates)
+            star = self.find_element(self.LOCATOR_VERSION_STAR)
+            self.find_and_click(self.LOCATOR_SELECT_VERSION_BUTTON)
+            self.wait_element_replacing(star, self.LOCATOR_VERSION_STAR)
+            actual_default_version = self.get_default_version()
+            assert actual_default_version == name

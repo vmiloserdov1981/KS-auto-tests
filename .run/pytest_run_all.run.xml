@@ -7,6 +7,7 @@
       <env name="SELENOID_IP" value="http://10.10.20.39:4444/wd/hub" />
       <env name="TIMEOUT" value="100s" />
       <env name="ISd_LOCAL" value="true" />
+      <env name="PYTEST_XDIST_WORKER_COUNT" value="5" />
     </envs>
     <option name="SDK_HOME" value="C:\Users\AndUser\AppData\Local\Programs\Python\Python38-32\python.exe" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
@@ -15,9 +16,9 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <option name="_new_keywords" value="&quot;&quot;" />
     <option name="_new_parameters" value="&quot;&quot;" />
-    <option name="_new_additionalArguments" value="&quot;--no-cov --alluredir\u003dreports&quot;" />
-    <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/eu/test_6_plans_registry.py&quot;" />
-    <option name="_new_targetType" value="&quot;PATH&quot;" />
+    <option name="_new_additionalArguments" value="&quot;-n\u003d5 --dist\u003dno --no-cov --alluredir\u003dreports&quot;" />
+    <option name="_new_target" value="&quot;tests&quot;" />
+    <option name="_new_targetType" value="&quot;PYTHON&quot;" />
     <method v="2" />
   </configuration>
 </component>

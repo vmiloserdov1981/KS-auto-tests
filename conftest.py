@@ -6,6 +6,7 @@ import users as user
 from conditions.preconditions_api import ClassesPreconditions
 from conditions.postconditions_api import ClassesPostconditions
 from conditions.preconditions_api import EuPreconditions
+from conditions.postconditions_api import EuPostconditions
 import os
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -112,6 +113,10 @@ def parametrized_login_driver(parameters):
     else:
         preconditions.login_as_eu(eu_user.login, eu_user.password)
     yield driver
+    if driver.test_data.get('to_delete') != {} and driver.test_data.get('to_delete'):
+        with allure.step(f'Удалить тестовые данные'):
+            postconditions_api = EuPostconditions(login=user.admin.login, password=user.admin.password)
+            postconditions_api.test_data_cleaner(driver.test_data)
     driver.quit()
 
 
