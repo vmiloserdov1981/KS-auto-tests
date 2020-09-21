@@ -5,12 +5,14 @@ from variables import PkmVars as Vars
 from pages.components.modals import Modals
 import users as user
 import allure
+import pytest
 
 
 @allure.feature('Логин/Логаут')
 @allure.story('Логин админом')
 @allure.title('Логин (валидный логин и пароль)')
 @allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.run(order=1)
 def test_pkm_login_valid(driver):
     login_page = LoginPage(driver, Vars.PKM_MAIN_URL)
     main_page = MainPage(driver, "{}#/main".format(Vars.PKM_MAIN_URL))
@@ -39,6 +41,7 @@ def test_pkm_login_valid(driver):
 @allure.story('Логин админом')
 @allure.title('Логин с невалидными данными')
 @allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.run(order=2)
 def test_pkm_login_invalid(driver):
     login_page = LoginPage(driver, Vars.PKM_MAIN_URL)
     modal = Modals(driver)
@@ -87,6 +90,7 @@ def test_pkm_login_invalid(driver):
 @allure.story('Логаут админа')
 @allure.title('Логаут')
 @allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.run(order=3)
 def test_pkm_logout(driver_login):
     login_page = LoginPage(driver_login, f'{Vars.PKM_MAIN_URL}#/login')
     user_block = UserBlock(driver_login)

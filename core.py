@@ -9,36 +9,23 @@ from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import StaleElementReferenceException
 from datetime import datetime
-import time
 from datetime import date
 from datetime import timedelta
 import collections
+import users
 
 
 class BasePage:
     LOCATOR_PAGE_TITLE_BLOCK = (By.XPATH, "//div[@class='page-title-container']//div[@class='title-value']")
     LOCATOR_TITLE_INPUT = (By.XPATH, "(//div[@class='page-title-container']//input)[1]")
     LOCATOR_TITLE_CHECK_ICON = (By.XPATH, "//div[@class='page-title-container']//fa-icon[@icon='check']")
+    LOCATOR_DROPDOWN_VALUE = (By.XPATH, "//pkm-dropdown-item")
 
     def __init__(self, driver, url=None):
         self.driver = driver
         self.base_url = url
-
-    @staticmethod
-    def antistale(func):
-        def wrap(*args):
-            stale = True
-            start_time = time.time()
-            while stale:
-                stale = False
-                try:
-                    func(*args)
-                except StaleElementReferenceException:
-                    stale = True
-                    execution_time = time.time() - start_time
-                    if int(execution_time) > 19:
-                        break
-        return wrap
+        from api.api import ApiCreator
+        self.api_creator = ApiCreator(users.admin.login, users.admin.password, token=driver.token)
 
     def find_element(self, locator, time=10):
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),
@@ -181,6 +168,8 @@ class BasePage:
         for key in dict_a:
             if type(dict_a.get(key)) is list:
                 assert self.compare_lists(dict_a.get(key), dict_b.get(key))
+            elif type(dict_a.get(key)) is dict:
+                self.compare_dicts(dict_a.get(key), dict_b.get(key))
             else:
                 assert dict_a.get(key) == dict_b.get(key)
 
@@ -199,6 +188,34 @@ class BasePage:
             else:
                 dictionary[group_value] = [item]
         return dictionary
+
+    def elements_generator(self, locator, time=5):
+        try:
+            self.find_element(locator, time)
+        except TimeoutException:
+            return None
+        elements = self.driver.find_elements(*locator)
+        for element in elements:
+            yield element
+
+    def is_element_clickable(self, locator):
+        try:
+            WebDriverWait(self.driver, 1).until(ec.element_to_be_clickable(locator))
+        except TimeoutException:
+            return False
+        return True
+
+    def get_dropdown_values(self, dropdown_locator):
+        self.find_and_click(dropdown_locator)
+        values = [value.text for value in self.elements_generator(self.LOCATOR_DROPDOWN_VALUE)]
+        self.find_and_click(dropdown_locator)
+        return values
+
+
+
+
+
+
 
 
 class DomChanged(object):
@@ -264,7 +281,9 @@ class BaseApi:
         return json.loads(response.text)
 
     @staticmethod
-    def get(url, params={}):
+    def get(url, params=None):
+        if params is None:
+            params = {}
         headers = {'Content-Type': 'application/json'}
         response = requests.get(url, params=json.dumps(params), headers=headers)
         return json.loads(response.text)
@@ -301,6 +320,21 @@ class BaseApi:
         response = self.post(f'{Vars.PKM_API_URL}users/get-user-by-login', self.token, payload)
         assert not response.get('error'), f'Ошибка при получении данных пользователя'
         return response.get('user')
+
+    @staticmethod
+    def anti_doublespacing(string):
+        if '  ' in string:
+            string_list = string.split(' ')
+            new_string_list = [elem for elem in string_list if elem != '']
+            string = ' '.join(new_string_list)
+
+        if string[0] == ' ':
+            string = string[1:]
+
+        if string[len(string) - 1] == ' ':
+            string = string[:len(string) - 1]
+
+        return string
 
 
 def antistale(func):

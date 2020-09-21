@@ -8,7 +8,7 @@ from api.api import ApiModels
 from pages.login_po import LoginPage
 
 
-class EuHeader(ApiEu, BasePage):
+class EuHeader(BasePage):
     LOCATOR_EU_PAGE_TITLE = (By.XPATH, "//div[@class='user-menu-page-title']")
     LOCATOR_EU_USER_MENU = (By.XPATH, "//div[contains(@class, 'user-menu ')]")
     LOCATOR_EU_MENU_BUTTON = (By.XPATH, "//fa-icon[contains(@class, 'menu-button')]")
@@ -17,9 +17,8 @@ class EuHeader(ApiEu, BasePage):
     LOCATOR_EU_PLAN_DROPDOWN_VALUES = (By.XPATH, "//div[contains(@class, 'dropdown-list')]//pkm-dropdown-item")
     LOCATOR_EU_LOGOUT_BUTTON = (By.XPATH, "//div[contains(@class, 'menu-item') and text()=' Выход ']")
 
-    def __init__(self, driver, login=None, password=None, token=None):
+    def __init__(self, driver):
         BasePage.__init__(self, driver)
-        ApiEu.__init__(self, login, password, token=token)
         self.login_page = LoginPage(driver)
 
     def get_title_text(self):
@@ -71,7 +70,8 @@ class EuHeader(ApiEu, BasePage):
 
     def check_plan_dropdown_values(self):
         dropdown_values = self.get_plan_dropdown_values()
-        plan_names = self.api_get_plans(names_only=True)
+        api = self.api_creator.get_api_eu()
+        plan_names = api.api_get_plans(names_only=True)
         assert self.compare_lists(dropdown_values, plan_names), 'В дропдауне версий отображаются не все планы'
 
     def select_plan(self, plan_uuid=None, plan_name=None):

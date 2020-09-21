@@ -17,6 +17,7 @@ from pages.login_po import LoginPage
 @allure.story('План мероприятий')
 @allure.title('Создание мероприятия')
 @allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.run(order=4)
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user2',
         'get_last_k6_plan': True,
@@ -107,6 +108,7 @@ def test_eu_create_gantt_event(parametrized_login_driver, parameters):
 @allure.story('План мероприятий')
 @allure.title('Удаление мероприятия')
 @allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.run(order=5)
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user2',
         'get_last_k6_plan': True,
@@ -235,6 +237,7 @@ def test_eu_delete_gantt_event(parametrized_login_driver, parameters):
 @allure.story('План мероприятий')
 @allure.title('Редактирование мероприятия')
 @allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.run(order=6)
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user2',
         'get_last_k6_plan': True,
@@ -412,6 +415,7 @@ def test_eu_modify_gantt_event(parametrized_login_driver, parameters):
 @allure.story('План мероприятий')
 @allure.title('Копирование мероприятия')
 @allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.run(order=7)
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user2',
         'get_last_k6_plan': True,
@@ -540,6 +544,7 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
 @allure.story('План мероприятий')
 @allure.title('Группировка мероприятий')
 @allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.run(order=8)
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user3',
         'get_last_k6_plan': True,
@@ -548,8 +553,8 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
         'name': 'Группировка мероприятий'
     })])
 def test_eu_group_gantt_events(parametrized_login_driver, parameters):
-    events_plan = EventsPlan(parametrized_login_driver, token=parametrized_login_driver.token)
-    header = EuHeader(parametrized_login_driver, token=parametrized_login_driver.token)
+    events_plan = EventsPlan(parametrized_login_driver)
+    header = EuHeader(parametrized_login_driver)
     login_page = LoginPage(parametrized_login_driver)
     login = user.system_user.login
     versions = ('Проект плана', 'Факт', 'План потребности')

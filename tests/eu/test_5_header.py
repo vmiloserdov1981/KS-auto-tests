@@ -11,6 +11,7 @@ import pytest
 @allure.story('План мероприятий')
 @allure.title('Переключение планов в header')
 @allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.run(order=11)
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user',
         'get_last_k6_plan': True,
@@ -19,13 +20,13 @@ import pytest
         'name': 'Переключение планов в header'
     })])
 def test_eu_switch_plans(parametrized_login_driver, parameters):
-    header = EuHeader(parametrized_login_driver, token=parametrized_login_driver.token)
+    header = EuHeader(parametrized_login_driver)
     k6_plan = parametrized_login_driver.test_data.get('last_k6_plan')
     k6_plan_comment = k6_plan.get('settings').get('plan').get('comment')
     k6_plan_uuid = k6_plan.get('uuid')
     k6_plan_name = k6_plan.get('name')
-    events_plan = EventsPlan(parametrized_login_driver, token=parametrized_login_driver.token)
-    plans_registry = PlanRegistry(parametrized_login_driver, token=parametrized_login_driver.token)
+    events_plan = EventsPlan(parametrized_login_driver)
+    plans_registry = PlanRegistry(parametrized_login_driver)
     api = ApiEu(None, None, token=parametrized_login_driver.token)
     login = user.system_user.login
 
@@ -67,7 +68,8 @@ def test_eu_switch_plans(parametrized_login_driver, parameters):
             },
             "custom_relations_filter": {}
         }
-        events_plan.check_plan_events(k6_plan_uuid, 'Проект плана', login, filter_set=filter_set)
+        current_version = events_plan.get_active_version_name()
+        events_plan.check_plan_events(k6_plan_uuid, current_version, login, filter_set=filter_set)
 
     with allure.step(f'Выбрать план "{copy_name}", в дропдауне выбора версий'):
         header.select_plan(plan_uuid=copy_uuid, plan_name=copy_name)
@@ -81,7 +83,8 @@ def test_eu_switch_plans(parametrized_login_driver, parameters):
             },
             "custom_relations_filter": {}
         }
-        events_plan.check_plan_events(copy_uuid, 'Проект плана', login, filter_set=filter_set)
+        current_version = events_plan.get_active_version_name()
+        events_plan.check_plan_events(copy_uuid, current_version, login, filter_set=filter_set)
 
     with allure.step('Перейти на страницу "Реестр ИП"'):
         header.navigate_to_page('Реестр интегрированных планов')

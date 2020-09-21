@@ -6,42 +6,26 @@ import users as user
 from conditions.preconditions_api import ClassesPreconditions
 from conditions.postconditions_api import ClassesPostconditions
 from conditions.preconditions_api import EuPreconditions
+from conditions.postconditions_api import EuPostconditions
 import os
 from webdriver_manager.chrome import ChromeDriverManager
-
-'''
-первая версия инита
-
-
-def driver_init_local(headless=False, size=None, maximize=True, impl_wait=3):
-    options = webdriver.ChromeOptions()
-    if headless:
-        options.add_argument('--headless')
-    if size:
-        options.add_argument(f"window-size={size[0]},{size[1]}")
-    driver = webdriver.Chrome(ChromeDriverManager().install())
-    driver.test_data = {}
-    driver.implicitly_wait(impl_wait)
-    driver.set_window_position(0, 0)
-    if maximize:
-        driver.maximize_window()
-    return driver
-'''
 
 
 def driver_init(maximize=True, impl_wait=3, name=None):
     if name is None:
         name = 'autotest'
-    if os.getenv('IS_LOCAL'):
+    if os.getenv('IS_LOCAL') == 'true':
         driver = webdriver.Chrome(ChromeDriverManager().install())
     else:
-        ip = os.getenv('SELENOID_IP', 'http://127.0.0.1:4444/wd/hub')
+        ip = os.getenv('SELENOID_IP', '127.0.0.1')
+        ip = f'http://{ip}:4444/wd/hub'
+        enable_video = True if os.getenv('ENABLE_VIDEO') == 'true' else False
         timeout = os.getenv('TIMEOUT', '90s')
         capabilities = {
             "browserName": "chrome",
             # "version": "83.0",
             "enableVNC": True,
-            "enableVideo": True,
+            "enableVideo": enable_video,
             'videoName': f'{name}.mp4',
             "name": name,
             "sessionTimeout": timeout
@@ -50,6 +34,7 @@ def driver_init(maximize=True, impl_wait=3, name=None):
             command_executor=ip,
             desired_capabilities=capabilities)
     driver.test_data = {}
+    driver.token = None
     driver.implicitly_wait(impl_wait)
     driver.set_window_position(0, 0)
     if maximize:
@@ -96,32 +81,13 @@ def driver_login():
     driver.quit()
 
 
-'''
-Фикстура больше  не используется, вместо нее используется parametrized_login_driver
-
-
-@pytest.fixture()
-def driver_eu_login():
-    driver = driver_init()
-    preconditions_api = EuPreconditions(user.admin.login, user.admin.password)
-    preconditions = PreconditionsFront(driver)
-    preconditions_api.api_check_eu_user()
-    data = {'last_k6_plan': preconditions_api.api_get_last_k6_plan()}
-    with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
-        driver.test_data = data
-    eu_user = user.test_users['eu_user']    
-    preconditions.login_as_eu(eu_user.login, eu_user.password)
-    yield driver
-    driver.quit()
-'''
-
-
 @pytest.fixture()
 def parametrized_login_driver(parameters):
     """
     parameters = {
         'login': 'eu_user',
         'get_last_k6_plan': True,
+        'get_last_k6_plan_copy': False,
         'select_last_k6_plan': True,
         'select_last_k6_plan_copy': False
         'name': 'test_name'
@@ -134,6 +100,11 @@ def parametrized_login_driver(parameters):
     eu_user = user.test_users[parameters.get('login')]
     if parameters.get('get_last_k6_plan'):
         data = {'last_k6_plan': preconditions_api.api_get_last_k6_plan()}
+        if parameters.get('get_last_k6_plan_copy'):
+            k6_plan_comment = data.get('last_k6_plan').get('settings').get('plan').get('comment')
+            k6_plan_uuid = data.get('last_k6_plan').get('uuid')
+            data['copy_last_k6_plan'] = preconditions_api.check_k6_plan_copy(k6_plan_comment, k6_plan_uuid)
+        data['to_delete'] = {}
         with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
             driver.test_data = data
         preconditions.login_as_eu(eu_user.login, eu_user.password)
@@ -141,9 +112,13 @@ def parametrized_login_driver(parameters):
             preconditions.view_last_k6_plan()
         elif parameters.get('select_last_k6_plan_copy'):
             preconditions.view_last_k6_plan_copy()
-    else:    
+    else:
         preconditions.login_as_eu(eu_user.login, eu_user.password)
     yield driver
+    if driver.test_data.get('to_delete') != {} and driver.test_data.get('to_delete'):
+        with allure.step(f'Удалить тестовые данные'):
+            postconditions_api = EuPostconditions(login=user.admin.login, password=user.admin.password)
+            postconditions_api.test_data_cleaner(driver.test_data)
     driver.quit()
 
 

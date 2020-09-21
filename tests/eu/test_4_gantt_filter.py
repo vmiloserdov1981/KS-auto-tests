@@ -11,6 +11,7 @@ import pytest
 @allure.story('План мероприятий')
 @allure.title('Фильтр незаполненных мероприятий')
 @allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.run(order=9)
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user3',
         'get_last_k6_plan': True,
@@ -20,7 +21,7 @@ import pytest
     })])
 def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
     eu_filter = EuFilter(parametrized_login_driver)
-    events_plan = EventsPlan(parametrized_login_driver, token=parametrized_login_driver.token)
+    events_plan = EventsPlan(parametrized_login_driver)
     plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт')
@@ -166,6 +167,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
 @allure.story('План мероприятий')
 @allure.title('Фильтр custom relation')
 @allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.run(order=10)
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user3',
         'get_last_k6_plan': True,
@@ -175,13 +177,14 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
     })])
 def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
     eu_filter = EuFilter(parametrized_login_driver)
-    events_plan = EventsPlan(parametrized_login_driver, token=parametrized_login_driver.token)
+    events_plan = EventsPlan(parametrized_login_driver)
     plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')
     login = user.system_user.login
     versions = ('Проект плана', 'Факт')
+    api = events_plan.api_creator.get_api_eu()
     # prefix = parametrized_login_driver.test_data['last_k6_plan']['plan_prefix']
-    gantt = events_plan.api_get_gantt(versions[0], plan_uuid, login)
-    prefixes = events_plan.get_plan_prefixes(gantt)
+    gantt = api.api_get_gantt(versions[0], plan_uuid, login)
+    prefixes = api.get_plan_prefixes(gantt)
 
     default_filter_set = {
         "unfilled_events_filter": {
