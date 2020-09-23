@@ -131,8 +131,8 @@ def test_eu_plan_versions_control(parametrized_login_driver, parameters):
     with allure.step('Перейти на страницу "План мероприятий"'):
         header.navigate_to_page('План мероприятий (Главная)')
 
-    #with allure.step(f'Проверить, что в дропдауне выбора версий отображаются все версии плана, кроме удаленной версии "{version2[0]}"'):
-        #assert events_plan.compare_lists(events_plan.get_versions_names(), ui_versions), f'В дропдауне выбора версий не отображаются все версии плана'
+    with allure.step(f'Проверить, что в дропдауне выбора версий отображаются все версии плана, кроме удаленной версии "{version2[0]}"'):
+        assert events_plan.compare_lists(events_plan.get_versions_names(), ui_versions), f'В дропдауне выбора версий не отображаются все версии плана'
 
     with allure.step(f'Выбрать версию плана {plans_registry.cut_version_date(version1[0])}'):
         events_plan.set_version(plans_registry.cut_version_date(version1[0]))
