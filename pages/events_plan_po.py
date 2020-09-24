@@ -393,28 +393,35 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
 
     @antistale
     def open_event(self, event_name, start_date=None, end_date=None):
-        # names = []
-        for event in self.events_generator(names_only=False):
-            # names.append(event)
-            if event.text.split('\n')[1] == event_name:
-                event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
-                action = ActionChains(self.driver)
-                aria_label = self.find_element(event_locator).get_attribute('aria-label')
-                aria_name = aria_label.split(' Start date: ')[0].split(' Task: ')[1]
-                assert aria_name == event_name
-                if start_date:
-                    aria_start = aria_label.split(' Start date: ')[1].split(' End date: ')[0].split('-')[::-1]
-                    assert aria_start == start_date
-                if end_date:
-                    aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
-                    assert aria_end == end_date
-                self.find_and_click(event_locator)
-                time.sleep(2)
-                action.double_click(self.find_element(event_locator)).perform()
-                title = self.get_title()
-                assert title == event_name
-                return True
-        raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
+        found = False
+        event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
+        try:
+            self.find_element(event_locator, time=5)
+            found = True
+        except TimeoutException:
+            for event in self.events_generator(names_only=False):
+                if event.text.split('\n')[1] == event_name:
+                    found = True
+                    break
+        if found:
+            action = ActionChains(self.driver)
+            aria_label = self.find_element(event_locator).get_attribute('aria-label')
+            aria_name = aria_label.split(' Start date: ')[0].split(' Task: ')[1]
+            assert aria_name == event_name
+            if start_date:
+                aria_start = aria_label.split(' Start date: ')[1].split(' End date: ')[0].split('-')[::-1]
+                assert aria_start == start_date
+            if end_date:
+                aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
+                assert aria_end == end_date
+            self.find_and_click(event_locator)
+            time.sleep(2)
+            action.double_click(self.find_element(event_locator)).perform()
+            title = self.get_title()
+            assert title == event_name
+            return True
+        else:
+            raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
 
     @antistale
     def scroll_to_gantt_top(self):
