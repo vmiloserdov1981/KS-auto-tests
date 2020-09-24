@@ -13,7 +13,10 @@ def run_all_tests():
     if os.getenv('CLEAR_VIDEOS') == 'true':
         api_eu.clear_videos()
 
+    print('run tests from green_group')
     pytest.main(["-n=5", "-v", "-m", "green_label", "--alluredir=reports"])
+
+    print('run tests from red_group')
     pytest.main(["-n=5", "-v", "-m", "red_label", "--alluredir=reports"])
 
 
