@@ -11,7 +11,7 @@ import pytest
 @allure.story('План мероприятий')
 @allure.title('Фильтр незаполненных мероприятий')
 @allure.severity(allure.severity_level.CRITICAL)
-@pytest.mark.run(order=9)
+@pytest.mark.green_label
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user3',
         'get_last_k6_plan': True,
@@ -167,7 +167,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
 @allure.story('План мероприятий')
 @allure.title('Фильтр custom relation')
 @allure.severity(allure.severity_level.CRITICAL)
-@pytest.mark.run(order=10)
+@pytest.mark.green_label
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user3',
         'get_last_k6_plan': True,
