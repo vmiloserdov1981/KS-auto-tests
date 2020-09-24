@@ -189,7 +189,7 @@ def test_eu_delete_gantt_event(parametrized_login_driver, parameters):
         eu_filter.switch_on_empty_events()
 
     with allure.step(f'Открыть созданное мероприятие "{event_name}" на Ганте'):
-        events_plan.open_event(event_name)
+        events_plan.open_event(event_name, from_top=True)
 
     with allure.step(f'Проверить, что при удалении мероприятия "{event_name}", у него удалились только даты и длительность'):
         assert events_plan.get_event_data() == deleted_event_data
@@ -208,7 +208,7 @@ def test_eu_delete_gantt_event(parametrized_login_driver, parameters):
         eu_filter.switch_on_empty_events()
 
     with allure.step(f'Открыть созданное мероприятие "{event_name}" на Ганте'):
-        events_plan.open_event(event_name)
+        events_plan.open_event(event_name, from_top=True)
 
     with allure.step(f'Проверить, что мероприятие "{event_name}" пустое'):
         assert events_plan.get_event_data() == empty_data
@@ -227,7 +227,7 @@ def test_eu_delete_gantt_event(parametrized_login_driver, parameters):
         eu_filter.switch_on_empty_events()
 
     with allure.step(f'Открыть созданное мероприятие "{event_name}" на Ганте'):
-        events_plan.open_event(event_name)
+        events_plan.open_event(event_name, from_top=True)
 
     with allure.step(f'Проверить, что мероприятие "{event_name}" пустое'):
         assert events_plan.get_event_data() == empty_data

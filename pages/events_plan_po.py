@@ -392,17 +392,23 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
     '''
 
     @antistale
-    def open_event(self, event_name, start_date=None, end_date=None):
+    def open_event(self, event_name, start_date=None, end_date=None, from_top=False):
         found = False
         event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
-        try:
-            self.find_element(event_locator, time=5)
-            found = True
-        except TimeoutException:
+        if from_top:
             for event in self.events_generator(names_only=False):
                 if event.text.split('\n')[1] == event_name:
                     found = True
                     break
+        else:
+            try:
+                self.find_element(event_locator, time=5)
+                found = True
+            except TimeoutException:
+                for event in self.events_generator(names_only=False):
+                    if event.text.split('\n')[1] == event_name:
+                        found = True
+                        break
         if found:
             action = ActionChains(self.driver)
             aria_label = self.find_element(event_locator).get_attribute('aria-label')
