@@ -276,6 +276,7 @@ class ApiEu(BaseApi):
         k6_plans = []
         k6_comments = []
         plans = self.api_get_plans()
+        assert plans, "В системе нет планов"
         for plan in plans:
             comment = plan.get('settings').get('plan').get('comment')
             if Vars.PKM_DEFAULT_K6_PLAN_COMMENT in comment:
