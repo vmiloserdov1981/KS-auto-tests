@@ -403,9 +403,11 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                     break
         else:
             try:
+                time.sleep(Vars.PKM_USER_WAIT_TIME)
                 self.find_element(event_locator, time=5)
                 found = True
             except TimeoutException:
+                found = False
                 for event in self.events_generator(names_only=False):
                     if event.text.split('\n')[1] == event_name:
                         found = True
