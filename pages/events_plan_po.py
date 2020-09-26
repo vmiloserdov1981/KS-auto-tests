@@ -393,7 +393,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
     '''
 
     @antistale
-    def open_event(self, event_name, start_date=None, end_date=None, from_top=False):
+    def open_event(self, event_name, start_date=None, end_date=None, from_top=True):
         found = False
         event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
         if from_top:
