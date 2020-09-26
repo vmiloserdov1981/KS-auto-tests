@@ -47,6 +47,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             self.find_element(grid_data_locator)
             time.sleep(Vars.PKM_USER_WAIT_TIME)
 
+    @antistale
     def get_event_names(self):
         names = [event for event in self.events_generator(names_only=True)]
         return names
@@ -461,8 +462,8 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             events = {}
 
             def add_in_group(item, dictionary, group_value):
-                if ' . ' in group_value:
-                    group_values = group_value.split(' . ')
+                if '. ' in group_value:
+                    group_values = group_value.split('. ')
                     for value in group_values:
                         if value in dictionary.keys():
                             dictionary[value].append(item)

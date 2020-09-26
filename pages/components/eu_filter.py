@@ -131,7 +131,7 @@ class EuFilter(BasePage):
         self.click_filter_dropdown(filter_name)
 
     def is_filter_value_checked(self, value_name):
-        dropdown_item_locator = (By.XPATH, f"//div[@class='multiple-dropdown-content' and contains(text(), ' {value_name} ')]//..")
+        dropdown_item_locator = (By.XPATH, f"//div[@class='multiple-dropdown-content' and contains(text(), '{value_name}')]//..")
         item = self.find_element(dropdown_item_locator)
         if 'selected' in item.get_attribute('class'):
             return True
@@ -139,8 +139,7 @@ class EuFilter(BasePage):
             return False
 
     def check_value(self, value_name):
-        #dropdown_item_locator = (By.XPATH, f"//div[@class='multiple-dropdown-content' and text()=' {value_name} ']//..")
-        dropdown_item_locator = (By.XPATH, f"//div[@class='multiple-dropdown-content' and contains(text(), ' {value_name} ')]//..")
+        dropdown_item_locator = (By.XPATH, f"//div[@class='multiple-dropdown-content' and contains(text(), '{value_name}')]//..")
         if not self.is_filter_value_checked(value_name):
             self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(dropdown_item_locator))
             self.find_and_click(dropdown_item_locator)

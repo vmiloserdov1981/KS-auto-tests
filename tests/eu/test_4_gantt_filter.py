@@ -182,7 +182,6 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
     login = user.system_user.login
     versions = ('Проект плана', 'Факт')
     api = events_plan.api_creator.get_api_eu()
-    # prefix = parametrized_login_driver.test_data['last_k6_plan']['plan_prefix']
     gantt = api.api_get_gantt(versions[0], plan_uuid, login)
     prefixes = api.get_plan_prefixes(gantt)
 
@@ -246,8 +245,7 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
         },
         "custom_relations_filter": {
             'Персонал': [],
-            # 'Зона': [f'0 D1L5 {prefix}'],
-            'Зона': [f'{prefixes[0]}D1L5{prefixes[1]}'],
+            'Зона': [f'{prefixes[0]} D1L5 {prefixes[1]}'],
             'Влияние на показатели': [],
             'Риски': [],
             'События для ИМ': []
@@ -270,11 +268,9 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
         },
         "custom_relations_filter": {
             'Персонал': ['(пусто)'],
-            # 'Зона': [f'0 D1L5 {prefix}'],
-            'Зона': [f'{prefixes[0]}D1L5{prefixes[1]}'],
+            'Зона': [f'{prefixes[0]} D1L5 {prefixes[1]}'],
             'Влияние на показатели': [],
-            # 'Риски': [f'0 Риск 2 {prefix}', f'0 Риск 1 {prefix}'],
-            'Риски': [f'{prefixes[0]}Риск 1{prefixes[1]}', f'{prefixes[0]}Риск 2{prefixes[1]}'],
+            'Риски': [f'{prefixes[0]} Риск 1 {prefixes[1]}', f'{prefixes[0]} Риск 2 {prefixes[1]}'],
             'События для ИМ': []
         }
 
