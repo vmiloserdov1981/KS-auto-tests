@@ -9,7 +9,7 @@ class LoginPage(BasePage):
     LOCATOR_PKM_LOGIN_ADMIN_BUTTON = (By.XPATH, "//button [@class='user-button user-view-clear user-form-default "
                                                 "user-size-s']")
     LOCATOR_PKM_LOGIN_EU_BUTTON = (By.XPATH, "//button [@class='user-button user-view-primary user-form-default user-size-s']")
-    LOCATOR_PKM_LOGIN_TITLE = (By.XPATH, "//div[@class='login-container']//div[@class='login-title']")
+    LOCATOR_PKM_LOGIN_TITLE = (By.XPATH, "//div[@class='login-container']//div[contains(@class, 'login-title')]")
 
     def go_to_site(self):
         self.driver.get(self.base_url)
