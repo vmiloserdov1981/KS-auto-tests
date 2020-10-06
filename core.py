@@ -219,12 +219,6 @@ class BasePage:
         return values
 
 
-
-
-
-
-
-
 class DomChanged(object):
     def __init__(self, dom):
         self.dom = dom
@@ -285,7 +279,10 @@ class BaseApi:
     def post(url, token, payload):
         headers = {'Content-Type': 'application/json', 'Authorization': str("Bearer " + token)}
         response = requests.post(url, data=json.dumps(payload), headers=headers)
-        return json.loads(response.text)
+        if response.status_code in range(200, 300):
+            return json.loads(response.text)
+        else:
+            raise AssertionError(f'Ошибка при получении ответа сервера: {response.status_code}, {response.text}')
 
     @staticmethod
     def get(url, params=None):
@@ -298,8 +295,8 @@ class BaseApi:
     @staticmethod
     def get_utc_date():
         raw_date = datetime.utcnow()
-        date = str(raw_date).split(' ')[0].split('-')[::-1]
-        return date
+        date_value = str(raw_date).split(' ')[0].split('-')[::-1]
+        return date_value
 
     @staticmethod
     def get_feature_date(start, offset):
@@ -351,7 +348,6 @@ def antistale(func):
         while stale:
             if count > 3:
                 break
-            stale = False
             try:
                 return func(*args, **kwargs)
             except StaleElementReferenceException:
