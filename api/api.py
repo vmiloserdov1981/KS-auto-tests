@@ -276,6 +276,7 @@ class ApiEu(BaseApi):
         k6_plans = []
         k6_comments = []
         plans = self.api_get_plans()
+        assert plans, "В системе нет планов"
         for plan in plans:
             comment = plan.get('settings').get('plan').get('comment')
             if Vars.PKM_DEFAULT_K6_PLAN_COMMENT in comment:
@@ -342,9 +343,9 @@ class ApiEu(BaseApi):
             for i in gantt_classes:
                 if 'Мероприятие' in gantt_classes.get(i).get('name'):
                     class_name = gantt_classes.get(i).get('name')
-                    if ' ' in class_name:
-                        words = class_name.split(' ')
-                        prefixes = (f'{words[0]} ', f' {words[2]}')
+                    if '_' in class_name:
+                        words = class_name.split('_')
+                        prefixes = ('0', f'{words[1]}')
                         return prefixes
             return prefixes
 

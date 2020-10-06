@@ -11,7 +11,7 @@ import pytest
 @allure.story('Реестр интегрированных планов')
 @allure.title('Управление версиями ИП')
 @allure.severity(allure.severity_level.CRITICAL)
-@pytest.mark.run(order=12)
+@pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user2',
         'get_last_k6_plan': True,

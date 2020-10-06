@@ -36,9 +36,16 @@ class BasePage:
         return WebDriverWait(self.driver, time).until(DomChanged(dom),
                                                       message=f"DOM hasn`t been changed")
 
-    def wait_element_replacing(self, element, locator, time=10):
-        return WebDriverWait(self.driver, time).until(ElementReplaced(element, locator),
-                                                      message=f"Element hasn`t been replaced")
+    def wait_element_replacing(self, element, locator, time=10, ignore_timeout=False):
+        if ignore_timeout:
+            try:
+                WebDriverWait(self.driver, time).until(ElementReplaced(element, locator),
+                                                       message=f"Element hasn`t been replaced")
+            except TimeoutException:
+                pass
+        else:
+            return WebDriverWait(self.driver, time).until(ElementReplaced(element, locator),
+                                                          message=f"Element hasn`t been replaced")
 
     def wait_element_changing(self, html, locator, time=10):
         return WebDriverWait(self.driver, time).until(ElementChanged(html, locator),
@@ -212,12 +219,6 @@ class BasePage:
         return values
 
 
-
-
-
-
-
-
 class DomChanged(object):
     def __init__(self, dom):
         self.dom = dom
@@ -269,16 +270,22 @@ class BaseApi:
     @staticmethod
     def api_get_token(login, password, host):
         payload = {'login': "{}".format(login), 'password': "{}".format(password)}
-        r = requests.post('{}auth/login'.format(host), data=json.dumps(payload))
-        result = json.loads(r.text)
+        url = f'{host}auth/login'
+        result = BaseApi.post(url, None, payload)
         token = result.get('token')
         return token
 
     @staticmethod
     def post(url, token, payload):
-        headers = {'Content-Type': 'application/json', 'Authorization': str("Bearer " + token)}
+        if token:
+            headers = {'Content-Type': 'application/json', 'Authorization': str("Bearer " + token)}
+        else:
+            headers = {'Content-Type': 'application/json'}
         response = requests.post(url, data=json.dumps(payload), headers=headers)
-        return json.loads(response.text)
+        if response.status_code in range(200, 300):
+            return json.loads(response.text)
+        else:
+            raise AssertionError(f'Ошибка при получении ответа сервера: {response.status_code}, {response.text}')
 
     @staticmethod
     def get(url, params=None):
@@ -291,8 +298,8 @@ class BaseApi:
     @staticmethod
     def get_utc_date():
         raw_date = datetime.utcnow()
-        date = str(raw_date).split(' ')[0].split('-')[::-1]
-        return date
+        date_value = str(raw_date).split(' ')[0].split('-')[::-1]
+        return date_value
 
     @staticmethod
     def get_feature_date(start, offset):
@@ -344,7 +351,6 @@ def antistale(func):
         while stale:
             if count > 3:
                 break
-            stale = False
             try:
                 return func(*args, **kwargs)
             except StaleElementReferenceException:

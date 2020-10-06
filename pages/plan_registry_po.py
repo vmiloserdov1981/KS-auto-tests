@@ -45,12 +45,13 @@ class PlanRegistry(EuHeader, BasePage):
     def select_plan_by_uuid(self, uuid):
         target = (By.XPATH, f"//tr[contains(@class, 'plan-row') and @test-plan-uuid='{uuid}']")
         element = self.find_element(target)
-        if "selected_plan" in element.get_attribute('class'):
+        cl = element.get_attribute('class')
+        if "selected-plan" in element.get_attribute('class'):
             return
         else:
             version = self.find_element(self.LOCATOR_VERSION_FIRST_ROW)
             self.find_and_click(target)
-            self.wait_element_replacing(version, self.LOCATOR_VERSION_FIRST_ROW)
+            self.wait_element_replacing(version, self.LOCATOR_VERSION_FIRST_ROW, time=5, ignore_timeout=True)
 
     def check_plan_versions(self, k6_plan_copy_uuid, expected_ui_versions=None):
         api = self.api_creator.get_api_eu()
