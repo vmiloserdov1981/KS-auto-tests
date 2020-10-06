@@ -270,14 +270,17 @@ class BaseApi:
     @staticmethod
     def api_get_token(login, password, host):
         payload = {'login': "{}".format(login), 'password': "{}".format(password)}
-        r = requests.post('{}auth/login'.format(host), data=json.dumps(payload))
-        result = json.loads(r.text)
+        url = f'{host}auth/login'
+        result = BaseApi.post(url, None, payload)
         token = result.get('token')
         return token
 
     @staticmethod
     def post(url, token, payload):
-        headers = {'Content-Type': 'application/json', 'Authorization': str("Bearer " + token)}
+        if token:
+            headers = {'Content-Type': 'application/json', 'Authorization': str("Bearer " + token)}
+        else:
+            headers = {'Content-Type': 'application/json'}
         response = requests.post(url, data=json.dumps(payload), headers=headers)
         if response.status_code in range(200, 300):
             return json.loads(response.text)
