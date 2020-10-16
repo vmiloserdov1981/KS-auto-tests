@@ -6,9 +6,10 @@
     <envs>
       <env name="SELENOID_IP" value="127.0.0.1" />
       <env name="TIMEOUT" value="100s" />
-      <env name="IS_LOCAL" value="false" />
-      <env name="QUANTITY" value="10" />
+      <env name="IS_LOCAL" value="true" />
+      <env name="QUANTITY" value="1" />
       <env name="ENABLE_VIDEO" value="false" />
+      <env name="PROJECT_UUID" value="01eb0e06-136f-b9d4-784e-00b15c0c4000" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
@@ -17,7 +18,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <option name="_new_keywords" value="&quot;&quot;" />
     <option name="_new_parameters" value="&quot;&quot;" />
-    <option name="_new_additionalArguments" value="&quot; --dist\u003dno --no-cov --alluredir\u003dreports&quot;" />
+    <option name="_new_additionalArguments" value="&quot;--no-cov --alluredir\u003dreports&quot;" />
     <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/eu/test_5_header.py&quot;" />
     <option name="_new_targetType" value="&quot;PATH&quot;" />
     <method v="2" />

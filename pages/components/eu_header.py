@@ -12,7 +12,7 @@ class EuHeader(BasePage):
     LOCATOR_EU_PAGE_TITLE = (By.XPATH, "//div[@class='user-menu-page-title']")
     LOCATOR_EU_USER_MENU = (By.XPATH, "//div[contains(@class, 'user-menu ')]")
     LOCATOR_EU_MENU_BUTTON = (By.XPATH, "//fa-icon[contains(@class, 'menu-button')]")
-    LOCATOR_EU_SELECTED_PLAN_TEXT = (By.XPATH, "//pkm-dropdown[contains(@class, 'plans-dropdown')]//div[@class='display-value-text']")
+    LOCATOR_EU_SELECTED_PLAN_TEXT = (By.XPATH, "//pkm-dropdown[contains(@class, 'plans-dropdown')]//div[contains(@class, 'dropdown')]")
     LOCATOR_EU_PLAN_DROPDOWN = (By.XPATH, "//pkm-dropdown[contains(@class, 'plans-dropdown')]//div[contains(@class, 'dropdown')]")
     LOCATOR_EU_PLAN_DROPDOWN_VALUES = (By.XPATH, "//div[contains(@class, 'dropdown-list')]//pkm-dropdown-item")
     LOCATOR_EU_LOGOUT_BUTTON = (By.XPATH, "//div[contains(@class, 'menu-item') and text()=' Выход ']")

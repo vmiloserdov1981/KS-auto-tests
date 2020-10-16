@@ -13,6 +13,7 @@ from datetime import date
 from datetime import timedelta
 import collections
 import users
+import os
 
 
 class BasePage:
@@ -276,11 +277,15 @@ class BaseApi:
         return token
 
     @staticmethod
-    def post(url, token, payload):
+    def post(url, token, payload, project_uuid=None):
+        if not project_uuid:
+            project_uuid = os.getenv('PROJECT_UUID')
+            if not project_uuid:
+                raise AssertionError('Не удалось получить uuid проекта')
+        headers = {'Content-Type': 'application/json'}
         if token:
-            headers = {'Content-Type': 'application/json', 'Authorization': str("Bearer " + token)}
-        else:
-            headers = {'Content-Type': 'application/json'}
+            headers['Authorization'] = str("Bearer " + token)
+        headers['x-project-uuid'] = project_uuid
         response = requests.post(url, data=json.dumps(payload), headers=headers)
         if response.status_code in range(200, 300):
             return json.loads(response.text)
@@ -328,20 +333,12 @@ class BaseApi:
         assert not response.get('error'), f'Ошибка при получении данных пользователя'
         return response.get('user')
 
-    @staticmethod
-    def anti_doublespacing(string):
-        if '  ' in string:
-            string_list = string.split(' ')
-            new_string_list = [elem for elem in string_list if elem != '']
-            string = ' '.join(new_string_list)
-
-        if string[0] == ' ':
-            string = string[1:]
-
-        if string[len(string) - 1] == ' ':
-            string = string[:len(string) - 1]
-
-        return string
+    def get_project_uuid_by_name(self, project_name):
+        payload = {"term": "", "limit": 0}
+        projects = self.post(f'{Vars.PKM_API_URL}projects/get-list', self.token, payload).get('data')
+        for project in projects:
+            if project.get('name') == project_name:
+                return project.get('uuid')
 
 
 def antistale(func):

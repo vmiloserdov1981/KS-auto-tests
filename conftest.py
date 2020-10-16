@@ -5,7 +5,7 @@ from conditions.preconditions_ui import PreconditionsFront
 import users as user
 from conditions.preconditions_api import ClassesPreconditions
 from conditions.postconditions_api import ClassesPostconditions
-from conditions.preconditions_api import EuPreconditions
+from conditions.preconditions_api import ApiPreconditions
 from conditions.postconditions_api import EuPostconditions
 import os
 from webdriver_manager.chrome import ChromeDriverManager
@@ -94,7 +94,7 @@ def parametrized_login_driver(parameters):
     }
     """
     driver = driver_init(name=parameters.get('name'))
-    preconditions_api = EuPreconditions(user.admin.login, user.admin.password)
+    preconditions_api = ApiPreconditions(user.admin.login, user.admin.password)
     preconditions = PreconditionsFront(driver, login=user.admin.login, password=user.admin.password)
     preconditions_api.api_check_user(parameters.get('login'))
     eu_user = user.test_users[parameters.get('login')]
@@ -120,6 +120,29 @@ def parametrized_login_driver(parameters):
             postconditions_api = EuPostconditions(login=user.admin.login, password=user.admin.password)
             postconditions_api.test_data_cleaner(driver.test_data)
     driver.quit()
+
+
+@pytest.fixture()
+def parametrized_login_admin_driver(parameters):
+    """
+    parameters = {
+        'login': 'eu_user',
+        'project': 'Шельф. Приразломная',
+        'tree_type': 'Справочники'
+    }
+    """
+    driver = driver_init(name=parameters.get('name'))
+    preconditions_api = ApiPreconditions(user.admin.login, user.admin.password)
+    preconditions_ui = PreconditionsFront(driver, login=user.admin.login, password=user.admin.password)
+    preconditions_api.api_check_user(parameters.get('login'))
+    ai_user = user.test_users[parameters.get('login')]
+    preconditions_ui.login_as_admin(ai_user.login, ai_user.password)
+    preconditions_ui.set_project(parameters.get('project'))
+    if parameters.get('tree_type'):
+        preconditions_ui.set_tree(parameters.get('tree_type'))
+    yield driver
+    driver.quit()
+
 
 
 @pytest.fixture(scope='module')

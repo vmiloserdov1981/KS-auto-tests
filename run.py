@@ -1,13 +1,15 @@
 import pytest
-from conditions.preconditions_api import EuPreconditions
+from conditions.preconditions_api import ApiPreconditions
 import users
 import os
+from variables import PkmVars as Vars
 
 
-api_eu = EuPreconditions(users.admin.login, users.admin.password)
+api_eu = ApiPreconditions(users.admin.login, users.admin.password)
 
 
 def run_all_tests():
+    os.environ['PROJECT_UUID'] = api_eu.get_project_uuid_by_name(Vars.PKM_PROJECT_NAME)
     try:
         api_eu.prepare_data()
 

@@ -23,7 +23,77 @@ class UserBlock(BasePage):
         self.find_and_click(self.LOCATOR_PKM_LOGOUT_BUTTON)
 
 
-class Tree(ApiClasses, ApiModels, Modals, BasePage):
+class Tree(BasePage):
+    LOCATOR_TREE_ARROW = (By.CLASS_NAME, "arrow-wrapper")
+    LOCATOR_TREE_OPEN_BUTTON = (By.XPATH, "//div[@class='menu-open-button ng-star-inserted']")
+    LOCATOR_TREE_CLASS_BUTTON = (By.XPATH, "//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' Классы ']")
+    LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[@class='display-value ng-star-inserted']")
+    LOCATOR_DICTIONARY_TREE_ROOT_NODE = (By.XPATH, "//div[@class='tree-item-title' and .='Справочники']")
+    DICTIONARIES_TREE_NAME = 'Справочники'
+
+    def __init__(self, driver):
+        super().__init__(driver)
+        self.modal = Modals(driver)
+
+    @staticmethod
+    def folder_locator_creator(folder_name):
+        locator = (By.XPATH, f"//div[@class='tree-item' and .='{folder_name}' and .//fa-icon[@ng-reflect-icon='folder']]")
+        return locator
+
+    @staticmethod
+    def node_locator_creator(node_name):
+        locator = (By.XPATH, f"//div[@class='tree-item' and .='{node_name}']")
+        return locator
+
+    @staticmethod
+    def context_option_locator_creator(option_name):
+        locator = (By.XPATH, f"//div[contains(@class, 'context-menu-body')]//div[@class='context-menu-item' and .=' {option_name} ']")
+        return locator
+
+    def open_tree(self):
+        try:
+            return self.find_and_click(self.LOCATOR_TREE_OPEN_BUTTON, time=5)
+        except TimeoutException:
+            pass
+
+    def switch_to_tree(self, tree_name):
+        tree_value = self.get_element_text(self.LOCATOR_TREE_TYPE_BLOCK)
+        if tree_value != tree_name:
+            tree_button_locator = (By.XPATH, f"//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' {tree_name} ']")
+            try:
+                self.find_and_click(self.LOCATOR_TREE_ARROW)
+            except TimeoutException:
+                self.open_tree()
+                self.find_and_click(self.LOCATOR_TREE_ARROW)
+            self.find_and_click(tree_button_locator)
+            tree_value = self.get_element_text(self.LOCATOR_TREE_TYPE_BLOCK)
+            assert tree_value == tree_name, 'Неправильное название в переключателе типа дерева'
+
+    def is_folder_exists(self, folder_name, time=2):
+        folder_locator = self.folder_locator_creator(folder_name)
+        try:
+            self.find_element(folder_locator, time=time)
+            return True
+        except TimeoutException:
+            return False
+
+    def context_selection(self, node_name, choice_name):
+        node_locator = self.node_locator_creator(node_name)
+        choice_locator = self.context_option_locator_creator(choice_name)
+        self.find_and_context_click(node_locator)
+        self.find_and_click(choice_locator)
+
+    def create_root_folder(self, folder_name):
+        self.find_and_context_click(self.LOCATOR_DICTIONARY_TREE_ROOT_NODE)
+        self.find_and_click(self.context_option_locator_creator('Создать папку'))
+        self.modal.enter_and_save(folder_name)
+        time.sleep(3)
+
+    def check_test_folder(self, folder_name):
+        if not self.is_folder_exists(folder_name):
+            self.create_root_folder(folder_name)
+
+class TreeOld(ApiClasses, ApiModels, Modals, BasePage):
     LOCATOR_ROOT_FOLDER = (By.XPATH, "(//div[@class='tree-item-title']//div[@class='item-name'])[1]")
     LOCATOR_CREATE_FOLDER_BUTTON = (By.XPATH, "//div[@class='context-menu-item']//div[text()=' Создать папку ']")
     LOCATOR_CREATE_CLASS_BUTTON = (By.XPATH, "//div[@class='context-menu-item']//div[text()=' Создать класс ']")
@@ -46,6 +116,7 @@ class Tree(ApiClasses, ApiModels, Modals, BasePage):
     LOCATOR_TREE_CONTEXT_CREATE_OBJECT_BUTTON = (By.XPATH, "//div[@class='context-menu-item-title']//div[text()=' Объект ']")
     LOCATOR_TREE_CONTEXT_CREATE_DATASET_BUTTON = (By.XPATH, "//div[@class='context-menu-item-title']//div[text()=' Набор данных ']")
     LOCATOR_TREE_CONTEXT_CREATE_TABLE_BUTTON = (By.XPATH, "//div[@class='context-menu-item-title']//div[text()=' Таблица данных ']")
+
 
     def __init__(self, driver, login, password, token=None):
         BasePage.__init__(self, driver)

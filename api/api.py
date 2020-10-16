@@ -849,72 +849,73 @@ class ApiEu(BaseApi):
                     map(none_converter, filter_set['custom_relations_filter'][custom_filter]))
 
         for event in self.api_events_generator(gantt):
-            if filter_set.get('unfilled_events_filter'):
-                if filter_set.get('unfilled_events_filter').get('Только незаполненные мероприятия'):
-                    if event.get('start') is not None and event.get('end') is not None:
-                        continue
-                if not filter_set.get('unfilled_events_filter').get('Отображать незаполненные мероприятия'):
-                    if event.get('start') is None or event.get('end') is None:
-                        continue
-            if filter_set.get('custom_fields_filter'):
-                for field in filter_set.get('custom_fields_filter'):
-                    if filter_set.get('custom_fields_filter').get(field) != []:
-                        actual = self.api_get_custom_field_value(gantt, field, event)
-                        expected = filter_set.get('custom_fields_filter').get(field)
-                        if filter_set.get('custom_fields_filter').get(field) != '(пусто)':
-                            if actual not in expected:
-                                invalid_field = True
-                                break
+            if event:
+                if filter_set.get('unfilled_events_filter'):
+                    if filter_set.get('unfilled_events_filter').get('Только незаполненные мероприятия'):
+                        if event.get('start') is not None and event.get('end') is not None:
+                            continue
+                    if not filter_set.get('unfilled_events_filter').get('Отображать незаполненные мероприятия'):
+                        if event.get('start') is None or event.get('end') is None:
+                            continue
+                if filter_set.get('custom_fields_filter'):
+                    for field in filter_set.get('custom_fields_filter'):
+                        if filter_set.get('custom_fields_filter').get(field) != []:
+                            actual = self.api_get_custom_field_value(gantt, field, event)
+                            expected = filter_set.get('custom_fields_filter').get(field)
+                            if filter_set.get('custom_fields_filter').get(field) != '(пусто)':
+                                if actual not in expected:
+                                    invalid_field = True
+                                    break
+                                else:
+                                    invalid_field = False
                             else:
-                                invalid_field = False
-                        else:
-                            if actual is not None:
-                                invalid_field = True
-                                break
+                                if actual is not None:
+                                    invalid_field = True
+                                    break
+                                else:
+                                    invalid_field = False
+                if filter_set.get('custom_relations_filter'):
+                    for relation in filter_set.get('custom_relations_filter'):
+                        if filter_set.get('custom_relations_filter').get(relation) != []:
+                            actual = self.api_get_custom_relation_values(gantt, relation, event)
+                            expected = filter_set.get('custom_relations_filter').get(relation)
+                            if filter_set.get('custom_relations_filter').get(relation) != '(пусто)':
+                                if actual != []:
+                                    for actual_value in actual:
+                                        if actual_value not in expected:
+                                            invalid_relation = True
+                                        else:
+                                            invalid_relation = False
+                                            break
+                                else:
+                                    invalid_relation = True
                             else:
-                                invalid_field = False
-            if filter_set.get('custom_relations_filter'):
-                for relation in filter_set.get('custom_relations_filter'):
-                    if filter_set.get('custom_relations_filter').get(relation) != []:
-                        actual = self.api_get_custom_relation_values(gantt, relation, event)
-                        expected = filter_set.get('custom_relations_filter').get(relation)
-                        if filter_set.get('custom_relations_filter').get(relation) != '(пусто)':
-                            if actual != []:
-                                for actual_value in actual:
-                                    if actual_value not in expected:
-                                        invalid_relation = True
-                                    else:
-                                        invalid_relation = False
-                                        break
-                            else:
-                                invalid_relation = True
-                        else:
-                            if actual != []:
-                                invalid_relation = True
-                                break
-                            else:
-                                invalid_relation = False
-            if invalid_field or invalid_relation:
-                continue
+                                if actual != []:
+                                    invalid_relation = True
+                                    break
+                                else:
+                                    invalid_relation = False
+                if invalid_field or invalid_relation:
+                    continue
 
-            if names_only:
-                if anti_doublespacing:
-                    if group_by:
-                        add_in_group(self.anti_doublespacing(event.get('object').get('name')), events, get_group_value(event, gantt, group_by))
+                if names_only:
+                    if anti_doublespacing:
+                        if group_by:
+                            add_in_group(self.anti_doublespacing(event.get('object').get('name')), events, get_group_value(event, gantt, group_by))
+                        else:
+                            event = self.anti_doublespacing(event.get('object').get('name'))
+                            events.append(event)
                     else:
-                        event = self.anti_doublespacing(event.get('object').get('name'))
-                        events.append(event)
+                        if group_by:
+                            add_in_group(event.get('object').get('name'), events, get_group_value(event, gantt, group_by))
+                        else:
+                            event = event.get('object').get('name')
+                            events.append(event)
                 else:
                     if group_by:
-                        add_in_group(event.get('object').get('name'), events, get_group_value(event, gantt, group_by))
+                        add_in_group(event, events, get_group_value(event, gantt, group_by))
                     else:
-                        event = event.get('object').get('name')
                         events.append(event)
-            else:
-                if group_by:
-                    add_in_group(event, events, get_group_value(event, gantt, group_by))
-                else:
-                    events.append(event)
         return events
 
     def api_event_names_generator(self, version, plan_uuid, login, deleleted_only=False, get_deleted=True):
@@ -936,8 +937,11 @@ class ApiEu(BaseApi):
     @staticmethod
     def api_events_generator(gantt):
         tasks = gantt.get('data').get('tasks')
-        for task in tasks:
-            yield task
+        if tasks:
+            for task in tasks:
+                yield task
+        else:
+            yield None
 
     def api_get_gantt_tasks(self, gantt):
         tasks = {}

@@ -176,7 +176,7 @@ class ClassesPreconditions(ApiClasses):
             return test_data
 
 
-class EuPreconditions(ApiEu):
+class ApiPreconditions(ApiEu):
 
     def prepare_data(self):
         print('start prepare test data')
@@ -217,5 +217,4 @@ class EuPreconditions(ApiEu):
         eu_user = self.api_get_user(user.login, user.name)
         if not eu_user:
             eu_user_uuid = self.api_create_user(f'autouser_{user_login}@test.com', user.login, user.password, user.name, {}, ignore_error=ignore_error)
-            if eu_user_uuid:
-                self.api_set_admin_role(eu_user_uuid)
+            self.api_set_admin_role(eu_user_uuid)

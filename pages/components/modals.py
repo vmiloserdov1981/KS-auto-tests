@@ -1,16 +1,15 @@
 from core import BasePage
 from api.api import BaseApi
 from selenium.webdriver.common.by import By
-from selenium.webdriver import ActionChains
-from selenium.webdriver.common.keys import Keys
 from variables import PkmVars as Vars
 import time
+from selenium.common.exceptions import TimeoutException
 
 
 class Modals(BasePage):
     LOCATOR_NAME_INPUT = (By.XPATH, "//input[@placeholder='Введите имя']")
     LOCATOR_CLASS_INPUT = (By.XPATH, "//input[@placeholder='Выберите класс']")
-    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Сохранить ']")
+    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Сохранить ']")
     LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Создать ']")
     LOCATOR_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class,'notification-type-error') and text()='Ошибка сервера']")
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[@class='modal-window-title']//div[@class='title-text']")
@@ -387,3 +386,21 @@ class NewEventModal(Calendar, BasePage):
             return False
 
 
+class ProjectModal(BasePage):
+    LOCATOR_SELECT_PROJECT_MODAL = (By.XPATH, "//div[@class='title-text' and text()='Выбор проекта']/ancestor:: div[@class='modal-window']")
+    LOCATOR_ENTER_PROJECT_BUTTON = (By.XPATH, "//button[.=' Войти в проект ']")
+    LOCATOR_REMEMBER_PROJECT = (By.XPATH, "//div[contains(@class, 'checkbox-wrapper') and .=' Запомнить мой выбор ']//div[@class='checkbox-container']")
+
+    def is_project_modal_displaying(self):
+        try:
+            self.find_element(self.LOCATOR_SELECT_PROJECT_MODAL)
+            return True
+        except TimeoutException:
+            return False
+
+    def select_project(self, project_name, remember_choice=False):
+        choice_locator = (By.XPATH, f"//div[contains(@class, 'choice-project') and .='{project_name}']")
+        self.find_and_click(choice_locator)
+        if remember_choice:
+            self.find_and_click(self.LOCATOR_REMEMBER_PROJECT)
+        self.find_and_click(self.LOCATOR_ENTER_PROJECT_BUTTON)
