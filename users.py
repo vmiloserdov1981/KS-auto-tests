@@ -5,7 +5,7 @@ class PkmUsers:
         self.name = name
 
 
-admin = PkmUsers('admin', 'admin', name='Администратор Не заполнено')
+admin = PkmUsers('admin', 'admin', name='Фамилия не заполнена Администратор')
 invalid_pass_user = PkmUsers('admin', 'asdf')
 invalid_login_user = PkmUsers('asdf', 'admin')
 invalid_user = PkmUsers('asdf', 'asdf')

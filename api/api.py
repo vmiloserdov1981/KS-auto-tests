@@ -725,12 +725,12 @@ class ApiEu(BaseApi):
 
     def api_get_event_names(self, version, plan_uuid, login, deleleted_only=False, get_deleted=True):
         if deleleted_only:
-            return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, deleleted_only=True)]
+            return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, deleleted_only=True) if event is not None]
         else:
             if get_deleted:
-                return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, get_deleted=True)]
+                return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, get_deleted=True) if event is not None]
             else:
-                return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, get_deleted=False)]
+                return [self.anti_doublespacing(event) for event in self.api_event_names_generator(version, plan_uuid, login, get_deleted=False) if event is not None]
 
     def api_get_events(self, version, plan_uuid, login, filter_set=None, names_only=True, anti_doublespacing=True, group_by=False):
         """
@@ -921,18 +921,21 @@ class ApiEu(BaseApi):
     def api_event_names_generator(self, version, plan_uuid, login, deleleted_only=False, get_deleted=True):
         gantt = self.api_get_gantt(version, plan_uuid, login)
         tasks = gantt.get('data').get('tasks')
-        if deleleted_only:
-            for task in tasks:
-                if task.get('start') is None and task.get('end') is None:
-                    yield task.get('object').get('name')
-        else:
-            if get_deleted:
+        if tasks:
+            if deleleted_only:
                 for task in tasks:
-                    yield task.get('object').get('name')
-            else:
-                for task in tasks:
-                    if task.get('start') is not None and task.get('end') is not None:
+                    if task.get('start') is None and task.get('end') is None:
                         yield task.get('object').get('name')
+            else:
+                if get_deleted:
+                    for task in tasks:
+                        yield task.get('object').get('name')
+                else:
+                    for task in tasks:
+                        if task.get('start') is not None and task.get('end') is not None:
+                            yield task.get('object').get('name')
+        else:
+            yield None
 
     @staticmethod
     def api_events_generator(gantt):

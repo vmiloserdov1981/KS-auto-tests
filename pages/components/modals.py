@@ -13,7 +13,7 @@ class Modals(BasePage):
     LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Создать ']")
     LOCATOR_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class,'notification-type-error') and text()='Ошибка сервера']")
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[@class='modal-window-title']//div[@class='title-text']")
-    LOCATOR_ACCEPT_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Принять ']")
+    LOCATOR_ACCEPT_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Принять ']")
 
     def enter_and_save(self, name):
         self.find_and_enter(self.LOCATOR_NAME_INPUT, name)
@@ -83,15 +83,15 @@ class Calendar(BasePage, BaseApi):
 
 
 class NewEventModal(Calendar, BasePage):
-    LOCATOR_MODAL_TITLE = (By.XPATH, "//div[@class='modal-window-title']//div[@class='title-text']")
+    LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]//div[contains(@class, 'title-text')]")
     LOCATOR_START_DATE_FIELD = (By.XPATH, "//*[contains (text(), 'Дата начала*')]//..//input")
     LOCATOR_EVENT_NAME_FIELD = (By.XPATH, "//input[@id='title']")
     LOCATOR_EVENT_START_DATE_FIELD = (By.XPATH, f"//*[contains(text(), 'Дата начала*')]//..//input[contains(@class,'datepicker-input')]")
     LOCATOR_EVENT_END_DATE_FIELD = (By.XPATH, f"//*[contains(text(), 'Дата окончания')]//..//input[contains(@id,'end-date')]")
     LOCATOR_EVENT_DURATION_FIELD = (By.XPATH, f"//*[contains(text(), 'Длительность*')]//..//input[contains(@id,'duration-period')]")
-    LOCATOR_NEXT_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Дальше ']")
-    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Сохранить ']")
-    LOCATOR_CANCEL_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Отмена ']")
+    LOCATOR_NEXT_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Дальше ']")
+    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Сохранить ']")
+    LOCATOR_CANCEL_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Отмена ']")
 
     def get_title(self):
         title = self.get_element_text(self.LOCATOR_MODAL_TITLE, time=15)
@@ -130,13 +130,13 @@ class NewEventModal(Calendar, BasePage):
         return field.get_attribute('value')
 
     def set_field(self, field_name, option):
-        field_locator = (By.XPATH, f"//div[contains(@class, 'indicator-label') and text()=' {field_name} ']//..//div[contains(@class, 'dropdown')]")
+        field_locator = (By.XPATH, f"//div[contains(@class, 'indicators-list-item') and ./div[text()=' {field_name} ']]//div[contains(@class, 'dropdown')]")
         value_locator = (By.XPATH, f"//div[@class='content' and text()=' {option} ']")
         self.find_and_click(field_locator)
         self.find_and_click(value_locator)
 
     def get_field_option(self, field_name):
-        field_locator = (By.XPATH, f"//div[contains(@class, 'indicator-label') and text()=' {field_name} ']//..//div[@class='display-value-text']")
+        field_locator = (By.XPATH, f"//div[contains(@class, 'indicators-list-item') and ./div[text()=' {field_name} ']]//div[contains(@class, 'dropdown')]")
         field = self.find_element(field_locator)
         return field.text
 
@@ -205,7 +205,7 @@ class NewEventModal(Calendar, BasePage):
         assert self.get_end_date() == expected_end, 'дата окончания рассчитана неправильно'
 
     def save_event(self):
-        button_locator = (By.XPATH, "(//div[@class='modal-window-footer']//button)[last()]")
+        button_locator = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[.=' Сохранить ']")
         button = self.find_element(button_locator)
         while button.text == 'Дальше':
             button.click()
