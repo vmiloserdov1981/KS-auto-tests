@@ -3,6 +3,7 @@ from variables import PkmVars as Vars
 import time
 import users
 import copy
+from api.api_dictionaries import ApiDictionaries
 
 
 class ApiClasses(BaseApi):
@@ -1130,3 +1131,6 @@ class ApiCreator(BaseApi):
 
     def get_api_models(self):
         return ApiModels(self.login, self.password, token=self.token)
+
+    def get_api_dictionaries(self):
+        return ApiDictionaries(self.login, self.password, token=self.token)

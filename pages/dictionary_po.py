@@ -8,5 +8,8 @@ class DictionaryPage(BasePage):
         super().__init__(driver)
         self.tree = Tree(driver)
 
-    def check_test_foldedr(self):
-        pass
+    def create_dictionary(self, parent_node, dict_name):
+        self.find_and_context_click(self.tree.node_locator_creator(parent_node))
+        self.find_and_click(self.tree.context_option_locator_creator('Создать справочник'))
+        self.tree.modal.enter_and_save(dict_name)
+

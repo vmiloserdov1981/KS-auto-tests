@@ -14,8 +14,16 @@ from pages.dictionary_po import DictionaryPage
         'project': 'Шельф. Приразломная',
         'tree_type': 'Справочники'
     })])
-def test_eu_plan_versions_control(parametrized_login_admin_driver, parameters):
+
+def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, parameters):
     dictionary_page = DictionaryPage(parametrized_login_admin_driver)
+    api = dictionary_page.api_creator.get_api_dictionaries()
 
     with allure.step(f'Проверить наличие тестовой папки "{Vars.PKM_TEST_FOLDER_NAME}" в дереве справочников'):
         dictionary_page.tree.check_test_folder(Vars.PKM_TEST_FOLDER_NAME)
+
+    dict_name = api.create_unique_dict_name(Vars.PKM_BASE_DICTIONARY_NAME)
+
+    with allure.step(f'Создать справочник "{dict_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}" в дереве справочников'):
+        dictionary_page.create_dictionary(Vars.PKM_TEST_FOLDER_NAME, dict_name)
+

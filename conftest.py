@@ -144,7 +144,6 @@ def parametrized_login_admin_driver(parameters):
     driver.quit()
 
 
-
 @pytest.fixture(scope='module')
 def driver_session():
     driver = driver_init()

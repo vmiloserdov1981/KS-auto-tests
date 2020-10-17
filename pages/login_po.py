@@ -1,6 +1,8 @@
 from selenium.webdriver.common.by import By
 from core import BasePage
 import users
+from variables import PkmVars as Vars
+from pages.components.modals import ProjectModal
 
 
 class LoginPage(BasePage):
@@ -10,6 +12,10 @@ class LoginPage(BasePage):
                                                 "user-size-s']")
     LOCATOR_PKM_LOGIN_EU_BUTTON = (By.XPATH, "//button [@class='user-button user-view-primary user-form-default user-size-s']")
     LOCATOR_PKM_LOGIN_TITLE = (By.XPATH, "//div[@class='login-container']//div[contains(@class, 'login-title')]")
+
+    def __init__(self, driver, url=None):
+        super().__init__(driver, url)
+        self.project_modal = ProjectModal(driver)
 
     def go_to_site(self):
         self.driver.get(self.base_url)
@@ -38,9 +44,11 @@ class LoginPage(BasePage):
         assert login_title == 'Авторизация', 'неверный тайтл страницы'
         assert self.base_url in self.driver.current_url, 'Неверный url страницы'
 
-    def eu_login(self, login):
+    def eu_login(self, login, project_name=Vars.PKM_PROJECT_NAME):
         login = users.test_users.get(login).login
         password = users.test_users.get(login).password
         self.enter_login(login)
         self.enter_pass(password)
         self.login_as_eu()
+        if self.project_modal.is_project_modal_displaying():
+            self.project_modal.select_project(project_name, remember_choice=True)
