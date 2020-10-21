@@ -29,6 +29,7 @@ class Tree(BasePage):
     LOCATOR_TREE_CLASS_BUTTON = (By.XPATH, "//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' Классы ']")
     LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[@class='display-value ng-star-inserted']")
     LOCATOR_DICTIONARY_TREE_ROOT_NODE = (By.XPATH, "//div[@class='tree-item-title' and .='Справочники']")
+    LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item-title') and contains(@class, 'selected')]")
     DICTIONARIES_TREE_NAME = 'Справочники'
 
     def __init__(self, driver):
@@ -93,6 +94,26 @@ class Tree(BasePage):
         if not self.is_folder_exists(folder_name):
             self.create_root_folder(folder_name)
 
+    def get_selected_node_name(self):
+        try:
+            node = self.get_element_text(self.LOCATOR_SELECTED_NODE)
+            return node
+        except TimeoutException:
+            return
+
+    def delete_node(self, node_name, node_type):
+        node_locator = self.node_locator_creator(node_name)
+        self.context_selection(node_name, 'Удалить')
+        actual_deletion_modal_text = self.modal.get_deletion_confirm_modal_text()
+        expected_deletion_modal_text = f'Вы действительно хотите удалить\n{node_type} {node_name} ?'
+        assert actual_deletion_modal_text == expected_deletion_modal_text, 'Некорректный текст подтверждения удаления ноды'
+        self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
+        assert self.is_element_disappearing(node_locator), f'Нода "{node_name}" не исчезает при удалении'
+
+
+
+
+'''
 class TreeOld(ApiClasses, ApiModels, Modals, BasePage):
     LOCATOR_ROOT_FOLDER = (By.XPATH, "(//div[@class='tree-item-title']//div[@class='item-name'])[1]")
     LOCATOR_CREATE_FOLDER_BUTTON = (By.XPATH, "//div[@class='context-menu-item']//div[text()=' Создать папку ']")
@@ -304,3 +325,4 @@ class TreeOld(ApiClasses, ApiModels, Modals, BasePage):
     @staticmethod
     def check_nodes_order(prev_order, node_name, new_order):
         assert new_order == prev_order.remove(node_name), 'Порядок нод изменился неправильно после удаления'
+'''

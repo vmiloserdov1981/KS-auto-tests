@@ -21,6 +21,7 @@ class BasePage:
     LOCATOR_TITLE_INPUT = (By.XPATH, "(//div[@class='page-title-container']//input)[1]")
     LOCATOR_TITLE_CHECK_ICON = (By.XPATH, "//div[@class='page-title-container']//fa-icon[@icon='check']")
     LOCATOR_DROPDOWN_VALUE = (By.XPATH, "//pkm-dropdown-item")
+    LOCATOR_ENTITY_PAGE_TITLE = (By.XPATH, "//div[contains(@class, 'title-value')]")
 
     def __init__(self, driver, url=None):
         self.driver = driver
@@ -218,6 +219,10 @@ class BasePage:
         values = [value.text for value in self.elements_generator(self.LOCATOR_DROPDOWN_VALUE)]
         self.find_and_click(dropdown_locator)
         return values
+
+    def get_entity_page_title(self):
+        title = self.get_element_text(self.LOCATOR_ENTITY_PAGE_TITLE)
+        return title
 
 
 class DomChanged(object):
