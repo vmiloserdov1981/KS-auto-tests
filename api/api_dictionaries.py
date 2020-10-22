@@ -9,12 +9,13 @@ class ApiDictionaries(BaseApi):
         names = [dictionary.get('name') for dictionary in dicts]
         return names
 
-    def create_unique_dict_name(self, basename):
+    def create_unique_dict_name(self, basename, subname=None):
         dicts_list = self.api_get_dicts_names()
         count = 0
         newname = basename
         while newname in dicts_list:
             count += 1
             newname = f"{basename}_{count}"
+        if subname:
+            newname = self.create_unique_dict_name(f'{basename}_{count-1}_{subname}')
         return newname
-

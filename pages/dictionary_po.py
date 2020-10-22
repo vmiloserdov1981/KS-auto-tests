@@ -1,9 +1,12 @@
-from core import BasePage
+from pages.components.entity_page import EntityPage
 from pages.components.trees import Tree
+from selenium.webdriver.common.by import By
 import allure
 
 
-class DictionaryPage(BasePage):
+class DictionaryPage(EntityPage):
+
+    LOCATOR_DICTIONARY_ELEMENTS = (By.XPATH, "//div[@class='list' and ./div[@class='list-header' and .=' Элементы ']]//div[contains(@class, 'list-item-name')]")
 
     def __init__(self, driver):
         super().__init__(driver)
@@ -18,4 +21,17 @@ class DictionaryPage(BasePage):
             assert self.tree.get_selected_node_name() == dict_name, f'В дереве не выбрана нода {dict_name}'
         with allure.step(f'Проверить переход на страницу вновь соданного справочника'):
             assert self.get_entity_page_title() == dict_name.upper(), f'Некорректный заголовок на странице справочника'
-0
+        with allure.step(f'Проверить что справочник создан без элементов'):
+            assert not self.get_dict_elements()
+
+    def get_dict_elements(self):
+        elements = [element.text for element in self.elements_generator(self.LOCATOR_DICTIONARY_ELEMENTS, time=3)]
+        return elements if elements != [] else None
+
+    def rename_dictionary(self, new_name):
+        node = self.find_element(self.tree.LOCATOR_SELECTED_NODE)
+        with allure.step(f'Переименовать справочник на странице справочника'):
+            self.rename_title(new_name)
+        self.wait_element_replacing(node, self.tree.LOCATOR_SELECTED_NODE)
+        with allure.step(f'Проверить изменение названия справочника в дереве'):
+            assert self.get_element_text(self.tree.LOCATOR_SELECTED_NODE) == new_name, 'Некорректное название ноды после переименования справочника'

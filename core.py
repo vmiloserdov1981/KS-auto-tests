@@ -17,11 +17,7 @@ import os
 
 
 class BasePage:
-    LOCATOR_PAGE_TITLE_BLOCK = (By.XPATH, "//div[@class='page-title-container']//div[@class='title-value']")
-    LOCATOR_TITLE_INPUT = (By.XPATH, "(//div[@class='page-title-container']//input)[1]")
-    LOCATOR_TITLE_CHECK_ICON = (By.XPATH, "//div[@class='page-title-container']//fa-icon[@icon='check']")
     LOCATOR_DROPDOWN_VALUE = (By.XPATH, "//pkm-dropdown-item")
-    LOCATOR_ENTITY_PAGE_TITLE = (By.XPATH, "//div[contains(@class, 'title-value')]")
 
     def __init__(self, driver, url=None):
         self.driver = driver
@@ -142,17 +138,6 @@ class BasePage:
         uuid = url.split('/')[-1].split("?")[0]
         return uuid
 
-    def rename_title(self, title_name):
-        action = ActionChains(self.driver)
-        self.find_and_click(self.LOCATOR_PAGE_TITLE_BLOCK)
-        title_input = self.find_element(self.LOCATOR_TITLE_INPUT)
-        action.double_click(title_input).perform()
-        title_input.send_keys(Keys.DELETE)
-        title_input.send_keys(title_name)
-        self.find_and_click(self.LOCATOR_TITLE_CHECK_ICON)
-        actual_title_name = (self.get_element_text(self.LOCATOR_PAGE_TITLE_BLOCK))
-        assert actual_title_name == title_name.upper()
-
     def rename_field(self, locator, field_name):
         action = ActionChains(self.driver)
         input_field = self.find_element(locator)
@@ -219,10 +204,6 @@ class BasePage:
         values = [value.text for value in self.elements_generator(self.LOCATOR_DROPDOWN_VALUE)]
         self.find_and_click(dropdown_locator)
         return values
-
-    def get_entity_page_title(self):
-        title = self.get_element_text(self.LOCATOR_ENTITY_PAGE_TITLE)
-        return title
 
 
 class DomChanged(object):

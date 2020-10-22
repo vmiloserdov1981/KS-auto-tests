@@ -7,7 +7,7 @@ from selenium.common.exceptions import TimeoutException
 
 
 class Modals(BasePage):
-    LOCATOR_NAME_INPUT = (By.XPATH, "//input[@placeholder='Введите имя']")
+    LOCATOR_NAME_INPUT = (By.XPATH, "//pkm-modal-window//input[@placeholder='Введите имя']")
     LOCATOR_CLASS_INPUT = (By.XPATH, "//input[@placeholder='Выберите класс']")
     LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Сохранить ']")
     LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Создать ']")
@@ -35,6 +35,10 @@ class Modals(BasePage):
     def get_deletion_confirm_modal_text(self):
         text = self.get_element_text(self.LOCATOR_DELETION_CONFIRM_TEXT)
         return text
+
+    def clear_name_input(self):
+        name_input = self.find_element(self.LOCATOR_NAME_INPUT)
+        name_input.clear()
 
 
 class Calendar(BasePage, BaseApi):

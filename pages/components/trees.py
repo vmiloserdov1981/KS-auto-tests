@@ -110,6 +110,12 @@ class Tree(BasePage):
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
         assert self.is_element_disappearing(node_locator), f'Нода "{node_name}" не исчезает при удалении'
 
+    def rename_node(self, node_name, new_node_name):
+        self.context_selection(node_name, 'Переименовать')
+        self.modal.clear_name_input()
+        self.modal.enter_and_save(new_node_name)
+
+
 
 
 
