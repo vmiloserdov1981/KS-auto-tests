@@ -88,7 +88,6 @@ class Tree(BasePage):
         self.find_and_context_click(self.LOCATOR_DICTIONARY_TREE_ROOT_NODE)
         self.find_and_click(self.context_option_locator_creator('Создать папку'))
         self.modal.enter_and_save(folder_name)
-        time.sleep(3)
 
     def check_test_folder(self, folder_name):
         if not self.is_folder_exists(folder_name):

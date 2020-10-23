@@ -18,6 +18,8 @@ from pages.dictionary_po import DictionaryPage
 def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, parameters):
     dictionary_page = DictionaryPage(parametrized_login_admin_driver)
     api = dictionary_page.api_creator.get_api_dictionaries()
+    element_1 = 'Элемент 1'
+    element_2 = 'Элемент 2'
 
     with allure.step(f'Проверить наличие тестовой папки "{Vars.PKM_TEST_FOLDER_NAME}" в дереве справочников'):
         dictionary_page.tree.check_test_folder(Vars.PKM_TEST_FOLDER_NAME)
@@ -60,6 +62,34 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
 
     with allure.step('Проверить отображение обновленного имени справочника в дереве'):
         assert dictionary_page.tree.get_selected_node_name() == dict_name
+
+    with allure.step(f'Создать новый элемент справочника "{element_1}"'):
+        dictionary_page.create_dict_element(element_1)
+
+    with allure.step(f'Создать новый элемент справочника "{element_2}"'):
+        dictionary_page.create_dict_element(element_2)
+
+    elements = dictionary_page.get_dict_elements()
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step('Проверить корректное отображение списка элементов справочника'):
+        assert dictionary_page.get_dict_elements() == elements, 'Некорректный список элементов справочника'
+
+    with allure.step(f'Удалить элемент справочника "{element_1}"'):
+        dictionary_page.delete_dict_element(element_1)
+
+    with allure.step(f'Переименовать элемент справочника "{element_2}"'):
+        dictionary_page.rename_dict_element(element_2, f'{element_2} переименованный')
+
+    elements = dictionary_page.get_dict_elements()
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step('Проверить корректное отображение списка элементов справочника'):
+        assert dictionary_page.get_dict_elements() == elements, 'Некорректный список элементов справочника'
 
     '''
     with allure.step(f'Удалить справочник "{dict_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}" в дереве справочников'):

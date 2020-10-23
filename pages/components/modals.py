@@ -20,6 +20,7 @@ class Modals(BasePage):
     def enter_and_save(self, name):
         self.find_and_enter(self.LOCATOR_NAME_INPUT, name)
         self.find_and_click(self.LOCATOR_SAVE_BUTTON)
+        time.sleep(3)
 
     def object_enter_and_save(self, object_name, class_name):
         self.find_and_enter(self.LOCATOR_NAME_INPUT, object_name)

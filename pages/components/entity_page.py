@@ -17,6 +17,28 @@ class EntityPage(BasePage):
     LOCATOR_TITLE_INPUT = (By.XPATH, "(//div[@class='page-title-container']//input)[1]")
     LOCATOR_TITLE_CHECK_ICON = (By.XPATH, "//div[@class='page-title-container']//fa-icon[@icon='check']")
 
+    @staticmethod
+    def add_list_element_button_creator(list_name):
+        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()=' {list_name} '] ]//fa-icon[@icon='plus']")
+        return locator
+
+    @staticmethod
+    def list_element_creator(list_name, element_name):
+        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()=' {list_name} '] ]//div[contains(@class, 'list-item ') and .=' {element_name} ']")
+        return locator
+
+    @staticmethod
+    def list_element_rename_button_creator(list_name, element_name):
+        element_xpath = EntityPage.list_element_creator(list_name, element_name)[1]
+        locator = (By.XPATH, element_xpath + "//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='edit']")
+        return locator
+
+    @staticmethod
+    def list_element_delete_button_creator(list_name, element_name):
+        element_xpath = EntityPage.list_element_creator(list_name, element_name)[1]
+        locator = (By.XPATH, element_xpath + "//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='trash']")
+        return locator
+
     def get_entity_page_title(self):
         title = self.get_element_text(self.LOCATOR_ENTITY_PAGE_TITLE)
         return title
