@@ -56,7 +56,7 @@ class DictionaryPage(EntityPage):
         actual_deletion_modal_text = self.modal.get_deletion_confirm_modal_text()
         assert actual_deletion_modal_text == f'Вы действительно хотите удалить\nЭлемент {element_name} ?', 'Некорректный текст подтверждения удаления элемента справочника'
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
-        assert self.is_element_disappearing(element_locator), f'Элемент {element_name} не исчезает из списка элементов справочника'
+        assert self.is_element_disappearing(element_locator, wait_display=False), f'Элемент {element_name} не исчезает из списка элементов справочника'
 
     def rename_dict_element(self, element_name, new_element_name):
         element_locator = self.list_element_creator(self.ELEMENTS_LIST_NAME, element_name)
