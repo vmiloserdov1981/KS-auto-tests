@@ -23,6 +23,7 @@ from pages.login_po import LoginPage
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
         'select_last_k6_plan_copy': True,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Создание мероприятия'
     })])
 def test_eu_create_gantt_event(parametrized_login_driver, parameters):
@@ -114,6 +115,7 @@ def test_eu_create_gantt_event(parametrized_login_driver, parameters):
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
         'select_last_k6_plan_copy': True,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Удаление мероприятия'
     })])
 def test_eu_delete_gantt_event(parametrized_login_driver, parameters):
@@ -243,6 +245,7 @@ def test_eu_delete_gantt_event(parametrized_login_driver, parameters):
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
         'select_last_k6_plan_copy': True,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Редактирование мероприятия'
     })])
 def test_eu_modify_gantt_event(parametrized_login_driver, parameters):
@@ -421,6 +424,7 @@ def test_eu_modify_gantt_event(parametrized_login_driver, parameters):
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
         'select_last_k6_plan_copy': True,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Копирование мероприятия'
 })])
 def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
@@ -550,6 +554,7 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
         'get_last_k6_plan': True,
         'select_last_k6_plan': True,
         'select_last_k6_plan_copy': False,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Группировка мероприятий'
     })])
 def test_eu_group_gantt_events(parametrized_login_driver, parameters):

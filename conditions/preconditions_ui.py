@@ -18,9 +18,10 @@ class PreconditionsFront(BasePage, ApiEu):
         ApiEu.__init__(self, login, password, token=token)
 
     @allure.title('Перейти к интерфейсу администратора')
-    def login_as_admin(self, login, password):
+    def login_as_admin(self, login, password, project):
         login_page = LoginPage(self.driver, url=Vars.PKM_MAIN_URL)
         main_page = MainPage(self.driver)
+        project_modal = ProjectModal(self.driver)
         with allure.step('Перейти на сайт по адресу {}'.format(Vars.PKM_MAIN_URL)):
             login_page.go_to_site()
         with allure.step('Ввести логин "{}"'.format(login)):
@@ -29,11 +30,16 @@ class PreconditionsFront(BasePage, ApiEu):
             login_page.enter_pass(password)
         with allure.step('Войти в режим администратора'):
             login_page.login_as_admin()
+        if project_modal.is_project_modal_displaying():
+            with allure.step(f'Выбрать проект {project}'):
+                project_modal.select_project(project)
+        with allure.step('Проверить отображение блока профиля пользоватля'):
             main_page.find_element(main_page.LOCATOR_PKM_PROFILENAME_BLOCK)
+        with allure.step('Сохранить токен приложения в драйвере'):
             self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
 
     @allure.title('Перейти к интерфейсу конечного пользователя')
-    def login_as_eu(self, login, password):
+    def login_as_eu(self, login, password, project):
         login_page = LoginPage(self.driver, url=Vars.PKM_MAIN_URL)
         main_page = MainPage(self.driver)
         project_modal = ProjectModal(self.driver)
@@ -48,8 +54,8 @@ class PreconditionsFront(BasePage, ApiEu):
             main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=20)
             self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
         if project_modal.is_project_modal_displaying():
-            with allure.step(f'Выбрать проект {Vars.PKM_PROJECT_NAME}'):
-                project_modal.select_project(Vars.PKM_PROJECT_NAME)
+            with allure.step(f'Выбрать проект {project}'):
+                project_modal.select_project(project)
 
     @allure.title('Посмотреть последний созданный через k6 план мероприятий')
     def view_last_k6_plan(self):

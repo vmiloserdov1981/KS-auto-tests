@@ -2,6 +2,7 @@ from pages.components.eu_header import EuHeader
 from pages.plan_registry_po import PlanRegistry
 from pages.events_plan_po import EventsPlan
 from api.api import ApiEu
+from variables import PkmVars as Vars
 import users as user
 import allure
 import pytest
@@ -17,6 +18,7 @@ import pytest
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
         'select_last_k6_plan_copy': True,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Переключение планов в header'
     })])
 def test_eu_switch_plans(parametrized_login_driver, parameters):

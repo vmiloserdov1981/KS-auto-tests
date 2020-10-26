@@ -7,6 +7,7 @@ from conditions.preconditions_api import ClassesPreconditions
 from conditions.postconditions_api import ClassesPostconditions
 from conditions.preconditions_api import ApiPreconditions
 from conditions.postconditions_api import EuPostconditions
+from variables import PkmVars as Vars
 import os
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -76,7 +77,7 @@ def driver():
 def driver_login():
     driver = driver_init()
     preconditions = PreconditionsFront(driver)
-    preconditions.login_as_admin(user.admin.login, user.admin.password)
+    preconditions.login_as_admin(user.admin.login, user.admin.password, Vars.PKM_PROJECT_NAME)
     yield driver
     driver.quit()
 
@@ -89,7 +90,8 @@ def parametrized_login_driver(parameters):
         'get_last_k6_plan': True,
         'get_last_k6_plan_copy': False,
         'select_last_k6_plan': True,
-        'select_last_k6_plan_copy': False
+        'select_last_k6_plan_copy': False,
+        'project': 'Шельф. Приразломная'
         'name': 'test_name'
     }
     """
@@ -107,7 +109,7 @@ def parametrized_login_driver(parameters):
         data['to_delete'] = {}
         with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
             driver.test_data = data
-        preconditions.login_as_eu(eu_user.login, eu_user.password)
+        preconditions.login_as_eu(eu_user.login, eu_user.password, parameters.get('project'))
         if parameters.get('select_last_k6_plan'):
             preconditions.view_last_k6_plan()
         elif parameters.get('select_last_k6_plan_copy'):
@@ -128,7 +130,8 @@ def parametrized_login_admin_driver(parameters):
     parameters = {
         'login': 'eu_user',
         'project': 'Шельф. Приразломная',
-        'tree_type': 'Справочники'
+        'tree_type': 'Справочники',
+        'name': 'Автотест'
     }
     """
     driver = driver_init(name=parameters.get('name'))
@@ -136,8 +139,7 @@ def parametrized_login_admin_driver(parameters):
     preconditions_ui = PreconditionsFront(driver, login=user.admin.login, password=user.admin.password)
     preconditions_api.api_check_user(parameters.get('login'))
     ai_user = user.test_users[parameters.get('login')]
-    preconditions_ui.login_as_admin(ai_user.login, ai_user.password)
-    preconditions_ui.set_project(parameters.get('project'))
+    preconditions_ui.login_as_admin(ai_user.login, ai_user.password, parameters.get('project'))
     if parameters.get('tree_type'):
         preconditions_ui.set_tree(parameters.get('tree_type'))
     yield driver

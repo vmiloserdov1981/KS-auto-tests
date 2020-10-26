@@ -17,6 +17,7 @@ import pytest
         'get_last_k6_plan': True,
         'select_last_k6_plan': True,
         'select_last_k6_plan_copy': False,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Фильтр незаполненных мероприятий'
     })])
 def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
@@ -173,6 +174,7 @@ def test_eu_unfilled_events_filter(parametrized_login_driver, parameters):
         'get_last_k6_plan': True,
         'select_last_k6_plan': True,
         'select_last_k6_plan_copy': False,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Фильтр custom relation'
     })])
 def test_eu_custom_relations_filter(parametrized_login_driver, parameters):

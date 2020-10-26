@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="pytest_run_all" type="tests" factoryName="py.test" activateToolWindowBeforeRun="false" singleton="false">
+  <configuration default="false" name="pytest_run_all" type="tests" factoryName="py.test" activateToolWindowBeforeRun="false" singleton="true">
     <module name="auto-tests" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />

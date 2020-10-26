@@ -341,6 +341,21 @@ class BaseApi:
             if project.get('name') == project_name:
                 return project.get('uuid')
 
+    @staticmethod
+    def add_in_group(item, dictionary, group_value):
+        if type(group_value) is str:
+            if group_value in dictionary.keys():
+                dictionary[group_value].append(item)
+            else:
+                dictionary[group_value] = [item]
+        elif type(group_value) is list:
+            for i in group_value:
+                if i in dictionary.keys():
+                    dictionary[i].append(item)
+                else:
+                    dictionary[i] = [item]
+        return dictionary
+
 
 def antistale(func):
     def wrap(*args, **kwargs):

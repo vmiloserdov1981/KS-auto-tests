@@ -47,8 +47,19 @@ class Tree(BasePage):
         return locator
 
     @staticmethod
+    def node_arrow_locator_creator(node_name):
+        node_xpath = Tree.node_locator_creator(node_name)[1]
+        locator = (By.XPATH, node_xpath + "//div[contains(@class, 'item-arrow')]//fa-icon")
+        return locator
+
+    @staticmethod
     def context_option_locator_creator(option_name):
         locator = (By.XPATH, f"//div[contains(@class, 'context-menu-body')]//div[@class='context-menu-item' and .=' {option_name} ']")
+        return locator
+
+    @staticmethod
+    def children_node_locator_creator(parent_node_name):
+        locator = (By.XPATH, f"//div[@class='tree-item' and ./div[@class='tree-item-title' and .='{parent_node_name}']]//div[contains(@class, 'tree-item-children')] //div[@class='tree-item']")
         return locator
 
     def open_tree(self):
@@ -113,6 +124,27 @@ class Tree(BasePage):
         self.context_selection(node_name, 'Переименовать')
         self.modal.clear_name_input()
         self.modal.enter_and_save(new_node_name)
+
+    def get_node_arrow(self, node_name, timeout=5):
+        try:
+            arrow = self.find_element(self.node_arrow_locator_creator(node_name), time=timeout)
+        except TimeoutException:
+            return
+        return arrow
+
+    def get_node_children_names(self, parent_node_name):
+        names = []
+        arrow = self.get_node_arrow(parent_node_name)
+        if not arrow:
+            return names
+        if arrow.get_attribute('ng-reflect-icon') == 'angle-right':
+            arrow.click()
+        if arrow.get_attribute('ng-reflect-icon') == 'angle-down':
+            child_locator = self.children_node_locator_creator(parent_node_name)
+            names = [node.text for node in self.elements_generator(child_locator)]
+            return names
+        return names
+
 
 
 
