@@ -4,7 +4,7 @@
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
-      <env name="SELENOID_IP" value="10.10.20.39" />
+      <env name="SELENOID_IP" value="127.0.0.1" />
       <env name="TIMEOUT" value="100s" />
       <env name="IS_LOCAL" value="false" />
       <env name="QUANTITY" value="1" />

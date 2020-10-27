@@ -30,7 +30,7 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
     with allure.step(f'Создать справочник "{dict_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}" в дереве справочников'):
         dictionary_page.create_dictionary(Vars.PKM_TEST_FOLDER_NAME, dict_name)
 
-    new_dict_name = api.create_unique_dict_name(Vars.PKM_BASE_DICTIONARY_NAME, subname='измененный')
+    new_dict_name = f'{dict_name}_измененный'
 
     with allure.step(f'Переименовать справоник "{dict_name}" на "{new_dict_name}" на странице справочника'):
         node = dictionary_page.find_element(dictionary_page.tree.LOCATOR_SELECTED_NODE)
@@ -93,6 +93,7 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
     with allure.step('Проверить корректное отображение списка элементов справочника'):
         assert dictionary_page.get_dict_elements() == elements, 'Некорректный список элементов справочника'
 
+    '''
     with allure.step(f'Удалить справочник "{dict_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}" в дереве справочников'):
         dictionary_page.tree.delete_node(dict_name, 'Справочник')
 
@@ -104,3 +105,4 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
 
     with allure.step(f'Проверить отсутствие справочника "{dict_name}" в дереве справочников'):
         assert dict_name not in api.api_get_dicts_names()
+    '''
