@@ -1124,13 +1124,13 @@ class ApiEu(BaseApi):
 
 class ApiCreator(BaseApi):
     def get_api_eu(self):
-        return ApiEu(self.login, self.password, token=self.token)
+        return ApiEu(self.login, self.password, self.project_uuid, token=self.token)
 
     def get_api_classes(self):
-        return ApiClasses(self.login, self.password, token=self.token)
+        return ApiClasses(self.login, self.password, self.project_uuid, token=self.token)
 
     def get_api_models(self):
-        return ApiModels(self.login, self.password, token=self.token)
+        return ApiModels(self.login, self.password, self.project_uuid, token=self.token)
 
     def get_api_dictionaries(self):
-        return ApiDictionaries(self.login, self.password, token=self.token)
+        return ApiDictionaries(self.login, self.password, self.project_uuid, token=self.token)

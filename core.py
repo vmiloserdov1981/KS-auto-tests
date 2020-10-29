@@ -23,7 +23,7 @@ class BasePage:
         self.driver = driver
         self.base_url = url
         from api.api import ApiCreator
-        self.api_creator = ApiCreator(users.admin.login, users.admin.password, token=driver.token)
+        self.api_creator = ApiCreator(users.admin.login, users.admin.password, driver.project_uuid, token=driver.token)
 
     def find_element(self, locator, time=10):
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),
@@ -246,9 +246,10 @@ class ElementChanged(object):
 
 
 class BaseApi:
-    def __init__(self, login, password, token=None):
+    def __init__(self, login, password, project_uuid, token=None):
         self.login = login
         self.password = password
+        self.project_uuid = project_uuid
         if token is None:
             self.token = self.api_get_token(self.login, self.password, Vars.PKM_API_URL)
         else:
@@ -257,13 +258,13 @@ class BaseApi:
     @staticmethod
     def api_get_token(login, password, host):
         payload = {'login': "{}".format(login), 'password': "{}".format(password)}
-        url = f'{host}auth/login'
-        result = BaseApi.post(url, None, payload)
+        r = requests.post('{}auth/login'.format(host), data=json.dumps(payload))
+        result = json.loads(r.text)
         token = result.get('token')
         return token
 
-    @staticmethod
-    def post(url, token, payload, project_uuid=None):
+    def post(self, url, token, payload):
+        project_uuid = self.project_uuid
         if not project_uuid:
             project_uuid = os.getenv('PROJECT_UUID')
         headers = {'Content-Type': 'application/json'}
@@ -334,9 +335,11 @@ class BaseApi:
 
             return string
 
-    def get_project_uuid_by_name(self, project_name):
+    @staticmethod
+    def get_project_uuid_by_name(project_name):
         payload = {"term": "", "limit": 0}
-        projects = self.post(f'{Vars.PKM_API_URL}projects/get-list', self.token, payload).get('data')
+        r = requests.post(f'{Vars.PKM_API_URL}projects/get-list', data=json.dumps(payload))
+        projects = json.loads(r.text).get('data')
         for project in projects:
             if project.get('name') == project_name:
                 return project.get('uuid')

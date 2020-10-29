@@ -12,7 +12,7 @@ import os
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-def driver_init(maximize=True, impl_wait=3, name=None):
+def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None):
     if name is None:
         name = 'autotest'
     if os.getenv('IS_LOCAL') == 'true':
@@ -36,6 +36,7 @@ def driver_init(maximize=True, impl_wait=3, name=None):
             desired_capabilities=capabilities)
     driver.test_data = {}
     driver.token = None
+    driver.project_uuid = project_uuid
     driver.implicitly_wait(impl_wait)
     driver.set_window_position(0, 0)
     if maximize:
@@ -95,8 +96,10 @@ def parametrized_login_driver(parameters):
         'name': 'test_name'
     }
     """
-    driver = driver_init(name=parameters.get('name'))
-    preconditions_api = ApiPreconditions(user.admin.login, user.admin.password)
+    project_name = parameters.get('project')
+    project_uuid = ApiPreconditions.get_project_uuid_by_name(project_name) if project_name else None
+    driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid)
+    preconditions_api = ApiPreconditions(user.admin.login, user.admin.password, project_uuid)
     preconditions = PreconditionsFront(driver, login=user.admin.login, password=user.admin.password)
     preconditions_api.api_check_user(parameters.get('login'))
     eu_user = user.test_users[parameters.get('login')]
@@ -134,8 +137,10 @@ def parametrized_login_admin_driver(parameters):
         'name': 'Автотест'
     }
     """
-    driver = driver_init(name=parameters.get('name'))
-    preconditions_api = ApiPreconditions(user.admin.login, user.admin.password)
+    project_name = parameters.get('project')
+    project_uuid = ApiPreconditions.get_project_uuid_by_name(project_name) if project_name else None
+    driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid)
+    preconditions_api = ApiPreconditions(user.admin.login, user.admin.password, project_uuid)
     preconditions_ui = PreconditionsFront(driver, login=user.admin.login, password=user.admin.password)
     preconditions_api.api_check_user(parameters.get('login'))
     ai_user = user.test_users[parameters.get('login')]
