@@ -43,7 +43,7 @@ class Tree(BasePage):
 
     @staticmethod
     def node_locator_creator(node_name):
-        locator = (By.XPATH, f"//div[@class='tree-item' and .='{node_name}']")
+        locator = (By.XPATH, f"//div[@class='tree-item' and ./div[contains(@class, 'tree-item-title') and .='{node_name}']]")
         return locator
 
     @staticmethod
@@ -111,7 +111,11 @@ class Tree(BasePage):
         except TimeoutException:
             return
 
-    def delete_node(self, node_name, node_type):
+    def delete_node(self, node_name, node_type, parent_node_name=None):
+        children = []
+        if parent_node_name:
+            children = self.get_node_children_names(parent_node_name)
+            assert node_name in children, f'Нода для удаления не в родительской ноде "{parent_node_name}"'
         node_locator = self.node_locator_creator(node_name)
         self.context_selection(node_name, 'Удалить')
         actual_deletion_modal_text = self.modal.get_deletion_confirm_modal_text()
@@ -119,6 +123,10 @@ class Tree(BasePage):
         assert actual_deletion_modal_text == expected_deletion_modal_text, 'Некорректный текст подтверждения удаления ноды'
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
         assert self.is_element_disappearing(node_locator), f'Нода "{node_name}" не исчезает при удалении'
+        if parent_node_name:
+            children.remove(node_name)
+            actual_nodes = self.get_node_children_names(parent_node_name)
+            assert children == actual_nodes, f'Некорректный список нод папки "{parent_node_name}" после удаления ноды "{node_name}"'
 
     def rename_node(self, node_name, new_node_name):
         self.context_selection(node_name, 'Переименовать')
