@@ -4,7 +4,8 @@ import users
 import os
 from variables import PkmVars as Vars
 
-project_uuid = ApiPreconditions.get_project_uuid_by_name(Vars.PKM_PROJECT_NAME)
+token = ApiPreconditions.api_get_token(users.admin.login, users.admin.password, Vars.PKM_API_URL)
+project_uuid = ApiPreconditions.get_project_uuid_by_name_static(Vars.PKM_PROJECT_NAME, token)
 api_eu = ApiPreconditions(users.admin.login, users.admin.password, project_uuid)
 
 

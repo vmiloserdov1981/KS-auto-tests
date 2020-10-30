@@ -263,14 +263,14 @@ class BaseApi:
         token = result.get('token')
         return token
 
-    def post(self, url, token, payload):
+    def post(self, url, token, payload, without_project=False):
         project_uuid = self.project_uuid
         if not project_uuid:
             project_uuid = os.getenv('PROJECT_UUID')
         headers = {'Content-Type': 'application/json'}
         if token:
             headers['Authorization'] = str("Bearer " + token)
-        if project_uuid:
+        if project_uuid and not without_project:
             headers['x-project-uuid'] = project_uuid
         response = requests.post(url, data=json.dumps(payload), headers=headers)
         if response.status_code in range(200, 300):
@@ -335,10 +335,20 @@ class BaseApi:
 
             return string
 
-    @staticmethod
-    def get_project_uuid_by_name(project_name):
+    def get_project_uuid_by_name(self, project_name):
         payload = {"term": "", "limit": 0}
-        r = requests.post(f'{Vars.PKM_API_URL}projects/get-list', data=json.dumps(payload))
+        projects = self.post(f'{Vars.PKM_API_URL}projects/get-list', self.token, payload).get('data')
+        for project in projects:
+            if project.get('name') == project_name:
+                return project.get('uuid')
+
+    @staticmethod
+    def get_project_uuid_by_name_static(project_name, token):
+        payload = {"term": "", "limit": 0}
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': str("Bearer " + token)}
+        r = requests.post(f'{Vars.PKM_API_URL}projects/get-list', data=json.dumps(payload), headers=headers)
         projects = json.loads(r.text).get('data')
         for project in projects:
             if project.get('name') == project_name:

@@ -13,9 +13,9 @@ from pages.components.modals import ProjectModal
 
 class PreconditionsFront(BasePage, ApiEu):
 
-    def __init__(self, driver, login=None, password=None, token=None):
+    def __init__(self, driver, project_uuid, login=None, password=None, token=None):
         BasePage.__init__(self, driver)
-        ApiEu.__init__(self, login, password, token=token)
+        ApiEu.__init__(self, login, password, project_uuid, token=token)
 
     @allure.title('Перейти к интерфейсу администратора')
     def login_as_admin(self, login, password, project):

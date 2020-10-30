@@ -3,8 +3,6 @@ from selenium import webdriver
 import allure
 from conditions.preconditions_ui import PreconditionsFront
 import users as user
-from conditions.preconditions_api import ClassesPreconditions
-from conditions.postconditions_api import ClassesPostconditions
 from conditions.preconditions_api import ApiPreconditions
 from conditions.postconditions_api import EuPostconditions
 from variables import PkmVars as Vars
@@ -77,7 +75,7 @@ def driver():
 @pytest.fixture()
 def driver_login():
     driver = driver_init()
-    preconditions = PreconditionsFront(driver)
+    preconditions = PreconditionsFront(driver, None)
     preconditions.login_as_admin(user.admin.login, user.admin.password, Vars.PKM_PROJECT_NAME)
     yield driver
     driver.quit()
@@ -97,10 +95,11 @@ def parametrized_login_driver(parameters):
     }
     """
     project_name = parameters.get('project')
-    project_uuid = ApiPreconditions.get_project_uuid_by_name(project_name) if project_name else None
+    token = ApiPreconditions.api_get_token(user.admin.login, user.admin.password, Vars.PKM_API_URL)
+    project_uuid = ApiPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
     driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid)
-    preconditions_api = ApiPreconditions(user.admin.login, user.admin.password, project_uuid)
-    preconditions = PreconditionsFront(driver, login=user.admin.login, password=user.admin.password)
+    preconditions_api = ApiPreconditions(None, None, project_uuid, token)
+    preconditions = PreconditionsFront(driver, project_uuid, token=token)
     preconditions_api.api_check_user(parameters.get('login'))
     eu_user = user.test_users[parameters.get('login')]
     if parameters.get('get_last_k6_plan'):
@@ -122,7 +121,7 @@ def parametrized_login_driver(parameters):
     yield driver
     if driver.test_data.get('to_delete') != {} and driver.test_data.get('to_delete'):
         with allure.step(f'Удалить тестовые данные'):
-            postconditions_api = EuPostconditions(login=user.admin.login, password=user.admin.password)
+            postconditions_api = EuPostconditions(None, None, token, project_uuid)
             postconditions_api.test_data_cleaner(driver.test_data)
     driver.quit()
 
@@ -138,10 +137,11 @@ def parametrized_login_admin_driver(parameters):
     }
     """
     project_name = parameters.get('project')
-    project_uuid = ApiPreconditions.get_project_uuid_by_name(project_name) if project_name else None
+    token = ApiPreconditions.api_get_token(user.admin.login, user.admin.password, Vars.PKM_API_URL)
+    project_uuid = ApiPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
     driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid)
     preconditions_api = ApiPreconditions(user.admin.login, user.admin.password, project_uuid)
-    preconditions_ui = PreconditionsFront(driver, login=user.admin.login, password=user.admin.password)
+    preconditions_ui = PreconditionsFront(driver, project_uuid, login=user.admin.login, password=user.admin.password)
     preconditions_api.api_check_user(parameters.get('login'))
     ai_user = user.test_users[parameters.get('login')]
     preconditions_ui.login_as_admin(ai_user.login, ai_user.password, parameters.get('project'))
@@ -149,24 +149,3 @@ def parametrized_login_admin_driver(parameters):
         preconditions_ui.set_tree(parameters.get('tree_type'))
     yield driver
     driver.quit()
-
-
-@pytest.fixture(scope='module')
-def driver_session():
-    driver = driver_init()
-    preconditions_api = ClassesPreconditions(user.admin.login, user.admin.password)
-    postconditions_api = ClassesPostconditions(user.admin.login, user.admin.password)
-    preconditions_ui = PreconditionsFront(driver)
-    data = preconditions_api.create_test_data()
-    with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
-        driver.test_data = data
-    preconditions_ui.login_as_admin(user.admin.login, user.admin.password)
-    yield driver
-    with allure.step(f'Удалить тестовые данные через api'):
-        for element in driver.test_data:
-            created_node_uuid = driver.test_data.get(element).get('node_uuid')
-            try:
-                postconditions_api.delete_node(created_node_uuid, check=False)
-            except AssertionError:
-                pass
-        driver.quit()

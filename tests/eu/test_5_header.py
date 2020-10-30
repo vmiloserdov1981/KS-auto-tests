@@ -29,7 +29,7 @@ def test_eu_switch_plans(parametrized_login_driver, parameters):
     k6_plan_name = k6_plan.get('name')
     events_plan = EventsPlan(parametrized_login_driver)
     plans_registry = PlanRegistry(parametrized_login_driver)
-    api = ApiEu(None, None, token=parametrized_login_driver.token)
+    api = plans_registry.api_creator.get_api_eu()
     login = user.system_user.login
 
     with allure.step(f'Проверить наличие плана - копии ИП "{k6_plan_name}"'):

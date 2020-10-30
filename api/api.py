@@ -215,7 +215,7 @@ class ApiModels(BaseApi):
 class ApiEu(BaseApi):
 
     def api_get_user(self, login, name):
-        users_list = self.post(f'{Vars.PKM_API_URL}users/get-list', self.token, {}).get('data')
+        users_list = self.post(f'{Vars.PKM_API_URL}users/get-list', self.token, {}, without_project=True).get('data')
         for user in users_list:
             if user.get('login') == login and user.get('fullName') == name:
                 return user
@@ -957,7 +957,6 @@ class ApiEu(BaseApi):
                 'duration': i.get('duration')
             }
         return tasks
-
 
     def api_create_unique_event_name(self, base_name, versions, plan_uuid, login, subname=None):
         events_list = []
