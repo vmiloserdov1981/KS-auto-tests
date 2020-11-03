@@ -23,7 +23,7 @@ class BasePage:
         self.driver = driver
         self.base_url = url
         from api.api import ApiCreator
-        self.api_creator = ApiCreator(users.admin.login, users.admin.password, driver.project_uuid, token=driver.token)
+        self.api_creator = ApiCreator(None, None, driver.project_uuid, token=driver.token)
 
     def find_element(self, locator, time=10):
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),
@@ -250,7 +250,7 @@ class BaseApi:
         self.login = login
         self.password = password
         self.project_uuid = project_uuid
-        if token is None:
+        if token is None and login and password:
             self.token = self.api_get_token(self.login, self.password, Vars.PKM_API_URL)
         else:
             self.token = token

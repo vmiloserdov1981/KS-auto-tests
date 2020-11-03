@@ -10,7 +10,7 @@ import os
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None):
+def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, token=None):
     if name is None:
         name = 'autotest'
     if os.getenv('IS_LOCAL') == 'true':
@@ -33,7 +33,7 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None):
             command_executor=ip,
             desired_capabilities=capabilities)
     driver.test_data = {}
-    driver.token = None
+    driver.token = token
     driver.project_uuid = project_uuid
     driver.implicitly_wait(impl_wait)
     driver.set_window_position(0, 0)
@@ -97,7 +97,7 @@ def parametrized_login_driver(parameters):
     project_name = parameters.get('project')
     token = ApiPreconditions.api_get_token(user.admin.login, user.admin.password, Vars.PKM_API_URL)
     project_uuid = ApiPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
-    driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid)
+    driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid, token=token)
     preconditions_api = ApiPreconditions(None, None, project_uuid, token)
     preconditions = PreconditionsFront(driver, project_uuid, token=token)
     preconditions_api.api_check_user(parameters.get('login'))
