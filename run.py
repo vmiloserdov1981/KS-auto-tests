@@ -10,7 +10,6 @@ api_eu = ApiPreconditions(users.admin.login, users.admin.password, project_uuid)
 
 
 def run_all_tests():
-    # os.environ['PROJECT_UUID'] = api_eu.get_project_uuid_by_name(Vars.PKM_PROJECT_NAME)
     try:
         api_eu.prepare_data()
 

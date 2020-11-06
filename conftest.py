@@ -66,17 +66,13 @@ def pytest_runtest_makereport(item, call):
 
 
 @pytest.fixture()
-def driver():
-    driver = driver_init()
-    yield driver
-    driver.quit()
-
-
-@pytest.fixture()
-def driver_login():
-    driver = driver_init()
-    preconditions = PreconditionsFront(driver, None)
-    preconditions.login_as_admin(user.admin.login, user.admin.password, Vars.PKM_PROJECT_NAME)
+def driver(parameters):
+    """
+       parameters = {
+           'name': 'Автотест'
+       }
+       """
+    driver = driver_init(name=parameters.get('name'))
     yield driver
     driver.quit()
 
@@ -117,11 +113,11 @@ def parametrized_login_driver(parameters):
         elif parameters.get('select_last_k6_plan_copy'):
             preconditions.view_last_k6_plan_copy()
     else:
-        preconditions.login_as_eu(eu_user.login, eu_user.password)
+        preconditions.login_as_eu(eu_user.login, eu_user.password, parameters.get('project'))
     yield driver
     if driver.test_data.get('to_delete') != {} and driver.test_data.get('to_delete'):
         with allure.step(f'Удалить тестовые данные'):
-            postconditions_api = EuPostconditions(None, None, token, project_uuid)
+            postconditions_api = EuPostconditions(None, None, project_uuid, token=token)
             postconditions_api.test_data_cleaner(driver.test_data)
     driver.quit()
 
@@ -131,6 +127,7 @@ def parametrized_login_admin_driver(parameters):
     """
     parameters = {
         'login': 'eu_user',
+        'use_admin': False,
         'project': 'Шельф. Приразломная',
         'tree_type': 'Справочники',
         'name': 'Автотест'
@@ -139,12 +136,15 @@ def parametrized_login_admin_driver(parameters):
     project_name = parameters.get('project')
     token = ApiPreconditions.api_get_token(user.admin.login, user.admin.password, Vars.PKM_API_URL)
     project_uuid = ApiPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
-    driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid)
-    preconditions_api = ApiPreconditions(user.admin.login, user.admin.password, project_uuid)
-    preconditions_ui = PreconditionsFront(driver, project_uuid, login=user.admin.login, password=user.admin.password)
-    preconditions_api.api_check_user(parameters.get('login'))
-    ai_user = user.test_users[parameters.get('login')]
-    preconditions_ui.login_as_admin(ai_user.login, ai_user.password, parameters.get('project'))
+    driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid, token=token)
+    preconditions_api = ApiPreconditions(None, None, project_uuid, token)
+    preconditions_ui = PreconditionsFront(driver, project_uuid, token=token)
+    if not parameters.get('use_admin'):
+        preconditions_api.api_check_user(parameters.get('login'))
+        ai_user = user.test_users[parameters.get('login')]
+        preconditions_ui.login_as_admin(ai_user.login, ai_user.password, parameters.get('project'))
+    else:
+        preconditions_ui.login_as_admin(user.admin.login, user.admin.password, parameters.get('project'))
     if parameters.get('tree_type'):
         preconditions_ui.set_tree(parameters.get('tree_type'))
     yield driver
