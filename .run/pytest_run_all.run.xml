@@ -9,7 +9,6 @@
       <env name="IS_LOCAL" value="false" />
       <env name="QUANTITY" value="1" />
       <env name="ENABLE_VIDEO" value="false" />
-      <env name="PROJECT_UUID" value="01eb0e06-136f-b9d4-784e-00b15c0c4000" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />

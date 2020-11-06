@@ -35,11 +35,10 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
     with allure.step(f'Переименовать справоник "{dict_name}" на "{new_dict_name}" на странице справочника'):
         node = dictionary_page.find_element(dictionary_page.tree.LOCATOR_SELECTED_NODE)
         dictionary_page.rename_title(new_dict_name)
-    '''
+
     with allure.step(f'Проверить изменение названия справочника в дереве'):
         dictionary_page.wait_element_replacing(node, dictionary_page.tree.LOCATOR_SELECTED_NODE)
         assert dictionary_page.get_element_text(dictionary_page.tree.LOCATOR_SELECTED_NODE) == dictionary_page, 'Некорректное название ноды после переименования справочника'
-    '''
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -52,10 +51,10 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
 
     with allure.step(f'Переименовать справоник "{new_dict_name}" на "{dict_name}" в дереве'):
         dictionary_page.tree.rename_node(new_dict_name, dict_name)
-    '''
+
     with allure.step(f'Проверить изменение названия справочника на странице справочника'):
         assert dictionary_page.get_entity_page_title() == dict_name
-    '''
+
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
 
