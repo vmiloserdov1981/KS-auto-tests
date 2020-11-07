@@ -13,7 +13,7 @@ from variables import PkmVars as Vars
 
 class EventsPlan(NewEventModal, Modals, EuFilter):
     LOCATOR_VERSION_INPUT = (By.XPATH, "//div[@class='controls-base-block']//input[contains(@class, 'dropdown-input')]")
-    LOCATOR_VERSION_INPUT_VALUE = (By.XPATH, "//div[@class='controls-base-block']//div[@class='display-value-text']")
+    LOCATOR_VERSION_INPUT_VALUE = (By.XPATH, "//div[@class='controls-base-block']//div[contains(@class, 'display-value-text')]")
     LOCATOR_EVENT_NAME = (By.XPATH, "//div[contains(@class, 'gantt-indicator-name-value ')]")
     LOCATOR_LAST_EVENT_NAME = (By.XPATH, "(//div[contains(@class, 'gantt-indicator-name-value ')])[last()]")
     LOCATOR_ADD_EVENT_BUTTON = (By.XPATH, "//div[contains(@class, 'controls-base-block')]//fa-icon[@icon='plus']")
@@ -408,59 +408,8 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         self.find_and_click(self.LOCATOR_COPY_ICON)
         self.find_element(self.LOCATOR_MODAL_TITLE, time=10)
 
-    def open_event_old(self, event_name, start_date=None, end_date=None):
-        # names = []
-        for event in self.events_generator():
-            # names.append(event.text)
-            if event.text.split('\n')[1] == event_name:
-                action = ActionChains(self.driver)
-                aria_label = event.get_attribute('aria-label')
-                aria_name = aria_label.split(' Start date: ')[0].split(' Task: ')[1]
-                assert aria_name == event_name
-                if start_date:
-                    aria_start = aria_label.split(' Start date: ')[1].split(' End date: ')[0].split('-')[::-1]
-                    assert aria_start == start_date
-                if end_date:
-                    aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
-                    assert aria_end == end_date
-                event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
-                self.find_and_click(event_locator)
-                action.double_click(self.find_element(event_locator)).perform()
-                title = self.get_title()
-                assert title == event_name
-                return True
-        raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
-
-    '''
-    С привязкой к элементу
-    
     @antistale
-    def open_event_ver1(self, event_name, start_date=None, end_date=None):
-        # names = []
-        for event in self.events_generator(names_only=False):
-            # names.append(event)
-            if event.text.split('\n')[1] == event_name:
-                # event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
-                action = ActionChains(self.driver)
-                aria_label = event.get_attribute('aria-label')
-                aria_name = aria_label.split(' Start date: ')[0].split(' Task: ')[1]
-                assert aria_name == event_name
-                if start_date:
-                    aria_start = aria_label.split(' Start date: ')[1].split(' End date: ')[0].split('-')[::-1]
-                    assert aria_start == start_date
-                if end_date:
-                    aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
-                    assert aria_end == end_date
-                event.click()
-                action.double_click(event).perform()
-                title = self.get_title()
-                assert title == event_name
-                return True
-        raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
-    '''
-
-    @antistale
-    def open_event(self, event_name, start_date=None, end_date=None, from_top=True):
+    def open_event(self, event_name, start_date=None, end_date=None, from_top=False):
         found = False
         event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
         if from_top:

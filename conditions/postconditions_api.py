@@ -16,6 +16,7 @@ class ClassesPostconditions(ApiClasses):
             for node in nodes:
                 assert node.get('uuid') != node_uuid, 'api возвращает ноду, после ее удаления'
 
+
 class EuPostconditions(ApiEu):
 
     def test_data_cleaner(self, test_data):
@@ -28,5 +29,3 @@ class EuPostconditions(ApiEu):
         payload = {'uuid': dataset_uuid}
         resp = self.post(f'{Vars.PKM_API_URL}datasets/delete', self.token, payload)
         assert not resp.get('error'), f'Ошибка при удалении наборов данных'
-
-

@@ -1,24 +1,26 @@
 from core import BasePage
 from api.api import BaseApi
 from selenium.webdriver.common.by import By
-from selenium.webdriver import ActionChains
-from selenium.webdriver.common.keys import Keys
 from variables import PkmVars as Vars
 import time
+from selenium.common.exceptions import TimeoutException
 
 
 class Modals(BasePage):
-    LOCATOR_NAME_INPUT = (By.XPATH, "//input[@placeholder='Введите имя']")
+    LOCATOR_NAME_INPUT = (By.XPATH, "//pkm-modal-window//input[@placeholder='Введите имя']")
     LOCATOR_CLASS_INPUT = (By.XPATH, "//input[@placeholder='Выберите класс']")
-    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Сохранить ']")
+    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Сохранить ']")
     LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Создать ']")
     LOCATOR_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class,'notification-type-error') and text()='Ошибка сервера']")
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[@class='modal-window-title']//div[@class='title-text']")
-    LOCATOR_ACCEPT_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Принять ']")
+    LOCATOR_ACCEPT_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Принять ']")
+    LOCATOR_DELETION_CONFIRM_TEXT = (By.XPATH, "//div[contains(@class, 'deletion-notifications-container')]")
+    LOCATOR_DELETE_BUTTON = (By.XPATH, "//button[.=' Удалить ']")
 
     def enter_and_save(self, name):
         self.find_and_enter(self.LOCATOR_NAME_INPUT, name)
         self.find_and_click(self.LOCATOR_SAVE_BUTTON)
+        time.sleep(3)
 
     def object_enter_and_save(self, object_name, class_name):
         self.find_and_enter(self.LOCATOR_NAME_INPUT, object_name)
@@ -30,6 +32,14 @@ class Modals(BasePage):
         assert self.find_element(self.LOCATOR_ERROR_NOTIFICATION), 'Окно с ошибкой не отображается'
         if wait_disappear:
             assert self.is_element_disappearing(self.LOCATOR_ERROR_NOTIFICATION), "Окно с ошибкой не исчезает"
+
+    def get_deletion_confirm_modal_text(self):
+        text = self.get_element_text(self.LOCATOR_DELETION_CONFIRM_TEXT)
+        return text
+
+    def clear_name_input(self):
+        name_input = self.find_element(self.LOCATOR_NAME_INPUT)
+        name_input.clear()
 
 
 class Calendar(BasePage, BaseApi):
@@ -84,15 +94,15 @@ class Calendar(BasePage, BaseApi):
 
 
 class NewEventModal(Calendar, BasePage):
-    LOCATOR_MODAL_TITLE = (By.XPATH, "//div[@class='modal-window-title']//div[@class='title-text']")
+    LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]//div[contains(@class, 'title-text')]")
     LOCATOR_START_DATE_FIELD = (By.XPATH, "//*[contains (text(), 'Дата начала*')]//..//input")
     LOCATOR_EVENT_NAME_FIELD = (By.XPATH, "//input[@id='title']")
     LOCATOR_EVENT_START_DATE_FIELD = (By.XPATH, f"//*[contains(text(), 'Дата начала*')]//..//input[contains(@class,'datepicker-input')]")
     LOCATOR_EVENT_END_DATE_FIELD = (By.XPATH, f"//*[contains(text(), 'Дата окончания')]//..//input[contains(@id,'end-date')]")
     LOCATOR_EVENT_DURATION_FIELD = (By.XPATH, f"//*[contains(text(), 'Длительность*')]//..//input[contains(@id,'duration-period')]")
-    LOCATOR_NEXT_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Дальше ']")
-    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Сохранить ']")
-    LOCATOR_CANCEL_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Отмена ']")
+    LOCATOR_NEXT_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Дальше ']")
+    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Сохранить ']")
+    LOCATOR_CANCEL_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Отмена ']")
 
     def get_title(self):
         title = self.get_element_text(self.LOCATOR_MODAL_TITLE, time=15)
@@ -131,13 +141,13 @@ class NewEventModal(Calendar, BasePage):
         return field.get_attribute('value')
 
     def set_field(self, field_name, option):
-        field_locator = (By.XPATH, f"//div[contains(@class, 'indicator-label') and text()=' {field_name} ']//..//div[contains(@class, 'dropdown')]")
+        field_locator = (By.XPATH, f"//div[contains(@class, 'indicators-list-item') and ./div[text()=' {field_name} ']]//div[contains(@class, 'dropdown')]")
         value_locator = (By.XPATH, f"//div[@class='content' and text()=' {option} ']")
         self.find_and_click(field_locator)
         self.find_and_click(value_locator)
 
     def get_field_option(self, field_name):
-        field_locator = (By.XPATH, f"//div[contains(@class, 'indicator-label') and text()=' {field_name} ']//..//div[@class='display-value-text']")
+        field_locator = (By.XPATH, f"//div[contains(@class, 'indicators-list-item') and ./div[text()=' {field_name} ']]//div[contains(@class, 'dropdown')]")
         field = self.find_element(field_locator)
         return field.text
 
@@ -206,7 +216,7 @@ class NewEventModal(Calendar, BasePage):
         assert self.get_end_date() == expected_end, 'дата окончания рассчитана неправильно'
 
     def save_event(self):
-        button_locator = (By.XPATH, "(//div[@class='modal-window-footer']//button)[last()]")
+        button_locator = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[.=' Сохранить ']")
         button = self.find_element(button_locator)
         while button.text == 'Дальше':
             button.click()
@@ -387,3 +397,21 @@ class NewEventModal(Calendar, BasePage):
             return False
 
 
+class ProjectModal(BasePage):
+    LOCATOR_SELECT_PROJECT_MODAL = (By.XPATH, "//div[@class='title-text' and text()='Выбор проекта']/ancestor:: div[@class='modal-window']")
+    LOCATOR_ENTER_PROJECT_BUTTON = (By.XPATH, "//button[.=' Войти в проект ']")
+    LOCATOR_REMEMBER_PROJECT = (By.XPATH, "//div[contains(@class, 'checkbox-wrapper') and .=' Запомнить мой выбор ']//div[@class='checkbox-container']")
+
+    def is_project_modal_displaying(self):
+        try:
+            self.find_element(self.LOCATOR_SELECT_PROJECT_MODAL)
+            return True
+        except TimeoutException:
+            return False
+
+    def select_project(self, project_name, remember_choice=False):
+        choice_locator = (By.XPATH, f"//div[contains(@class, 'choice-project') and .='{project_name}']")
+        self.find_and_click(choice_locator)
+        if remember_choice:
+            self.find_and_click(self.LOCATOR_REMEMBER_PROJECT)
+        self.find_and_click(self.LOCATOR_ENTER_PROJECT_BUTTON)

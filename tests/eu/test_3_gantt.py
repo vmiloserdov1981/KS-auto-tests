@@ -1,7 +1,6 @@
 from pages.events_plan_po import EventsPlan
 from pages.components.eu_filter import EuFilter
 from pages.components.modals import NewEventModal
-from api.api import ApiEu
 from variables import PkmVars as Vars
 import users as user
 import allure
@@ -23,14 +22,15 @@ from pages.login_po import LoginPage
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
         'select_last_k6_plan_copy': True,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Создание мероприятия'
     })])
 def test_eu_create_gantt_event(parametrized_login_driver, parameters):
     eu_filter = EuFilter(parametrized_login_driver)
     events_plan = EventsPlan(parametrized_login_driver)
+    api = events_plan.api_creator.get_api_eu()
     version1 = 'Проект плана'
     version2 = 'Факт'
-    api = ApiEu(None, None, token=parametrized_login_driver.token)
     versions = ['Проект плана', 'Факт', 'План потребности']
     plan_uuid = parametrized_login_driver.test_data.get('copy_last_k6_plan').get('uuid')
     login = user.system_user.login
@@ -114,12 +114,13 @@ def test_eu_create_gantt_event(parametrized_login_driver, parameters):
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
         'select_last_k6_plan_copy': True,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Удаление мероприятия'
     })])
 def test_eu_delete_gantt_event(parametrized_login_driver, parameters):
-    api = ApiEu(None, None, token=parametrized_login_driver.token)
     eu_filter = EuFilter(parametrized_login_driver)
     events_plan = EventsPlan(parametrized_login_driver)
+    api = events_plan.api_creator.get_api_eu()
     login = user.system_user.login
     versions = ('Проект плана', 'Факт', 'План потребности')
     k6_copy_plan_uuid = parametrized_login_driver.test_data.get('copy_last_k6_plan').get('uuid')
@@ -243,13 +244,14 @@ def test_eu_delete_gantt_event(parametrized_login_driver, parameters):
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
         'select_last_k6_plan_copy': True,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Редактирование мероприятия'
     })])
 def test_eu_modify_gantt_event(parametrized_login_driver, parameters):
-    api = ApiEu(None, None, token=parametrized_login_driver.token)
     eu_filter = EuFilter(parametrized_login_driver)
     events_plan = EventsPlan(parametrized_login_driver)
     event_modal = NewEventModal(parametrized_login_driver)
+    api = events_plan.api_creator.get_api_eu()
     login = user.system_user.login
     versions = ('Проект плана', 'Факт', 'План потребности')
     k6_copy_plan_uuid = parametrized_login_driver.test_data.get('copy_last_k6_plan').get('uuid')
@@ -421,13 +423,14 @@ def test_eu_modify_gantt_event(parametrized_login_driver, parameters):
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
         'select_last_k6_plan_copy': True,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Копирование мероприятия'
 })])
 def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
-    api = ApiEu(None, None, token=parametrized_login_driver.token)
     eu_filter = EuFilter(parametrized_login_driver)
     events_plan = EventsPlan(parametrized_login_driver)
     event_modal = NewEventModal(parametrized_login_driver)
+    api = events_plan.api_creator.get_api_eu()
     login = user.system_user.login
     versions = ('Проект плана', 'Факт', 'План потребности')
     k6_copy_plan_uuid = parametrized_login_driver.test_data.get('copy_last_k6_plan').get('uuid')
@@ -550,6 +553,7 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
         'get_last_k6_plan': True,
         'select_last_k6_plan': True,
         'select_last_k6_plan_copy': False,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Группировка мероприятий'
     })])
 def test_eu_group_gantt_events(parametrized_login_driver, parameters):

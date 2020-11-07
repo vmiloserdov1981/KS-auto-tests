@@ -13,19 +13,17 @@ from datetime import date
 from datetime import timedelta
 import collections
 import users
+import os
 
 
 class BasePage:
-    LOCATOR_PAGE_TITLE_BLOCK = (By.XPATH, "//div[@class='page-title-container']//div[@class='title-value']")
-    LOCATOR_TITLE_INPUT = (By.XPATH, "(//div[@class='page-title-container']//input)[1]")
-    LOCATOR_TITLE_CHECK_ICON = (By.XPATH, "//div[@class='page-title-container']//fa-icon[@icon='check']")
     LOCATOR_DROPDOWN_VALUE = (By.XPATH, "//pkm-dropdown-item")
 
     def __init__(self, driver, url=None):
         self.driver = driver
         self.base_url = url
         from api.api import ApiCreator
-        self.api_creator = ApiCreator(users.admin.login, users.admin.password, token=driver.token)
+        self.api_creator = ApiCreator(None, None, driver.project_uuid, token=driver.token)
 
     def find_element(self, locator, time=10):
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),
@@ -140,17 +138,6 @@ class BasePage:
         uuid = url.split('/')[-1].split("?")[0]
         return uuid
 
-    def rename_title(self, title_name):
-        action = ActionChains(self.driver)
-        self.find_and_click(self.LOCATOR_PAGE_TITLE_BLOCK)
-        title_input = self.find_element(self.LOCATOR_TITLE_INPUT)
-        action.double_click(title_input).perform()
-        title_input.send_keys(Keys.DELETE)
-        title_input.send_keys(title_name)
-        self.find_and_click(self.LOCATOR_TITLE_CHECK_ICON)
-        actual_title_name = (self.get_element_text(self.LOCATOR_PAGE_TITLE_BLOCK))
-        assert actual_title_name == title_name.upper()
-
     def rename_field(self, locator, field_name):
         action = ActionChains(self.driver)
         input_field = self.find_element(locator)
@@ -259,10 +246,11 @@ class ElementChanged(object):
 
 
 class BaseApi:
-    def __init__(self, login, password, token=None):
+    def __init__(self, login, password, project_uuid, token=None):
         self.login = login
         self.password = password
-        if token is None:
+        self.project_uuid = project_uuid
+        if token is None and login and password:
             self.token = self.api_get_token(self.login, self.password, Vars.PKM_API_URL)
         else:
             self.token = token
@@ -270,17 +258,20 @@ class BaseApi:
     @staticmethod
     def api_get_token(login, password, host):
         payload = {'login': "{}".format(login), 'password': "{}".format(password)}
-        url = f'{host}auth/login'
-        result = BaseApi.post(url, None, payload)
+        r = requests.post('{}auth/login'.format(host), data=json.dumps(payload))
+        result = json.loads(r.text)
         token = result.get('token')
         return token
 
-    @staticmethod
-    def post(url, token, payload):
+    def post(self, url, token, payload, without_project=False):
+        project_uuid = self.project_uuid
+        if not project_uuid:
+            project_uuid = os.getenv('PROJECT_UUID')
+        headers = {'Content-Type': 'application/json'}
         if token:
-            headers = {'Content-Type': 'application/json', 'Authorization': str("Bearer " + token)}
-        else:
-            headers = {'Content-Type': 'application/json'}
+            headers['Authorization'] = str("Bearer " + token)
+        if project_uuid and not without_project:
+            headers['x-project-uuid'] = project_uuid
         response = requests.post(url, data=json.dumps(payload), headers=headers)
         if response.status_code in range(200, 300):
             return json.loads(response.text)
@@ -330,18 +321,53 @@ class BaseApi:
 
     @staticmethod
     def anti_doublespacing(string):
-        if '  ' in string:
-            string_list = string.split(' ')
-            new_string_list = [elem for elem in string_list if elem != '']
-            string = ' '.join(new_string_list)
+        if string:
+            if '  ' in string:
+                string_list = string.split(' ')
+                new_string_list = [elem for elem in string_list if elem != '']
+                string = ' '.join(new_string_list)
 
-        if string[0] == ' ':
-            string = string[1:]
+            if string[0] == ' ':
+                string = string[1:]
 
-        if string[len(string) - 1] == ' ':
-            string = string[:len(string) - 1]
+            if string[len(string) - 1] == ' ':
+                string = string[:len(string) - 1]
 
-        return string
+            return string
+
+    def get_project_uuid_by_name(self, project_name):
+        payload = {"term": "", "limit": 0}
+        projects = self.post(f'{Vars.PKM_API_URL}projects/get-list', self.token, payload).get('data')
+        for project in projects:
+            if project.get('name') == project_name:
+                return project.get('uuid')
+
+    @staticmethod
+    def get_project_uuid_by_name_static(project_name, token):
+        payload = {"term": "", "limit": 0}
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': str("Bearer " + token)}
+        r = requests.post(f'{Vars.PKM_API_URL}projects/get-list', data=json.dumps(payload), headers=headers)
+        projects = json.loads(r.text).get('data')
+        for project in projects:
+            if project.get('name') == project_name:
+                return project.get('uuid')
+
+    @staticmethod
+    def add_in_group(item, dictionary, group_value):
+        if type(group_value) is str:
+            if group_value in dictionary.keys():
+                dictionary[group_value].append(item)
+            else:
+                dictionary[group_value] = [item]
+        elif type(group_value) is list:
+            for i in group_value:
+                if i in dictionary.keys():
+                    dictionary[i].append(item)
+                else:
+                    dictionary[i] = [item]
+        return dictionary
 
 
 def antistale(func):

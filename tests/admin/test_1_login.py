@@ -13,7 +13,10 @@ import pytest
 @allure.title('Логин (валидный логин и пароль)')
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.red_label
-def test_pkm_login_valid(driver):
+@pytest.mark.parametrize("parameters", [({
+        'name': 'Логин админа с валидными данными'
+    })])
+def test_pkm_login_valid(driver, parameters):
     login_page = LoginPage(driver, Vars.PKM_MAIN_URL)
     main_page = MainPage(driver, "{}#/main".format(Vars.PKM_MAIN_URL))
     user_block = UserBlock(driver)
@@ -42,7 +45,10 @@ def test_pkm_login_valid(driver):
 @allure.title('Логин с невалидными данными')
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.red_label
-def test_pkm_login_invalid(driver):
+@pytest.mark.parametrize("parameters", [({
+        'name': 'Логин админа с невалидными данными'
+    })])
+def test_pkm_login_invalid(driver, parameters):
     login_page = LoginPage(driver, Vars.PKM_MAIN_URL)
     modal = Modals(driver)
 
@@ -91,9 +97,14 @@ def test_pkm_login_invalid(driver):
 @allure.title('Логаут')
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.red_label
-def test_pkm_logout(driver_login):
-    login_page = LoginPage(driver_login, f'{Vars.PKM_MAIN_URL}#/login')
-    user_block = UserBlock(driver_login)
+@pytest.mark.parametrize("parameters", [({
+        'use_admin': True,
+        'project': Vars.PKM_PROJECT_NAME,
+        'name': 'Логаут админа'
+    })])
+def test_pkm_logout(parametrized_login_admin_driver, parameters):
+    login_page = LoginPage(parametrized_login_admin_driver, f'{Vars.PKM_MAIN_URL}#/login')
+    user_block = UserBlock(parametrized_login_admin_driver)
 
     with allure.step('Нажать кнопку выхода'):
         user_block.logout()

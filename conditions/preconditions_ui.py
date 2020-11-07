@@ -7,18 +7,21 @@ from selenium.webdriver.common.by import By
 from pages.components.eu_header import EuHeader
 from pages.plan_registry_po import PlanRegistry
 from api.api import ApiEu
+from pages.components.trees import Tree
+from pages.components.modals import ProjectModal
 
 
 class PreconditionsFront(BasePage, ApiEu):
 
-    def __init__(self, driver, login=None, password=None, token=None):
+    def __init__(self, driver, project_uuid, login=None, password=None, token=None):
         BasePage.__init__(self, driver)
-        ApiEu.__init__(self, login, password, token=token)
+        ApiEu.__init__(self, login, password, project_uuid, token=token)
 
     @allure.title('Перейти к интерфейсу администратора')
-    def login_as_admin(self, login, password):
+    def login_as_admin(self, login, password, project):
         login_page = LoginPage(self.driver, url=Vars.PKM_MAIN_URL)
         main_page = MainPage(self.driver)
+        project_modal = ProjectModal(self.driver)
         with allure.step('Перейти на сайт по адресу {}'.format(Vars.PKM_MAIN_URL)):
             login_page.go_to_site()
         with allure.step('Ввести логин "{}"'.format(login)):
@@ -27,13 +30,19 @@ class PreconditionsFront(BasePage, ApiEu):
             login_page.enter_pass(password)
         with allure.step('Войти в режим администратора'):
             login_page.login_as_admin()
+        if project_modal.is_project_modal_displaying():
+            with allure.step(f'Выбрать проект {project}'):
+                project_modal.select_project(project)
+        with allure.step('Проверить отображение блока профиля пользоватля'):
             main_page.find_element(main_page.LOCATOR_PKM_PROFILENAME_BLOCK)
+        with allure.step('Сохранить токен приложения в драйвере'):
             self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
 
     @allure.title('Перейти к интерфейсу конечного пользователя')
-    def login_as_eu(self, login, password):
+    def login_as_eu(self, login, password, project):
         login_page = LoginPage(self.driver, url=Vars.PKM_MAIN_URL)
         main_page = MainPage(self.driver)
+        project_modal = ProjectModal(self.driver)
         with allure.step('Перейти на сайт по адресу {}'.format(Vars.PKM_MAIN_URL)):
             login_page.go_to_site()
         with allure.step('Ввести логин "{}"'.format(login)):
@@ -44,6 +53,9 @@ class PreconditionsFront(BasePage, ApiEu):
             login_page.login_as_eu()
             main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=20)
             self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
+        if project_modal.is_project_modal_displaying():
+            with allure.step(f'Выбрать проект {project}'):
+                project_modal.select_project(project)
 
     @allure.title('Посмотреть последний созданный через k6 план мероприятий')
     def view_last_k6_plan(self):
@@ -74,3 +86,16 @@ class PreconditionsFront(BasePage, ApiEu):
         with allure.step(f'Посмотреть на диаграмме Ганта план - копию ИП "{k6_plan_name}"'):
             plans_registry.watch_plan_by_comment(
                 self.driver.test_data['copy_last_k6_plan'].get('settings').get('plan').get('comment'))
+
+    @allure.title('Выбрать тип дерева')
+    def set_tree(self, tree_type):
+        tree = Tree(self.driver)
+        with allure.step(f'Выбрать тип дерева "{tree_type}"'):
+            tree.switch_to_tree(tree_type)
+
+    @allure.title('Выбрать проект')
+    def set_project(self, project_name):
+        project_modal = ProjectModal(self.driver)
+        if project_modal.is_project_modal_displaying():
+            with allure.step(f'Выбрать проект "{project_name}"'):
+                project_modal.select_project(project_name, remember_choice=True)

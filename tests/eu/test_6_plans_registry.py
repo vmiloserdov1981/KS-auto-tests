@@ -2,6 +2,7 @@ from pages.components.eu_header import EuHeader
 from pages.plan_registry_po import PlanRegistry
 from pages.events_plan_po import EventsPlan
 from pages.components.eu_filter import EuFilter
+from variables import PkmVars as Vars
 import users as user
 import allure
 import pytest
@@ -18,6 +19,7 @@ import pytest
         'get_last_k6_plan_copy': True,
         'select_last_k6_plan': False,
         'select_last_k6_plan_copy': False,
+        'project': Vars.PKM_PROJECT_NAME,
         'name': 'Управление версиями ИП'
     })])
 def test_eu_plan_versions_control(parametrized_login_driver, parameters):

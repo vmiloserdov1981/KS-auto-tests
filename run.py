@@ -1,10 +1,12 @@
 import pytest
-from conditions.preconditions_api import EuPreconditions
+from conditions.preconditions_api import ApiPreconditions
 import users
 import os
+from variables import PkmVars as Vars
 
-
-api_eu = EuPreconditions(users.admin.login, users.admin.password)
+token = ApiPreconditions.api_get_token(users.admin.login, users.admin.password, Vars.PKM_API_URL)
+project_uuid = ApiPreconditions.get_project_uuid_by_name_static(Vars.PKM_PROJECT_NAME, token)
+api_eu = ApiPreconditions(users.admin.login, users.admin.password, project_uuid)
 
 
 def run_all_tests():
@@ -15,6 +17,7 @@ def run_all_tests():
             api_eu.clear_videos()
     finally:
         quantity = os.getenv('QUANTITY', '5')
+
         print('run tests from green_group')
         pytest.main([f"-n={quantity}", "-v", "-m", "green_label", "--alluredir=reports"])
 
