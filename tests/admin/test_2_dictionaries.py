@@ -33,15 +33,18 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
     new_dict_name = api.create_unique_dict_name(f'{dict_name}_измененный')
 
     with allure.step(f'Переименовать справоник "{dict_name}" на "{new_dict_name}" на странице справочника'):
-        node = dictionary_page.find_element(dictionary_page.tree.LOCATOR_SELECTED_NODE)
         dictionary_page.rename_title(new_dict_name)
 
     with allure.step(f'Проверить изменение названия справочника в дереве'):
-        dictionary_page.wait_element_replacing(node, dictionary_page.tree.LOCATOR_SELECTED_NODE)
-        assert dictionary_page.get_element_text(dictionary_page.tree.LOCATOR_SELECTED_NODE) == dictionary_page, 'Некорректное название ноды после переименования справочника'
+        dictionary_page.
+        dictionary_page.wait_until_text_in_element(dictionary_page.tree.LOCATOR_SELECTED_NODE, new_dict_name)
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
+
+    #выключить!
+    dictionary_page.tree.expand_node(Vars.PKM_TEST_FOLDER_NAME)
+    #выключить!
 
     with allure.step('Проверить отображение обновленного имени справочника на странице справочника'):
         assert dictionary_page.get_entity_page_title() == new_dict_name.upper()

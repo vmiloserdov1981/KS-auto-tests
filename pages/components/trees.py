@@ -28,7 +28,7 @@ class Tree(BasePage):
     LOCATOR_TREE_OPEN_BUTTON = (By.XPATH, "//div[@class='menu-open-button ng-star-inserted']")
     LOCATOR_TREE_CLASS_BUTTON = (By.XPATH, "//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' Классы ']")
     LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[@class='display-value ng-star-inserted']")
-    LOCATOR_DICTIONARY_TREE_ROOT_NODE = (By.XPATH, "//div[@class='tree-item-title' and .='Справочники']")
+    LOCATOR_TREE_ROOT_NODE = (By.XPATH, "(//div[@class='tree-item-title'])[1]")
     LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item-title') and contains(@class, 'selected')]")
     DICTIONARIES_TREE_NAME = 'Справочники'
 
@@ -96,7 +96,7 @@ class Tree(BasePage):
         self.find_and_click(choice_locator)
 
     def create_root_folder(self, folder_name):
-        self.find_and_context_click(self.LOCATOR_DICTIONARY_TREE_ROOT_NODE)
+        self.find_and_context_click(self.LOCATOR_TREE_ROOT_NODE)
         self.find_and_click(self.context_option_locator_creator('Создать папку'))
         self.modal.enter_and_save(folder_name)
 
@@ -153,9 +153,12 @@ class Tree(BasePage):
             return names
         return names
 
-
-
-
+    def expand_node(self, node_name):
+        arrow = self.get_node_arrow(node_name)
+        if not arrow:
+            return
+        if arrow.get_attribute('ng-reflect-icon') == 'angle-right':
+            arrow.click()
 
 
 '''

@@ -4,10 +4,11 @@ class PkmVars:
     PKM_TEST_FOLDER_NAME = 'auto-test'
     PKM_PROJECT_NAME = 'Шельф. Приразломная'
     PKM_BASE_DICTIONARY_NAME = 'Тестовый_справочник'
-    PKM_BASE_CLASS_NAME = 'autoclass'
+    PKM_BASE_CLASS_NAME = 'Тестовый_класс'
+    PKM_RELATION_CLASS_NAME = 'Класс для связи'
     PKM_BASE_FOLDER_NAME = 'auto_folder-2'
     PKM_DEFAULT_TREE_TYPE = 'model'
-    PKM_BASE_INDICATOR_NAME = 'indicator'
+    PKM_BASE_INDICATOR_NAME = 'Показатель'
     PKM_INDICATOR_NAME_TYPE = {
         'number': ' Число ',
         'string': ' Строка ',

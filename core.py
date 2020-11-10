@@ -185,7 +185,7 @@ class BasePage:
 
     def elements_generator(self, locator, time=5):
         try:
-            self.find_element(locator, time)
+            self.find_element(locator, time=time)
         except TimeoutException:
             return None
         elements = self.driver.find_elements(*locator)

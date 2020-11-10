@@ -28,6 +28,11 @@ class EntityPage(BasePage):
         return locator
 
     @staticmethod
+    def list_elements_creator(list_name):
+        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()=' {list_name} '] ]//div[contains(@class, 'list-item ')]")
+        return locator
+
+    @staticmethod
     def list_element_rename_button_creator(list_name, element_name):
         element_xpath = EntityPage.list_element_creator(list_name, element_name)[1]
         locator = (By.XPATH, element_xpath + "//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='edit']")
@@ -53,4 +58,4 @@ class EntityPage(BasePage):
         self.find_and_click(self.LOCATOR_TITLE_CHECK_ICON)
         actual_title_name = (self.get_element_text(self.LOCATOR_PAGE_TITLE_BLOCK))
         assert actual_title_name == title_name.upper()
-        time.sleep(2)
+        # time.sleep(2)
