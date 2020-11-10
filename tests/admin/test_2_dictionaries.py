@@ -36,7 +36,7 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
         dictionary_page.rename_title(new_dict_name)
 
     with allure.step(f'Проверить изменение названия справочника в дереве'):
-        dictionary_page.
+        dictionary_page.scroll_to_element(dictionary_page.find_element(dictionary_page.tree.LOCATOR_SELECTED_NODE))
         dictionary_page.wait_until_text_in_element(dictionary_page.tree.LOCATOR_SELECTED_NODE, new_dict_name)
 
     with allure.step('Обновить страницу'):

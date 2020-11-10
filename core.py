@@ -80,7 +80,7 @@ class BasePage:
                                                    message=f"Empty element {locator}")
         return element.text
 
-    def wait_until_text_in_element(self, locator, text, time=15):
+    def wait_until_text_in_element(self, locator, text, time=5):
         return WebDriverWait(self.driver, time).until(ec.text_to_be_present_in_element(locator, text),
                                                       message=f"No '{text}' text in element '{locator}'")
 
@@ -100,10 +100,14 @@ class BasePage:
         return WebDriverWait(self.driver, time).until(ec.visibility_of_element_located(locator),
                                                       message=f"Can't find element by locator {locator}")
 
-    def find_and_click(self, locator, time=5):
-        action = ActionChains(self.driver)
-        action.move_to_element(self.find_element_clickable(locator, time)).perform()
-        self.find_element_clickable(locator, time).click()
+    def scroll_to_element(self, webelement):
+        self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);", webelement)
+
+    def find_and_click(self, locator, time=5, scroll_to_element=True):
+        element = self.find_element(locator, time=time)
+        if scroll_to_element:
+            self.scroll_to_element(element)
+        element.click()
 
     def find_and_click_by_offset(self, locator, x=0, y=0):
         elem = self.find_element(locator)

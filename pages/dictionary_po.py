@@ -22,9 +22,9 @@ class DictionaryPage(EntityPage):
             self.find_and_click(self.tree.context_option_locator_creator('Создать справочник'))
             self.tree.modal.enter_and_save(dict_name)
 
-            # выключить!
+            #выключить!
             self.tree.expand_node(Vars.PKM_TEST_FOLDER_NAME)
-            # выключить!
+            #выключить!
 
         with allure.step(f'Проверить отображение справочника {dict_name} в дереве справочников выбранным'):
             assert self.tree.get_selected_node_name() == dict_name, f'В дереве не выбрана нода {dict_name}'
@@ -73,5 +73,3 @@ class DictionaryPage(EntityPage):
         assert self.is_element_disappearing(element_locator, wait_display=False)
         element_locator = self.list_element_creator(self.ELEMENTS_LIST_NAME, new_element_name)
         self.find_element(element_locator)
-
-
