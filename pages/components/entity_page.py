@@ -58,4 +58,4 @@ class EntityPage(BasePage):
         self.find_and_click(self.LOCATOR_TITLE_CHECK_ICON)
         actual_title_name = (self.get_element_text(self.LOCATOR_PAGE_TITLE_BLOCK))
         assert actual_title_name == title_name.upper()
-        # time.sleep(2)
+        time.sleep(2)
