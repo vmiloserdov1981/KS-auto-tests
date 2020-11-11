@@ -47,3 +47,7 @@ class ApiClasses(BaseApi):
             count += 1
             newname = f"{basename}_{count}"
         return newname
+
+    def get_classes_names(self):
+        names = self.get_tree_nodes().get('class')
+        return names

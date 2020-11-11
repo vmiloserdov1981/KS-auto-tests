@@ -13,7 +13,7 @@ from pages.class_po import ClassPage
         'login': 'eu_user',
         'project': Vars.PKM_PROJECT_NAME,
         'tree_type': 'Классы',
-        'name': 'Управлениесущностями дерева классов'
+        'name': 'Управление сущностями дерева классов'
     })])
 def test_admin_classes_entities_control(parametrized_login_admin_driver, parameters):
     class_page = ClassPage(parametrized_login_admin_driver)
@@ -54,3 +54,33 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
         assert class_page.tree.get_selected_node_name() == new_class_name
 
+    with allure.step(f'Переименовать класс "{new_class_name}" на "{class_name}" в дереве'):
+        class_page.tree.rename_node(new_class_name, class_name)
+
+    with allure.step(f'Проверить изменение названия справочника на странице справочника'):
+        assert class_page.get_entity_page_title() == class_name.upper()
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    #выключить!
+    class_page.tree.expand_node(Vars.PKM_TEST_FOLDER_NAME)
+    #выключить!
+
+    with allure.step('Проверить отображение обновленного имени справочника на странице справочника'):
+        assert class_page.get_entity_page_title() == class_name.upper()
+
+    with allure.step('Проверить отображение обновленного имени справочника в дереве'):
+        assert class_page.tree.get_selected_node_name() == class_name
+
+    with allure.step(f'Удалить класс "{class_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}" в дереве классов'):
+        class_page.tree.delete_node(class_name, 'Класс', parent_node_name=Vars.PKM_TEST_FOLDER_NAME)
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить отсутствие класса "{class_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}"'):
+        assert class_name not in class_page.tree.get_node_children_names(Vars.PKM_TEST_FOLDER_NAME)
+
+    with allure.step(f'Проверить отсутствие справочника "{class_name}" в дереве справочников'):
+        assert class_name not in api.get_classes_names()
