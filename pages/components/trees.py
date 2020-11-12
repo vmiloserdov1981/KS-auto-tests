@@ -122,7 +122,7 @@ class Tree(BasePage):
         expected_deletion_modal_text = f'Вы действительно хотите удалить\n{node_type} {node_name} ?'
         assert actual_deletion_modal_text == expected_deletion_modal_text, 'Некорректный текст подтверждения удаления ноды'
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
-        assert self.is_element_disappearing(node_locator), f'Нода "{node_name}" не исчезает при удалении'
+        assert self.is_element_disappearing(node_locator, wait_display=False), f'Нода "{node_name}" не исчезает при удалении'
         if parent_node_name:
             children.remove(node_name)
             actual_nodes = self.get_node_children_names(parent_node_name)
