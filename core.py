@@ -155,7 +155,8 @@ class BasePage:
 
     def get_input_value(self, input_locator):
         input_element = self.find_element(input_locator)
-        return input_element.get_attribute('value')
+        value = input_element.get_attribute('value')
+        return value if value != '' else None
 
     @staticmethod
     def compare_lists(list_a, list_b):
@@ -208,6 +209,11 @@ class BasePage:
         values = [value.text for value in self.elements_generator(self.LOCATOR_DROPDOWN_VALUE)]
         self.find_and_click(dropdown_locator)
         return values
+
+    def is_input_checked(self, input_locator: tuple):
+        input = self.find_element(input_locator)
+        is_checked = self.driver.execute_script("return arguments[0].checked;", input)
+        return is_checked
 
 
 class DomChanged(object):

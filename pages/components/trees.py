@@ -1,12 +1,7 @@
 from core import BasePage
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import InvalidArgumentException
 from selenium.common.exceptions import TimeoutException
 from pages.components.modals import Modals
-from api.api import ApiClasses
-from api.api import ApiModels
-from variables import PkmVars as Vars
-import time
 
 
 class UserBlock(BasePage):
@@ -43,23 +38,28 @@ class Tree(BasePage):
 
     @staticmethod
     def node_locator_creator(node_name):
-        locator = (By.XPATH, f"//div[@class='tree-item' and ./div[contains(@class, 'tree-item-title') and .='{node_name}']]")
+        locator = (By.XPATH, f"//div[contains(@class, 'tree-item-title') and .='{node_name}']")
         return locator
 
     @staticmethod
     def node_arrow_locator_creator(node_name):
         node_xpath = Tree.node_locator_creator(node_name)[1]
-        locator = (By.XPATH, node_xpath + "//div[contains(@class, 'item-arrow')]//fa-icon")
+        locator = (By.XPATH, node_xpath + "//preceding-sibling::div[contains(@class, 'item-arrow')]//fa-icon")
         return locator
 
     @staticmethod
     def context_option_locator_creator(option_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'context-menu-body')]//div[@class='context-menu-item' and .=' {option_name} ']")
+        locator = (By.XPATH, f"//div[contains(@class, 'context-menu-body')]//div[@class='context-menu-item-title' and .=' {option_name} ']")
+        return locator
+
+    @staticmethod
+    def submenu_option_locator_creator(option_name):
+        locator = (By.XPATH, f"//div[contains(@class, 'context-menu-submenu')]//div[@class='context-menu-item' and .=' {option_name} ']")
         return locator
 
     @staticmethod
     def children_node_locator_creator(parent_node_name):
-        locator = (By.XPATH, f"//div[@class='tree-item' and ./div[@class='tree-item-title' and .='{parent_node_name}']]//div[contains(@class, 'tree-item-children')] //div[@class='tree-item']")
+        locator = (By.XPATH, f"//div[@class='tree-item' and ./div[@class='tree-item-title' and .='{parent_node_name}']]//div[contains(@class, 'tree-item-children')] //div[@class='tree-item-title']")
         return locator
 
     def open_tree(self):
@@ -114,6 +114,7 @@ class Tree(BasePage):
     def delete_node(self, node_name, node_type, parent_node_name=None):
         children = []
         if parent_node_name:
+            self.hide_node(node_name)
             children = self.get_node_children_names(parent_node_name)
             assert node_name in children, f'Нода для удаления не в родительской ноде "{parent_node_name}"'
         node_locator = self.node_locator_creator(node_name)
@@ -159,6 +160,17 @@ class Tree(BasePage):
             return
         if arrow.get_attribute('ng-reflect-icon') == 'angle-right':
             arrow.click()
+
+    def hide_node(self, node_name):
+        arrow = self.get_node_arrow(node_name)
+        if not arrow:
+            return
+        if arrow.get_attribute('ng-reflect-icon') == 'angle-down':
+            arrow.click()
+
+    def select_node(self, node_name):
+        self.find_and_click(self.node_locator_creator(node_name))
+        assert self.get_selected_node_name() == node_name, f'Нода {node_name} не отображается выбранной в дереве'
 
 
 '''

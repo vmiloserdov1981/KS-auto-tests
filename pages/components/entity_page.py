@@ -2,12 +2,6 @@ from core import BasePage
 from selenium.webdriver.common.by import By
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import InvalidArgumentException
-from selenium.common.exceptions import TimeoutException
-from pages.components.modals import Modals
-from api.api import ApiClasses
-from api.api import ApiModels
-from variables import PkmVars as Vars
 import time
 
 
@@ -44,6 +38,21 @@ class EntityPage(BasePage):
         locator = (By.XPATH, element_xpath + "//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='trash']")
         return locator
 
+    @staticmethod
+    def dropdown_locator_creator(form_control_name):
+        locator = (By.XPATH, f"//pkm-dropdown[@formcontrolname='{form_control_name}']//div[contains(@class, 'dropdown')]")
+        return locator
+
+    @staticmethod
+    def input_locator_creator(form_control_name):
+        locator = (By.XPATH, f"//input[@formcontrolname='{form_control_name}']")
+        return locator
+
+    @staticmethod
+    def add_entity_button_locator_creator(entity_name):
+        locator = (By.XPATH, f"//div[contains(@class, 'list-header') and .='{entity_name}']//fa-icon[@icon='plus']")
+        return locator
+
     def get_entity_page_title(self):
         title = self.get_element_text(self.LOCATOR_ENTITY_PAGE_TITLE)
         return title
@@ -59,3 +68,7 @@ class EntityPage(BasePage):
         actual_title_name = (self.get_element_text(self.LOCATOR_PAGE_TITLE_BLOCK))
         assert actual_title_name == title_name.upper()
         time.sleep(2)
+
+    def get_list_elements_names(self, list_name):
+        elements = [element.text for element in self.elements_generator(self.list_elements_creator(list_name), time=1)]
+        return elements if elements != [] else None

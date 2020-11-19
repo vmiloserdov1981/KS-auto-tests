@@ -18,6 +18,8 @@ from pages.class_po import ClassPage
 def test_admin_classes_entities_control(parametrized_login_admin_driver, parameters):
     class_page = ClassPage(parametrized_login_admin_driver)
     api = class_page.api_creator.get_api_classes()
+    indicator_1 = f'{class_page.BASE_INDICATOR_NAME}_1'
+    indicator_2 = f'{class_page.BASE_INDICATOR_NAME}_2'
 
     with allure.step(f'Проверить наличие тестовой папки "{Vars.PKM_TEST_FOLDER_NAME}" в дереве классов'):
         class_page.tree.check_test_folder(Vars.PKM_TEST_FOLDER_NAME)
@@ -27,7 +29,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
             class_page.create_class(Vars.PKM_TEST_FOLDER_NAME, Vars.PKM_RELATION_CLASS_NAME)
 
     with allure.step(f'Определить уникальное название класса'):
-        class_name = api.create_unique_class_name(Vars.PKM_BASE_DICTIONARY_NAME)
+        class_name = api.create_unique_class_name(Vars.PKM_BASE_CLASS_NAME)
 
     with allure.step(f'Создать класс {class_name} в папке {Vars.PKM_TEST_FOLDER_NAME}'):
         class_page.create_class(Vars.PKM_TEST_FOLDER_NAME, class_name)
@@ -57,7 +59,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
     with allure.step(f'Переименовать класс "{new_class_name}" на "{class_name}" в дереве'):
         class_page.tree.rename_node(new_class_name, class_name)
 
-    with allure.step(f'Проверить изменение названия справочника на странице справочника'):
+    with allure.step(f'Проверить изменение названия класса на странице класса'):
         assert class_page.get_entity_page_title() == class_name.upper()
 
     with allure.step('Обновить страницу'):
@@ -72,6 +74,20 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
     with allure.step('Проверить отображение обновленного имени справочника в дереве'):
         assert class_page.tree.get_selected_node_name() == class_name
+
+    with allure.step(f'Создать новый показатель класса "{indicator_1}" через дерево '):
+        indicator_1 = class_page.create_indicator(indicator_1, tree_parent_node=class_name)
+
+    with allure.step(f'Перейти к классу "{class_name}"'):
+        class_page.tree.select_node(class_name)
+
+    with allure.step(f'Создать новый показатель класса "{indicator_2}" через страницу класса "{class_name}"'):
+        indicator_2 = class_page.create_indicator(indicator_2)
+
+
+
+
+
 
     with allure.step(f'Удалить класс "{class_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}" в дереве классов'):
         class_page.tree.delete_node(class_name, 'Класс', parent_node_name=Vars.PKM_TEST_FOLDER_NAME)

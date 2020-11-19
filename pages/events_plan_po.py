@@ -98,7 +98,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             with allure.step(f'Проверить, дата начала и длительность рассчитаны правильно, а все остальные поля - пустые'):
                 self.find_and_click(self.LOCATOR_NEXT_BUTTON)
                 assert self.find_element(self.LOCATOR_EVENT_NAME_FIELD)
-                assert self.get_input_value(self.LOCATOR_EVENT_NAME_FIELD) == ''
+                assert self.get_input_value(self.LOCATOR_EVENT_NAME_FIELD) is None
                 assert self.get_start_date() == today
                 assert self.get_input_value(self.LOCATOR_EVENT_DURATION_FIELD) == '1'
                 assert self.get_end_date() == tomorrow

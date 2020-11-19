@@ -42,10 +42,6 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
 
-    #выключить!
-    dictionary_page.tree.expand_node(Vars.PKM_TEST_FOLDER_NAME)
-    #выключить!
-
     with allure.step('Проверить отображение обновленного имени справочника на странице справочника'):
         assert dictionary_page.get_entity_page_title() == new_dict_name.upper()
 
