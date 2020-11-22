@@ -153,10 +153,13 @@ class BasePage:
         action = ActionChains(self.driver)
         action.drag_and_drop(element_1, element_2).perform()
 
-    def get_input_value(self, input_locator):
+    def get_input_value(self, input_locator, return_empty=True):
         input_element = self.find_element(input_locator)
         value = input_element.get_attribute('value')
-        return value if value != '' else None
+        if return_empty:
+            return value
+        else:
+            return value if value != '' else None
 
     @staticmethod
     def compare_lists(list_a, list_b):

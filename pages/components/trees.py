@@ -2,6 +2,7 @@ from core import BasePage
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from pages.components.modals import Modals
+import time
 
 
 class UserBlock(BasePage):
@@ -59,7 +60,7 @@ class Tree(BasePage):
 
     @staticmethod
     def children_node_locator_creator(parent_node_name):
-        locator = (By.XPATH, f"//div[@class='tree-item' and ./div[@class='tree-item-title' and .='{parent_node_name}']]//div[contains(@class, 'tree-item-children')] //div[@class='tree-item-title']")
+        locator = (By.XPATH, f"//div[@class='tree-item' and ./div[@class='tree-item-title' and .='{parent_node_name}']]//div[contains(@class, 'tree-item-children')] //div[contains(@class, 'tree-item-title')]")
         return locator
 
     def open_tree(self):
@@ -170,6 +171,7 @@ class Tree(BasePage):
 
     def select_node(self, node_name):
         self.find_and_click(self.node_locator_creator(node_name))
+        time.sleep(2)
         assert self.get_selected_node_name() == node_name, f'Нода {node_name} не отображается выбранной в дереве'
 
 

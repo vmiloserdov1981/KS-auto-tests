@@ -20,6 +20,8 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
     api = class_page.api_creator.get_api_classes()
     indicator_1 = f'{class_page.BASE_INDICATOR_NAME}_1'
     indicator_2 = f'{class_page.BASE_INDICATOR_NAME}_2'
+    relation_1 = f'{class_page.BASE_CLASS_RELATION_NAME}_1'
+    relation_2 = f'{class_page.BASE_CLASS_RELATION_NAME}_2'
 
     with allure.step(f'Проверить наличие тестовой папки "{Vars.PKM_TEST_FOLDER_NAME}" в дереве классов'):
         class_page.tree.check_test_folder(Vars.PKM_TEST_FOLDER_NAME)
@@ -83,6 +85,98 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
     with allure.step(f'Создать новый показатель класса "{indicator_2}" через страницу класса "{class_name}"'):
         indicator_2 = class_page.create_indicator(indicator_2)
+
+    with allure.step(f'Создать новый класс-связь "{relation_1}" через дерево '):
+        relation_1 = class_page.create_relation(f'{class_name}:{relation_1}', Vars.PKM_RELATION_CLASS_NAME, tree_parent_node=class_name)
+
+    with allure.step(f'Перейти к классу "{class_name}"'):
+        class_page.tree.select_node(class_name)
+
+    with allure.step(f'Создать новый класс-связь "{relation_2}" через страницу класса "{class_name}"'):
+        relation_2 = class_page.create_relation(f'{class_name}:{relation_2}', Vars.PKM_RELATION_CLASS_NAME)
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+        # выключить!
+        class_page.tree.expand_node(Vars.PKM_TEST_FOLDER_NAME)
+        # выключить!
+
+    with allure.step(f'Проверить отображение всех созданных показателей и связей класса в дереве'):
+        class_page.tree.expand_node(class_name)
+        expected_children = [indicator_1['indicator_name'], indicator_2['indicator_name'], relation_1['relation_name'], relation_2['relation_name']]
+        actual_children = class_page.tree.get_node_children_names(class_name)
+        assert expected_children == actual_children, f'Некорректный список дочерних элементов класса {class_name}'
+
+    with allure.step(f'Проверить отображение всех созданных показателей и связей класса на странице класса'):
+        class_page.tree.select_node(class_name)
+        assert class_page.compare_lists(class_page.get_class_indicators(), [indicator_1['indicator_name'], indicator_2['indicator_name']]), 'Некорректный список показателей класса'
+        assert class_page.get_class_dimensions() is None, 'Некорректный список измерений класса'
+        assert class_page.compare_lists(class_page.get_class_relations(), [relation_1['relation_name'], relation_2['relation_name']]), 'Некорректный список связей класса'
+
+    with allure.step(f'Проверить успешный переход к созданному показателю через дерево'):
+        class_page.tree.select_node(indicator_1['indicator_name'])
+        assert class_page.get_indicator_page_data() == indicator_1
+
+    with allure.step(f'Проверить успешный переход к созданной связи через дерево'):
+        class_page.tree.select_node(relation_1['relation_name'])
+        assert class_page.get_relation_page_data() == relation_1
+
+    with allure.step(f'Проверить успешный переход к созданному показателю через страницу класса'):
+        class_page.tree.select_node(class_name)
+        class_page.find_and_click(class_page.list_element_creator(class_page.INDICATORS_LIST_NAME, indicator_1['indicator_name']))
+        assert class_page.get_indicator_page_data() == indicator_1
+        #assert class_page.tree.get_selected_node_name() == indicator_1['indicator_name']
+
+    with allure.step(f'Проверить успешный переход к созданной связи через страницу класса'):
+        class_page.tree.select_node(class_name)
+        class_page.select_relation(relation_1['relation_name'])
+        assert class_page.get_relation_page_data() == relation_1
+        #assert class_page.tree.get_selected_node_name() == relation_1['relation_name']
+
+    with allure.step(f'Перейти на страницу класса "{class_name}"'):
+        class_page.find_and_click(class_page.tree.node_locator_creator(class_name))
+
+    relation_1_name = relation_1['relation_name']
+    with allure.step(f'Переименовать связь "{relation_1_name}" через дерево'):
+        new_relation_name = relation_1_name + '_ред'
+        class_page.tree.rename_node(relation_1_name, new_relation_name)
+        relation_1['relation_name'] = new_relation_name
+
+    with allure.step(f'Проверить переименование связи на странице класса'):
+        #assert class_page.get_class_relations() == [relation_1['relation_name'], relation_2['relation_name']]
+        pass
+
+    with allure.step(f'Проверить переименование связи на странице связи'):
+        class_page.select_relation(relation_1['relation_name'])
+        assert class_page.get_entity_page_title(return_raw=True) == relation_1['relation_name'], 'Некорректное название связи'
+
+    with allure.step(f'Переименовать связь на странице связи'):
+        new_relation_name = relation_1_name + '_ред_2'
+        class_page.rename_title(new_relation_name)
+        relation_1['relation_name'] = new_relation_name
+
+    with allure.step(f'Проверить переименование связи в дереве'):
+        # assert class_page.tree.get_selected_node_name() == relation_1['relation_name'], 'Некорректное название связи в дереве'
+        # удалить остальные строчки в шаге после включения первой
+        class_page.tree.expand_node(class_name)
+        expected_children = [indicator_1['indicator_name'], indicator_2['indicator_name'], relation_1['relation_name'], relation_2['relation_name']]
+        actual_children = class_page.tree.get_node_children_names(class_name)
+        assert expected_children == actual_children, f'Некорректный список дочерних элементов класса {class_name}'
+
+    with allure.step(f'Перейти на страницу класса "{class_name}"'):
+        class_page.find_and_click(class_page.tree.node_locator_creator(class_name))
+
+    with allure.step(f'Проверить переименование связи на странице класса'):
+        assert class_page.compare_lists(class_page.get_class_relations(), [relation_1['relation_name'], relation_2['relation_name']])
+
+    indicator_name = indicator_1['indicator_name']
+    with allure.step(f'Переименовать показатель "{indicator_name}" на странице класса'):
+        new_indicator_name = indicator_1['indicator_name'] + '_ред'
+        class_page.rename_indicator(indicator_name, new_indicator_name)
+        indicator_1['indicator_name'] = new_indicator_name
+
+
 
 
 

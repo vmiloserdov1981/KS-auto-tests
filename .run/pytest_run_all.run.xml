@@ -1,14 +1,13 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="pytest_run_all" type="tests" factoryName="py.test" activateToolWindowBeforeRun="false" singleton="true">
+  <configuration default="false" name="pytest_debug" type="tests" factoryName="py.test" activateToolWindowBeforeRun="false" singleton="true">
     <module name="auto-tests" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
-      <env name="SELENOID_IP" value="10.10.20.39" />
-      <env name="TIMEOUT" value="90s" />
-      <env name="IS_LOCAL" value="true" />
-      <env name="QUANTITY" value="1" />
-      <env name="ENABLE_VIDEO" value="false" />
+      <env name="SELENOID_IP" value="127.0.0.1" />
+      <env name="TIMEOUT" value="180s" />
+      <env name="IS_LOCAL" value="false" />
+      <env name="ENABLE_VIDEO" value="true" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
