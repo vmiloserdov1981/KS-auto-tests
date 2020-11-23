@@ -50,20 +50,27 @@ class DictionaryPage(EntityPage):
             assert actual_elements == prev_elements, 'Некорректный список элементов справочника'
 
     def delete_dict_element(self, element_name):
-        element_locator = self.list_element_creator(self.ELEMENTS_LIST_NAME, element_name)
+        element_locator = self.list_element_creator(f' {self.ELEMENTS_LIST_NAME} ', element_name)
         self.hover_over_element(element_locator)
-        self.find_and_click(self.list_element_delete_button_creator(self.ELEMENTS_LIST_NAME, element_name))
+        self.find_and_click(self.list_element_delete_button_creator(f' {self.ELEMENTS_LIST_NAME} ', element_name))
         actual_deletion_modal_text = self.modal.get_deletion_confirm_modal_text()
         assert actual_deletion_modal_text == f'Вы действительно хотите удалить\nЭлемент {element_name} ?', 'Некорректный текст подтверждения удаления элемента справочника'
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
         assert self.is_element_disappearing(element_locator, wait_display=False), f'Элемент {element_name} не исчезает из списка элементов справочника'
 
     def rename_dict_element(self, element_name, new_element_name):
-        element_locator = self.list_element_creator(self.ELEMENTS_LIST_NAME, element_name)
+        element_locator = self.list_element_creator(f' {self.ELEMENTS_LIST_NAME} ', element_name)
         self.hover_over_element(element_locator)
-        self.find_and_click(self.list_element_rename_button_creator(self.ELEMENTS_LIST_NAME, element_name))
+        self.find_and_click(self.list_element_rename_button_creator(f' {self.ELEMENTS_LIST_NAME} ', element_name))
         self.modal.clear_name_input()
         self.modal.enter_and_save(new_element_name)
         assert self.is_element_disappearing(element_locator, wait_display=False)
-        element_locator = self.list_element_creator(self.ELEMENTS_LIST_NAME, new_element_name)
+        element_locator = self.list_element_creator(f' {self.ELEMENTS_LIST_NAME} ', new_element_name)
         self.find_element(element_locator)
+
+    def check_tree_node_children(self, parent_node_name: str):
+        api = self.api_creator.get_api_dictionaries()
+        tree = api.get_dicts_tree()
+        api_nodes = api.get_node_children_names(parent_node_name, tree=tree)
+        ui_nodes = self.tree.get_node_children_names(parent_node_name)
+        assert self.compare_lists(api_nodes, ui_nodes), 'Некорректный список дочерних нод'

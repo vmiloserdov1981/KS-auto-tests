@@ -31,4 +31,23 @@ class ApiDictionaries(BaseApi):
             self.add_in_group(node.get('name'), nodes, node.get('type'))
         return nodes
 
+    def get_node_uuid_by_name(self, node_name, tree: list = None):
+        if not tree:
+            tree = self.get_dicts_tree()
+        for node in tree:
+            if node.get('name') == node_name:
+                return node.get('uuid')
+
+    def get_node_children_names(self, parent_node_name, tree: list = None):
+        children = []
+        if not tree:
+            tree = self.get_dicts_tree()
+        parent_uuid = self.get_node_uuid_by_name(parent_node_name, tree)
+        assert parent_uuid, 'Невозможно получить uuid родительской ноды'
+        for node in tree:
+            if node.get('parentUuid') == parent_uuid:
+                children.append(node.get('name'))
+        return children if children != [] else None
+
+
 

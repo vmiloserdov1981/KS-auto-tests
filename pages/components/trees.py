@@ -143,17 +143,16 @@ class Tree(BasePage):
         return arrow
 
     def get_node_children_names(self, parent_node_name):
-        names = []
         arrow = self.get_node_arrow(parent_node_name)
         if not arrow:
-            return names
+            return None
         if arrow.get_attribute('ng-reflect-icon') == 'angle-right':
             arrow.click()
         if arrow.get_attribute('ng-reflect-icon') == 'angle-down':
             child_locator = self.children_node_locator_creator(parent_node_name)
             names = [node.text for node in self.elements_generator(child_locator)]
             return names
-        return names
+        return None
 
     def expand_node(self, node_name):
         arrow = self.get_node_arrow(node_name)
