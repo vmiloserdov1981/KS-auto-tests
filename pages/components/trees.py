@@ -150,7 +150,7 @@ class Tree(BasePage):
             arrow.click()
         if arrow.get_attribute('ng-reflect-icon') == 'angle-down':
             child_locator = self.children_node_locator_creator(parent_node_name)
-            names = [node.text for node in self.elements_generator(child_locator)]
+            names = [node.text for node in self.elements_generator(child_locator, wait=3)]
             return names
         return None
 

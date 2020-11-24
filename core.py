@@ -11,6 +11,7 @@ from selenium.common.exceptions import StaleElementReferenceException
 from datetime import datetime
 from datetime import date
 from datetime import timedelta
+from time import sleep
 import collections
 import users
 import os
@@ -191,7 +192,9 @@ class BasePage:
                 dictionary[group_value] = [item]
         return dictionary
 
-    def elements_generator(self, locator, time=5):
+    def elements_generator(self, locator, time=5, wait=None):
+        if wait:
+            sleep(wait)
         try:
             self.find_element(locator, time=time)
         except TimeoutException:
