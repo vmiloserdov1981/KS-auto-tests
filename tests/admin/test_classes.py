@@ -59,10 +59,12 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
         assert class_page.tree.get_selected_node_name() == new_class_name
 
     with allure.step(f'Переименовать класс "{new_class_name}" на "{class_name}" в дереве'):
+        title_html = class_page.find_element(class_page.LOCATOR_ENTITY_PAGE_TITLE).get_attribute('innerHTML')
         class_page.tree.rename_node(new_class_name, class_name)
 
+
     with allure.step(f'Проверить изменение названия класса на странице класса'):
-        assert class_page.get_entity_page_title() == class_name.upper()
+        assert class_page.get_entity_page_title(prev_title_html=title_html) == class_name.upper()
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -182,7 +184,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
 
 
-
+    '''
     with allure.step(f'Удалить класс "{class_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}" в дереве классов'):
         class_page.tree.delete_node(class_name, 'Класс', parent_node_name=Vars.PKM_TEST_FOLDER_NAME)
 
@@ -194,3 +196,4 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
     with allure.step(f'Проверить отсутствие справочника "{class_name}" в дереве справочников'):
         assert class_name not in api.get_classes_names()
+    '''

@@ -46,9 +46,14 @@ class BasePage:
             return WebDriverWait(self.driver, time).until(ElementReplaced(element, locator),
                                                           message=f"Element hasn`t been replaced")
 
-    def wait_element_changing(self, html, locator, time=10):
-        return WebDriverWait(self.driver, time).until(ElementChanged(html, locator),
-                                                      message=f"Element hasn`t been changed")
+    def wait_element_changing(self, html, locator, time=10, ignore_timeout=False):
+        if ignore_timeout:
+            try:
+                WebDriverWait(self.driver, time).until(ElementChanged(html, locator), message=f"Element hasn`t been changed")
+            except TimeoutException:
+                return
+        else:
+            WebDriverWait(self.driver, time).until(ElementChanged(html, locator), message=f"Element hasn`t been changed")
 
     def is_element_disappearing(self, locator, time=10, wait_display=True):
         if wait_display:

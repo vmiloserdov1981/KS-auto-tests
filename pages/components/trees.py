@@ -131,6 +131,7 @@ class Tree(BasePage):
             assert children == actual_nodes, f'Некорректный список нод папки "{parent_node_name}" после удаления ноды "{node_name}"'
 
     def rename_node(self, node_name, new_node_name):
+        time.sleep(3)
         self.context_selection(node_name, 'Переименовать')
         self.modal.clear_name_input()
         self.modal.enter_and_save(new_node_name)

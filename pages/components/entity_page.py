@@ -1,6 +1,7 @@
 from core import BasePage
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.remote.webdriver import WebElement
 import time
 
 
@@ -69,7 +70,9 @@ class EntityPage(BasePage):
         locator = (By.XPATH, element_xpath + "//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='pencil-alt']")
         return locator
 
-    def get_entity_page_title(self, return_raw=False):
+    def get_entity_page_title(self, return_raw=False, prev_title_html: str = None):
+        if prev_title_html:
+            self.wait_element_changing(prev_title_html, self.LOCATOR_ENTITY_PAGE_TITLE, time=5, ignore_timeout=True)
         if return_raw:
             title = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
         else:
