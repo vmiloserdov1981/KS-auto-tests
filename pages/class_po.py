@@ -66,6 +66,7 @@ class ClassPage(EntityPage):
             assert not self.get_class_relations()
 
     def create_indicator(self, indicator_name: str, tree_parent_node: str = None) -> dict:
+        time.sleep(5)
         if tree_parent_node:
             with allure.step(f'Создать показатель {indicator_name} в ноде "{tree_parent_node}"'):
                 self.find_and_context_click(self.tree.node_locator_creator(tree_parent_node))
@@ -113,6 +114,7 @@ class ClassPage(EntityPage):
         return data
 
     def create_relation(self, relation_name: str, destination_class_name: str, tree_parent_node: str = None) -> dict:
+        time.sleep(5)
         if tree_parent_node:
             source_class_name = tree_parent_node
             with allure.step(f'Создать класс-связь {relation_name} в ноде "{tree_parent_node}"'):
