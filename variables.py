@@ -3,6 +3,7 @@ class PkmVars:
     PKM_API_URL = 'http://pkm.andersenlab.com/api/'
     PKM_TEST_FOLDER_NAME = 'auto-test'
     PKM_PROJECT_NAME = 'Шельф. Приразломная'
+    PKM_PUBLICATION_NAME = 'Приразломная'
     PKM_BASE_DICTIONARY_NAME = 'Тестовый_справочник'
     PKM_BASE_CLASS_NAME = 'Тестовый_класс'
     PKM_RELATION_CLASS_NAME = 'Класс для связи'

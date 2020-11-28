@@ -430,3 +430,23 @@ class ProjectModal(BasePage):
         if remember_choice:
             self.find_and_click(self.LOCATOR_REMEMBER_PROJECT)
         self.find_and_click(self.LOCATOR_ENTER_PROJECT_BUTTON)
+
+
+class PublicationsModal(BasePage):
+    LOCATOR_PUBLICATIONS_BAR = (By.XPATH, "//div[contains(@class, 'publications-top-container')]")
+    LOCATOR_PUBLICATIONS_HOME_ICON = (By.XPATH, LOCATOR_PUBLICATIONS_BAR[1] + "//fa-icon[@icon='home']")
+    LOCATOR_PUBLICATIONS_SELECT_MODAL = (By.XPATH, "//div[@class='modal-window' and .//div[contains(@class, 'modal-window-title') and .='Выбор представления']]")
+
+    def is_publications_bar_displaying(self):
+        try:
+            self.find_element(self.LOCATOR_PUBLICATIONS_BAR)
+            return True
+        except TimeoutException:
+            return False
+
+    def select_publication(self, publication_name):
+        self.find_and_click(self.LOCATOR_PUBLICATIONS_HOME_ICON)
+        choice_locator = (By.XPATH, self.LOCATOR_PUBLICATIONS_SELECT_MODAL[1] + f"//div[contains(@class, 'list-item') and .=' {publication_name} ']")
+        self.find_and_click(choice_locator, time=10)
+        select_button_locator = (By.XPATH, self.LOCATOR_PUBLICATIONS_SELECT_MODAL[1] + "//button[.='Перейти']")
+        self.find_and_click(select_button_locator, time=10)

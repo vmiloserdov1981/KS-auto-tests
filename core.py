@@ -86,7 +86,7 @@ class BasePage:
                                                    message=f"Empty element {locator}")
         return element.text
 
-    def wait_until_text_in_element(self, locator, text, time=5):
+    def wait_until_text_in_element(self, locator, text, time=10):
         return WebDriverWait(self.driver, time).until(ec.text_to_be_present_in_element(locator, text),
                                                       message=f"No '{text}' text in element '{locator}'")
 
