@@ -165,3 +165,11 @@ class ClassPage(EntityPage):
             if i == indicator_name:
                 indicators[n] = new_indicator_name
         assert self.get_class_indicators() == indicators, 'Некорректный список показателей класса после переименования показателя'
+
+    def delete_indicator(self, indicator_name):
+        indicator_locator = self.list_element_creator(self.INDICATORS_LIST_NAME, indicator_name)
+        delete_button_locator = self.list_element_delete_button_creator(self.INDICATORS_LIST_NAME, indicator_name)
+        self.hover_over_element(indicator_locator)
+        self.find_and_click(delete_button_locator)
+        self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
+        assert self.is_element_disappearing(indicator_locator, wait_display=False), f'Показатель {indicator_name} не исчезает из списка показателей класса'

@@ -279,10 +279,13 @@ class BaseApi:
     @staticmethod
     def api_get_token(login, password, host):
         payload = {'login': "{}".format(login), 'password': "{}".format(password)}
-        r = requests.post('{}auth/login'.format(host), data=json.dumps(payload))
-        result = json.loads(r.text)
-        token = result.get('token')
-        return token
+        response = requests.post('{}auth/login'.format(host), data=json.dumps(payload))
+        if response.status_code in range(200, 300):
+            result = json.loads(response.text)
+            token = result.get('token')
+            return token
+        else:
+            raise AssertionError(f'Ошибка при получении ответа сервера: {response.status_code}, {response.text}')
 
     def post(self, url, token, payload, without_project=False):
         project_uuid = self.project_uuid

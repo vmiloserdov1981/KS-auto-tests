@@ -28,6 +28,11 @@ class EntityPage(BasePage):
         return locator
 
     @staticmethod
+    def list_creator(list_name):
+        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{list_name}']]")
+        return locator
+
+    @staticmethod
     def list_elements_creator(list_name):
         locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{list_name}'] ]//div[contains(@class, 'list-item ')]")
         return locator

@@ -59,8 +59,11 @@ class Tree(BasePage):
         return locator
 
     @staticmethod
-    def children_node_locator_creator(parent_node_name):
-        locator = (By.XPATH, f"//div[@class='tree-item' and ./div[@class='tree-item-title' and .='{parent_node_name}']]//div[contains(@class, 'tree-item-children')] //div[contains(@class, 'tree-item-title')]")
+    def children_node_locator_creator(parent_node_name, children_node_name=None):
+        if children_node_name:
+            locator = (By.XPATH, f"//div[@class='tree-item' and ./div[contains(@class, 'tree-item-title') and .='{parent_node_name}']]//div[contains(@class, 'tree-item-children')] //div[contains(@class, 'tree-item-title') and .='{children_node_name}']")
+        else:
+            locator = (By.XPATH, f"//div[@class='tree-item' and ./div[contains(@class, 'tree-item-title') and .='{parent_node_name}']]//div[contains(@class, 'tree-item-children')] //div[contains(@class, 'tree-item-title')]")
         return locator
 
     def open_tree(self):
