@@ -19,6 +19,11 @@ class Modals(BasePage):
     LOCATOR_DELETE_BUTTON = (By.XPATH, "//button[.=' Удалить ']")
 
     @staticmethod
+    def error_notification_locator_creator(error_text):
+        locator = (By.XPATH, f"//div[contains(@class,'notification-type-error') and text()='{error_text}']")
+        return locator
+
+    @staticmethod
     def dropdown_item_locator_creator(item_name):
         locator = (By.XPATH, f"//div[@class='overlay']//div[contains(@class, 'dropdown-item') and text()=' {item_name} ']")
         return locator
@@ -43,10 +48,11 @@ class Modals(BasePage):
         self.find_and_click(self.dropdown_item_locator_creator(class_name))
         self.find_and_click(self.LOCATOR_CREATE_BUTTON)
 
-    def check_error_displaying(self, wait_disappear=False):
-        assert self.find_element(self.LOCATOR_ERROR_NOTIFICATION), 'Окно с ошибкой не отображается'
+    def check_error_displaying(self, wait_disappear=False, error_text='Ошибка сервера'):
+        error_locator = self.error_notification_locator_creator(error_text)
+        assert self.find_element(error_locator), 'Окно с ошибкой не отображается'
         if wait_disappear:
-            assert self.is_element_disappearing(self.LOCATOR_ERROR_NOTIFICATION), "Окно с ошибкой не исчезает"
+            assert self.is_element_disappearing(error_locator), "Окно с ошибкой не исчезает"
 
     def get_deletion_confirm_modal_text(self):
         text = self.get_element_text(self.LOCATOR_DELETION_CONFIRM_TEXT)

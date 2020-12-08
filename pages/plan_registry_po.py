@@ -13,6 +13,7 @@ class PlanRegistry(EuHeader, BasePage):
     LOCATOR_VERSIONS_NAMES = (By.XPATH, "//div[contains(@class, 'version-element')]/div[2]")
     LOCATOR_VERSIONS_ROWS = (By.XPATH, "//div[contains(@class, 'version-element')]")
     LOCATOR_VERSION_FIRST_ROW = (By.XPATH, "//div[contains(@class, 'version-element')][1]")
+    LOCATOR_VERSIONS_BLOCK = (By.XPATH, "//div[contains(@class, 'plan-settings-container')]//div[@class='versions']")
     LOCATOR_PLAN_CONTROL_BUTTONS = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button")
     LOCATOR_ADD_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@ng-reflect-tooltip='Добавить']")
     LOCATOR_ADD_BASED_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@ng-reflect-tooltip='Создать на основе']")
@@ -45,13 +46,12 @@ class PlanRegistry(EuHeader, BasePage):
     def select_plan_by_uuid(self, uuid):
         target = (By.XPATH, f"//tr[contains(@class, 'plan-row') and @test-plan-uuid='{uuid}']")
         element = self.find_element(target)
-        cl = element.get_attribute('class')
         if "selected-plan" in element.get_attribute('class'):
             return
         else:
-            version = self.find_element(self.LOCATOR_VERSION_FIRST_ROW)
+            version_block_html = self.find_element(self.LOCATOR_VERSIONS_BLOCK).get_attribute('innerHTML')
             self.find_and_click(target)
-            self.wait_element_replacing(version, self.LOCATOR_VERSION_FIRST_ROW, time=5, ignore_timeout=True)
+            self.wait_element_changing(version_block_html, self.LOCATOR_VERSIONS_BLOCK, time=5, ignore_timeout=True)
 
     def check_plan_versions(self, k6_plan_copy_uuid, expected_ui_versions=None):
         api = self.api_creator.get_api_eu()
