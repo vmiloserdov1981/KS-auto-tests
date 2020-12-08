@@ -1,14 +1,13 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="pytest_run_all" type="tests" factoryName="py.test" activateToolWindowBeforeRun="false" singleton="true">
+  <configuration default="false" name="pytest_debug" type="tests" factoryName="py.test" activateToolWindowBeforeRun="false" singleton="true">
     <module name="auto-tests" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
       <env name="SELENOID_IP" value="10.10.20.39" />
-      <env name="TIMEOUT" value="200s" />
-      <env name="IS_LOCAL" value="false" />
-      <env name="QUANTITY" value="1" />
-      <env name="ENABLE_VIDEO" value="false" />
+      <env name="TIMEOUT" value="300s" />
+      <env name="IS_LOCAL" value="trues" />
+      <env name="ENABLE_VIDEO" value="true" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
@@ -17,8 +16,8 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <option name="_new_keywords" value="&quot;&quot;" />
     <option name="_new_parameters" value="&quot;&quot;" />
-    <option name="_new_additionalArguments" value="&quot;-n\u003d5 --no-cov --alluredir\u003dreports&quot;" />
-    <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/eu/test_5_header.py&quot;" />
+    <option name="_new_additionalArguments" value="&quot;-n\u003d3 --no-cov --alluredir\u003dreports&quot;" />
+    <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/admin/test_1_login.py&quot;" />
     <option name="_new_targetType" value="&quot;PATH&quot;" />
     <method v="2" />
   </configuration>

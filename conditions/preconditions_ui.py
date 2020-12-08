@@ -8,7 +8,7 @@ from pages.components.eu_header import EuHeader
 from pages.plan_registry_po import PlanRegistry
 from api.api import ApiEu
 from pages.components.trees import Tree
-from pages.components.modals import ProjectModal
+from pages.components.modals import ProjectModal, PublicationsModal
 
 
 class PreconditionsFront(BasePage, ApiEu):
@@ -39,10 +39,11 @@ class PreconditionsFront(BasePage, ApiEu):
             self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
 
     @allure.title('Перейти к интерфейсу конечного пользователя')
-    def login_as_eu(self, login, password, project):
+    def login_as_eu(self, login, password, project, publication=Vars.PKM_PUBLICATION_NAME):
         login_page = LoginPage(self.driver, url=Vars.PKM_MAIN_URL)
         main_page = MainPage(self.driver)
         project_modal = ProjectModal(self.driver)
+        publication_modal = PublicationsModal(self.driver)
         with allure.step('Перейти на сайт по адресу {}'.format(Vars.PKM_MAIN_URL)):
             login_page.go_to_site()
         with allure.step('Ввести логин "{}"'.format(login)):
@@ -56,6 +57,9 @@ class PreconditionsFront(BasePage, ApiEu):
         if project_modal.is_project_modal_displaying():
             with allure.step(f'Выбрать проект {project}'):
                 project_modal.select_project(project)
+        if publication_modal.is_publications_bar_displaying():
+            with allure.step(f'Выбрать представление {publication}'):
+                publication_modal.select_publication(publication)
 
     @allure.title('Посмотреть последний созданный через k6 план мероприятий')
     def view_last_k6_plan(self):

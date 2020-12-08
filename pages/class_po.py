@@ -1,154 +1,175 @@
-from core import BasePage
-from api.api import ApiClasses
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
-from variables import PkmVars as Vars
-from pages.components.modals import Modals as Modal
+from pages.components.entity_page import EntityPage
+from pages.components.trees import Tree
+from pages.components.modals import Modals
 import time
+import allure
 
 
-class ClassPage(ApiClasses, Modal, BasePage):
-    LOCATOR_INDICATOR_VALUES = (By.XPATH, "//div[@class='title' and text()=' Показатели ']//..//following-sibling::div[contains(@class, 'list-body')]//div[@class='list-item-name']")
-    LOCATOR_ADD_INDICATOR_BUTTON = (By.XPATH, "//div[@class='list-header' and contains(div, ' Показатели ' )]//div[@class='header-buttons']")
-    LOCATOR_TREE_TARGET_BUTTON = (By.XPATH, "//div[contains(@class,'menu-buttons')]//fa-icon[@ng-reflect-icon='far,dot-circle']")
+class ClassPage(EntityPage):
+    INDICATORS_LIST_NAME = 'Показатели'
+    DIMENSIONS_LIST_NAME = 'Измерения'
+    RELATIONS_LIST_NAME = 'Связи'
+    FORMULAS_LIST_NAME = 'Формулы'
+    BASE_INDICATOR_NAME = 'Показатель'
+    BASE_CLASS_RELATION_NAME = 'Класс-связь'
 
-    def __init__(self, driver, login, password, token=None):
-        BasePage.__init__(self, driver)
-        ApiClasses.__init__(self, login, password, token=token)
+    def __init__(self, driver):
+        super().__init__(driver)
+        self.tree = Tree(driver)
+        self.modal = Modals(driver)
 
-    def check_page(self, save_test_data=True, class_name=None):
-        page_title = self.get_element_text(self.LOCATOR_PAGE_TITLE_BLOCK)
-        self.find_and_click(self.LOCATOR_PAGE_TITLE_BLOCK)
-        input_field = self.find_element(self.LOCATOR_TITLE_INPUT)
-        class_page_name = input_field.get_attribute('value')
-        class_page_uuid = self.get_uuid_from_url()
-        nodes = self.api_get_nodes().get('data')
-        if save_test_data:
-            for count, node in enumerate(nodes):
-                if node.get('referenceUuid') == class_page_uuid:
-                    node_dict = {
-                        'name': class_page_name,
-                        'node_uuid': node.get('uuid')
-                    }
-                    self.driver.test_data[f'root_class_{count}'] = node_dict
-        if class_name:
-            assert class_name == class_page_name
-        api_name = self.api_get_class_name_by_id(class_page_uuid)
-        assert class_page_name == api_name
-        assert page_title == api_name.upper()
+    def get_class_dimensions(self):
+        elements = self.get_list_elements_names(self.DIMENSIONS_LIST_NAME)
+        return elements
 
-    def get_indicators_list(self):
-        list_elements = []
-        elements = self.driver.find_elements(By.XPATH, "//div[@class='title' and text()=' Показатели "
-                                                       "']//..//following-sibling::div[contains(@class, "
-                                                       "'list-body')]//div[@class='list-item-name']")
-        for element in elements:
-            list_elements.append(element.text)
-        return list_elements
+    def get_class_indicators(self):
+        elements = self.get_list_elements_names(self.INDICATORS_LIST_NAME)
+        return elements
 
-    def add_indicator(self, ind_name):
-        self.find_and_click(self.LOCATOR_ADD_INDICATOR_BUTTON)
-        Modal.enter_and_save(self, ind_name)
-        # фикс для обновления дерева:
-        self.find_and_click(self.LOCATOR_TREE_TARGET_BUTTON)
+    def get_class_relations(self):
+        elements = self.get_list_elements_names(self.RELATIONS_LIST_NAME)
+        relations = [relation.split('\n')[1] for relation in elements] if elements else None
+        return relations
+
+    def select_relation(self, relation_name):
+        self.find_and_click(self.class_relation_link_locator_creator(relation_name))
+        time.sleep(3)
+
+
+
+
+    def get_indicator_dimensions(self):
+        elements = self.get_list_elements_names(self.DIMENSIONS_LIST_NAME)
+        return elements
+
+    def get_indicator_formulas(self):
+        elements = self.get_list_elements_names(self.FORMULAS_LIST_NAME)
+        return elements
+
+
+
+
+    def create_class(self, parent_node, class_name):
+        with allure.step(f'Создать класс {class_name}'):
+            self.find_and_context_click(self.tree.node_locator_creator(parent_node))
+            self.find_and_click(self.tree.context_option_locator_creator('Создать класс'))
+            self.tree.modal.enter_and_save(class_name)
+        with allure.step(f'Проверить отображение класса {class_name} в дереве классов выбранным'):
+            assert self.tree.get_selected_node_name() == class_name, f'В дереве не выбрана нода {class_name}'
+        with allure.step(f'Проверить переход на страницу вновь соданного класса'):
+            assert self.get_entity_page_title() == class_name.upper(), f'Некорректный заголовок на странице класса'
+        with allure.step(f'Проверить что справочник создан без показателей'):
+            assert not self.get_class_indicators()
+        with allure.step(f'Проверить что справочник создан без измерений'):
+            assert not self.get_class_dimensions()
+        with allure.step(f'Проверить что справочник создан без связей'):
+            assert not self.get_class_relations()
+
+    def create_indicator(self, indicator_name: str, tree_parent_node: str = None) -> dict:
+        time.sleep(5)
+        if tree_parent_node:
+            with allure.step(f'Создать показатель {indicator_name} в ноде "{tree_parent_node}"'):
+                self.find_and_context_click(self.tree.node_locator_creator(tree_parent_node))
+                self.hover_over_element(self.tree.context_option_locator_creator('Создать'))
+                self.find_and_click(self.tree.submenu_option_locator_creator('Показатель'))
+        else:
+            with allure.step(f'Создать показатель {indicator_name} на странице класса'):
+                self.find_and_click(self.add_entity_button_locator_creator('Показатели'))
+        with allure.step(f'Укзать название показателя {indicator_name} и сохранить его'):
+            self.modal.enter_and_save(indicator_name)
+        with allure.step(f'Проверить отображение показателя {indicator_name} в дереве классов выбранным'):
+            pass
+            #assert self.tree.get_selected_node_name() == indicator_name, f'В дереве не выбрана нода {indicator_name}'
+        with allure.step(f'Проверить заполнение созданного показателя данными по умолчанию'):
+            expected_data = {
+                'indicator_name': indicator_name,
+                'indicator_data_type': 'Число',
+                'format': None,
+                'indicator_value_type': 'Максимизирующий',
+                'can_be_timed': False,
+                'is_common_for_datasets': False,
+                'unit_measurement': None,
+                'default_consolidation': 'Не выбрано',
+                'dimensions': None,
+                'formulas': None
+            }
+            actual_data = self.get_indicator_page_data()
+            assert actual_data == expected_data, 'Страница показателя заполнена некорректными данными'
+            actual_data['indicator_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
+        return actual_data
+
+    def get_indicator_page_data(self) -> dict:
+        data = {
+            'indicator_name': self.get_entity_page_title(return_raw=True),
+            'indicator_data_type':  self.get_element_text(self.dropdown_locator_creator('dataType')),
+            'format': self.get_input_value(self.input_locator_creator('dataFormat'), return_empty=False),
+            'indicator_value_type': self.get_element_text(self.dropdown_locator_creator('valueType')),
+            'can_be_timed': self.is_input_checked(self.input_locator_creator('canBeTimed')),
+            'is_common_for_datasets': self.is_input_checked(self.input_locator_creator('common')),
+            'unit_measurement': self.get_input_value(self.input_locator_creator('unitMeasurement'), return_empty=False),
+            'default_consolidation': self.get_element_text(self.dropdown_locator_creator('defaultConsolidation')),
+            'dimensions': self.get_indicator_dimensions(),
+            'formulas': self.get_indicator_formulas()
+        }
+        return data
+
+    def create_relation(self, relation_name: str, destination_class_name: str, tree_parent_node: str = None) -> dict:
+        time.sleep(5)
+        if tree_parent_node:
+            source_class_name = tree_parent_node
+            with allure.step(f'Создать класс-связь {relation_name} в ноде "{tree_parent_node}"'):
+                self.find_and_context_click(self.tree.node_locator_creator(tree_parent_node))
+                self.hover_over_element(self.tree.context_option_locator_creator('Создать'))
+                self.find_and_click(self.tree.submenu_option_locator_creator('Связь'))
+        else:
+            source_class_name = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
+            with allure.step(f'Создать класс-связь {relation_name} на странице класса'):
+                self.find_and_click(self.add_entity_button_locator_creator('Связи'))
+        with allure.step(f'Укзать название класса назначения {destination_class_name}'):
+            self.find_and_enter(self.modal.LOCATOR_CLASS_INPUT, destination_class_name)
+            self.find_and_click(self.modal.dropdown_item_locator_creator(destination_class_name))
+        with allure.step(f'Укзать название связи {relation_name} и создать ее'):
+            self.modal.enter_and_create(relation_name)
+        with allure.step(f'Проверить отображение связи {relation_name} в дереве классов выбранным'):
+            pass
+            #assert self.tree.get_selected_node_name() == relation_name, f'В дереве не выбрана нода {relation_name}'
+        with allure.step(f'Проверить заполнение созданной связи данными по умолчанию'):
+            expected_data = {
+                'relation_name': relation_name,
+                'source_class_name': source_class_name,
+                'destination_class_name': destination_class_name,
+                'dimensions': None,
+                'indicators': None
+            }
+            actual_data = self.get_relation_page_data()
+            assert actual_data == expected_data, 'Страница связи заполнена некорректными данными'
+            actual_data['relation_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
+        return actual_data
+
+    def get_relation_page_data(self) -> dict:
+        data = {
+            'relation_name': self.get_entity_page_title(return_raw=True),
+            'source_class_name': self.get_input_value(self.async_dropdown_locator_creator('source')),
+            'destination_class_name': self.get_input_value(self.async_dropdown_locator_creator('destination')),
+            'dimensions': self.get_list_elements_names(self.DIMENSIONS_LIST_NAME),
+            'indicators': self.get_list_elements_names(self.INDICATORS_LIST_NAME)
+        }
+        return data
+
+    def rename_indicator(self, indicator_name, new_indicator_name):
+        indicators = self.get_class_indicators()
+        self.hover_over_element(self.list_element_creator('Показатели', indicator_name))
+        self.find_and_click(self.list_element_edit_button_locator_creator(self.INDICATORS_LIST_NAME, indicator_name))
+        self.modal.enter_and_save(new_indicator_name, clear_input=True)
+        for n, i in enumerate(indicators):
+            if i == indicator_name:
+                indicators[n] = new_indicator_name
+        assert self.get_class_indicators() == indicators, 'Некорректный список показателей класса после переименования показателя'
 
     def delete_indicator(self, indicator_name):
-        indicator = (By.XPATH, f"(//div[@class='title' and contains(text(), 'Показатели')]//..//following-sibling::div[contains(@class, 'list-body')]//div[@class='list-item-name'])[text()=' {indicator_name} ']")
-        self.hover_over_element(indicator)
-        del_icon = (By.XPATH, f"(//div[@class='title' and contains(text(), 'Показатели')]//..//..//div[@class='list-item-name'])[text()=' {indicator_name} ']//..//fa-icon[@icon='trash']")
-        self.find_and_click(del_icon)
-        try:
-            self.find_element(indicator, time=0.5)
-        except TimeoutException:
-            return True
-        try:
-            self.is_element_disappearing(indicator)
-        except TimeoutException:
-            raise AssertionError('показатель не исчез из списка показателей на странице класса')
-
-    def rename_indicator(self, ind_name, new_ind_name):
-        indicator = (By.XPATH, f"(//div[@class='title' and text()=' Показатели ']//..//following-sibling::div[contains(@class, 'list-body')]//div[@class='list-item-name'])[text()=' {ind_name} ']")
-        self.hover_over_element(indicator)
-        rename_icon = (By.XPATH, f"(//div[@class='title' and text()=' Показатели ']//..//..//div[@class='list-item-name'])[text()=' {ind_name} ']//..//fa-icon[@icon='pencil-alt']")
-        self.find_and_click(rename_icon)
-        Modal.rename_field(self, Modal.LOCATOR_NAME_INPUT, new_ind_name)
-        Modal.find_and_click(self, Modal.LOCATOR_SAVE_BUTTON)
-
-
-class IndicatorPage(ApiClasses, Modal, BasePage):
-    LOCATOR_INDICATOR_TYPE_INPUT = (By.XPATH, "//div[@class='page-content']//input[contains(@class, 'dropdown-input')]")
-    LOCATOR_ADD_FORMULA_BUTTON = (By.XPATH, "//div[@class='list-header' and contains(div, ' Формулы ' )]//div[@class='header-buttons']")
-    LOCATOR_FORMULAS_VALUES = (By.XPATH, "//div[@class='title' and text()=' Формулы ']//..//following-sibling::div[contains(@class, 'list-body')]//div[contains(@class, 'list-item ')]")
-    LOCATOR_FORMULA_TITLE = (By.XPATH, "//formula-field//div[@class='title']")
-    LOCATOR_FORMULA_PLACEHOLDER = (By.XPATH, "//formula-field//div[@class='input-field' and @placeholder='Пустая формула']")
-    LOCATOR_FORMULA_ADD_INDICATOR_BUTTON = (By.XPATH, "//formula-field//fa-icon[@icon='plus']")
-    LOCATOR_FORMULA_ADD_OPERATOR_BUTTON = (By.XPATH, "//div[@class='icon-button' and text()=' ± ']")
-    LOCATOR_SEARCH_INDICATORS_INPUT = (By.XPATH, "//async-dropdown-search//input")
-    LOCATOR_ERROR_CIRCLE = (By.XPATH, "//formula-field//fa-icon[@icon='circle']")
-
-    def __init__(self, driver, login, password, token=None):
-        BasePage.__init__(self, driver)
-        ApiClasses.__init__(self, login, password, token=token)
-
-    def check_page(self, indicator_name, parent_class_uuid=None):
-        self.wait_until_text_in_element(self.LOCATOR_PAGE_TITLE_BLOCK, indicator_name.upper())
-        self.find_and_click(self.LOCATOR_PAGE_TITLE_BLOCK)
-        input_field = self.find_element(self.LOCATOR_TITLE_INPUT)
-        indicator_page_name = input_field.get_attribute('value')
-        indicator_uuid = self.get_uuid_from_url()
-        indicator_types = Vars.PKM_INDICATOR_NAME_TYPE
-        assert indicator_name == indicator_page_name, 'Неверный тайтл страницы'
-        indicator_type = self.find_element(self.LOCATOR_INDICATOR_TYPE_INPUT)
-        assert indicator_type.get_attribute('value') == ' Число ', 'Отображается неверный тип показателя по умолчанию'
-        if parent_class_uuid:
-            class_indicators_names = self.api_get_indicator_names_by_class(parent_class_uuid)
-            assert indicator_page_name in class_indicators_names, 'Созданного показателя нет в списке показателей ' \
-                                                                  'родительского класса '
-            class_indicators = self.api_get_indicators(parent_class_uuid)
-            for i in class_indicators:
-                if i.get('uuid') == indicator_uuid:
-                    assert i.get('name') == indicator_name, 'Имя показателя в апи и на странице не совпадают'
-                    assert i.get('indicator_type') == indicator_types.get(i.get(indicator_type)), 'Тип показателя в ' \
-                                                                                                  'апи и на странице ' \
-                                                                                                  'не совпадают '
-
-    def set_indicator_type(self, typename):
-        self.find_and_click(self.LOCATOR_INDICATOR_TYPE_INPUT)
-        drop_option = (By.XPATH, f"//div[@class='dropdown-menu app-scrollbar ng-star-inserted']//div[text()=' {typename} ']//..")
-        self.find_and_click(drop_option)
-        self.wait_until_text_in_element_value(self.LOCATOR_INDICATOR_TYPE_INPUT, f' {typename} ')
-
-    def get_formulas_list(self):
-        list_elements = []
-        elements = self.driver.find_elements(*self.LOCATOR_FORMULAS_VALUES)
-        for element in elements:
-            list_elements.append(element.text)
-        return list_elements
-
-    def create_formula(self, formula_name):
-        self.find_and_click(self.LOCATOR_ADD_FORMULA_BUTTON)
-        Modal.enter_and_save(self, formula_name)
-        time.sleep(Vars.PKM_API_WAIT_TIME)
-        formulas_list = self.get_formulas_list()
-        assert formula_name in formulas_list
-
-    def open_formula(self, f_name):
-        formula = (By.XPATH, f"//div[@class='title' and contains(text(), 'Формулы')]//..//..//div[contains(@class,'list-item') and contains(text(), '{f_name}')]")
-        self.find_and_click(formula)
-        formula_title = self.get_element_text(self.LOCATOR_FORMULA_TITLE)
-        assert formula_title == f_name.upper()
-        self.find_element(self.LOCATOR_FORMULA_PLACEHOLDER)
-
-    def set_consolidation_formula(self, ind_1, ind_2, consolidation_type):
-        indicator_1 = (By.XPATH, f"(//div[contains(@class, 'dropdown-item')]//div[@class='search-item-title']//div[text()=' {ind_1} ']//..)[1]")
-        indicator_2 = (By.XPATH, f"(//div[contains(@class, 'dropdown-item')]//div[@class='search-item-title']//div[text()=' {ind_2} ']//..)[1]")
-        operator_button = (By.XPATH, f"//div[contains(@class, 'functions-container')]//div[contains(@class, 'function-symbol') and text()=' {consolidation_type} ']")
-        self.find_and_click(self.LOCATOR_FORMULA_ADD_INDICATOR_BUTTON)
-        self.find_and_click(indicator_1)
-        self.find_and_click(self.LOCATOR_FORMULA_ADD_OPERATOR_BUTTON)
-        self.find_and_click(operator_button)
-        self.find_and_click(self.LOCATOR_SEARCH_INDICATORS_INPUT)
-        self.find_and_click(indicator_2)
-        self.is_element_disappearing(self.LOCATOR_ERROR_CIRCLE)
-
-
+        indicator_locator = self.list_element_creator(self.INDICATORS_LIST_NAME, indicator_name)
+        delete_button_locator = self.list_element_delete_button_creator(self.INDICATORS_LIST_NAME, indicator_name)
+        self.hover_over_element(indicator_locator)
+        self.find_and_click(delete_button_locator)
+        self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
+        assert self.is_element_disappearing(indicator_locator, wait_display=False), f'Показатель {indicator_name} не исчезает из списка показателей класса'

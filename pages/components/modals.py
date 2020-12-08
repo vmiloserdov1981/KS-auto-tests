@@ -1,6 +1,7 @@
 from core import BasePage
 from api.api import BaseApi
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from variables import PkmVars as Vars
 import time
 from selenium.common.exceptions import TimeoutException
@@ -10,28 +11,48 @@ class Modals(BasePage):
     LOCATOR_NAME_INPUT = (By.XPATH, "//pkm-modal-window//input[@placeholder='Введите имя']")
     LOCATOR_CLASS_INPUT = (By.XPATH, "//input[@placeholder='Выберите класс']")
     LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Сохранить ']")
-    LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[@class='modal-window-footer']//button[text()=' Создать ']")
+    LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Создать ']")
     LOCATOR_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class,'notification-type-error') and text()='Ошибка сервера']")
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[@class='modal-window-title']//div[@class='title-text']")
     LOCATOR_ACCEPT_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Принять ']")
     LOCATOR_DELETION_CONFIRM_TEXT = (By.XPATH, "//div[contains(@class, 'deletion-notifications-container')]")
     LOCATOR_DELETE_BUTTON = (By.XPATH, "//button[.=' Удалить ']")
 
-    def enter_and_save(self, name):
+    @staticmethod
+    def error_notification_locator_creator(error_text):
+        locator = (By.XPATH, f"//div[contains(@class,'notification-type-error') and text()='{error_text}']")
+        return locator
+
+    @staticmethod
+    def dropdown_item_locator_creator(item_name):
+        locator = (By.XPATH, f"//div[@class='overlay']//div[contains(@class, 'dropdown-item') and text()=' {item_name} ']")
+        return locator
+
+    def enter_and_save(self, name, clear_input=False):
+        if clear_input:
+            name_input = self.find_element(self.LOCATOR_NAME_INPUT)
+            name_input.send_keys(Keys.CONTROL + "a")
+            name_input.send_keys(Keys.DELETE)
         self.find_and_enter(self.LOCATOR_NAME_INPUT, name)
         self.find_and_click(self.LOCATOR_SAVE_BUTTON)
+        time.sleep(3)
+
+    def enter_and_create(self, name):
+        self.find_and_enter(self.LOCATOR_NAME_INPUT, name)
+        self.find_and_click(self.LOCATOR_CREATE_BUTTON)
         time.sleep(3)
 
     def object_enter_and_save(self, object_name, class_name):
         self.find_and_enter(self.LOCATOR_NAME_INPUT, object_name)
         self.find_and_enter(self.LOCATOR_CLASS_INPUT, class_name)
-        self.find_and_click((By.XPATH, f"//div[@class='overlay']//div[contains(@class, 'dropdown-item') and text()=' {class_name} ']"))
+        self.find_and_click(self.dropdown_item_locator_creator(class_name))
         self.find_and_click(self.LOCATOR_CREATE_BUTTON)
 
-    def check_error_displaying(self, wait_disappear=False):
-        assert self.find_element(self.LOCATOR_ERROR_NOTIFICATION), 'Окно с ошибкой не отображается'
+    def check_error_displaying(self, wait_disappear=False, error_text='Ошибка сервера'):
+        error_locator = self.error_notification_locator_creator(error_text)
+        assert self.find_element(error_locator), 'Окно с ошибкой не отображается'
         if wait_disappear:
-            assert self.is_element_disappearing(self.LOCATOR_ERROR_NOTIFICATION), "Окно с ошибкой не исчезает"
+            assert self.is_element_disappearing(error_locator), "Окно с ошибкой не исчезает"
 
     def get_deletion_confirm_modal_text(self):
         text = self.get_element_text(self.LOCATOR_DELETION_CONFIRM_TEXT)
@@ -415,3 +436,23 @@ class ProjectModal(BasePage):
         if remember_choice:
             self.find_and_click(self.LOCATOR_REMEMBER_PROJECT)
         self.find_and_click(self.LOCATOR_ENTER_PROJECT_BUTTON)
+
+
+class PublicationsModal(BasePage):
+    LOCATOR_PUBLICATIONS_BAR = (By.XPATH, "//div[contains(@class, 'publications-top-container')]")
+    LOCATOR_PUBLICATIONS_HOME_ICON = (By.XPATH, LOCATOR_PUBLICATIONS_BAR[1] + "//fa-icon[@icon='home']")
+    LOCATOR_PUBLICATIONS_SELECT_MODAL = (By.XPATH, "//div[@class='modal-window' and .//div[contains(@class, 'modal-window-title') and .='Выбор представления']]")
+
+    def is_publications_bar_displaying(self):
+        try:
+            self.find_element(self.LOCATOR_PUBLICATIONS_BAR)
+            return True
+        except TimeoutException:
+            return False
+
+    def select_publication(self, publication_name):
+        self.find_and_click(self.LOCATOR_PUBLICATIONS_HOME_ICON)
+        choice_locator = (By.XPATH, self.LOCATOR_PUBLICATIONS_SELECT_MODAL[1] + f"//div[contains(@class, 'list-item') and .=' {publication_name} ']")
+        self.find_and_click(choice_locator, time=10)
+        select_button_locator = (By.XPATH, self.LOCATOR_PUBLICATIONS_SELECT_MODAL[1] + "//button[.='Перейти']")
+        self.find_and_click(select_button_locator, time=10)

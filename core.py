@@ -11,6 +11,7 @@ from selenium.common.exceptions import StaleElementReferenceException
 from datetime import datetime
 from datetime import date
 from datetime import timedelta
+from time import sleep
 import collections
 import users
 import os
@@ -45,9 +46,14 @@ class BasePage:
             return WebDriverWait(self.driver, time).until(ElementReplaced(element, locator),
                                                           message=f"Element hasn`t been replaced")
 
-    def wait_element_changing(self, html, locator, time=10):
-        return WebDriverWait(self.driver, time).until(ElementChanged(html, locator),
-                                                      message=f"Element hasn`t been changed")
+    def wait_element_changing(self, html, locator, time=10, ignore_timeout=False):
+        if ignore_timeout:
+            try:
+                WebDriverWait(self.driver, time).until(ElementChanged(html, locator), message=f"Element hasn`t been changed")
+            except TimeoutException:
+                return
+        else:
+            WebDriverWait(self.driver, time).until(ElementChanged(html, locator), message=f"Element hasn`t been changed")
 
     def is_element_disappearing(self, locator, time=10, wait_display=True):
         if wait_display:
@@ -80,7 +86,7 @@ class BasePage:
                                                    message=f"Empty element {locator}")
         return element.text
 
-    def wait_until_text_in_element(self, locator, text, time=15):
+    def wait_until_text_in_element(self, locator, text, time=10):
         return WebDriverWait(self.driver, time).until(ec.text_to_be_present_in_element(locator, text),
                                                       message=f"No '{text}' text in element '{locator}'")
 
@@ -100,10 +106,14 @@ class BasePage:
         return WebDriverWait(self.driver, time).until(ec.visibility_of_element_located(locator),
                                                       message=f"Can't find element by locator {locator}")
 
-    def find_and_click(self, locator, time=5):
-        action = ActionChains(self.driver)
-        action.move_to_element(self.find_element_clickable(locator, time)).perform()
-        self.find_element_clickable(locator, time).click()
+    def scroll_to_element(self, webelement):
+        self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);", webelement)
+
+    def find_and_click(self, locator, time=5, scroll_to_element=True):
+        element = self.find_element(locator, time=time)
+        if scroll_to_element:
+            self.scroll_to_element(element)
+        element.click()
 
     def find_and_click_by_offset(self, locator, x=0, y=0):
         elem = self.find_element(locator)
@@ -149,9 +159,13 @@ class BasePage:
         action = ActionChains(self.driver)
         action.drag_and_drop(element_1, element_2).perform()
 
-    def get_input_value(self, input_locator):
+    def get_input_value(self, input_locator, return_empty=True):
         input_element = self.find_element(input_locator)
-        return input_element.get_attribute('value')
+        value = input_element.get_attribute('value')
+        if return_empty:
+            return value
+        else:
+            return value if value != '' else None
 
     @staticmethod
     def compare_lists(list_a, list_b):
@@ -183,9 +197,11 @@ class BasePage:
                 dictionary[group_value] = [item]
         return dictionary
 
-    def elements_generator(self, locator, time=5):
+    def elements_generator(self, locator, time=5, wait=None):
+        if wait:
+            sleep(wait)
         try:
-            self.find_element(locator, time)
+            self.find_element(locator, time=time)
         except TimeoutException:
             return None
         elements = self.driver.find_elements(*locator)
@@ -204,6 +220,11 @@ class BasePage:
         values = [value.text for value in self.elements_generator(self.LOCATOR_DROPDOWN_VALUE)]
         self.find_and_click(dropdown_locator)
         return values
+
+    def is_input_checked(self, input_locator: tuple):
+        input = self.find_element(input_locator)
+        is_checked = self.driver.execute_script("return arguments[0].checked;", input)
+        return is_checked
 
 
 class DomChanged(object):
@@ -258,10 +279,13 @@ class BaseApi:
     @staticmethod
     def api_get_token(login, password, host):
         payload = {'login': "{}".format(login), 'password': "{}".format(password)}
-        r = requests.post('{}auth/login'.format(host), data=json.dumps(payload))
-        result = json.loads(r.text)
-        token = result.get('token')
-        return token
+        response = requests.post('{}auth/login'.format(host), data=json.dumps(payload))
+        if response.status_code in range(200, 300):
+            result = json.loads(response.text)
+            token = result.get('token')
+            return token
+        else:
+            raise AssertionError(f'Ошибка при получении ответа сервера: {response.status_code}, {response.text}')
 
     def post(self, url, token, payload, without_project=False):
         project_uuid = self.project_uuid

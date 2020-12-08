@@ -77,7 +77,7 @@ def test_pkm_login_invalid(driver, parameters):
         login_page.login_as_admin()
 
     with allure.step('Проверить, отображение окна с ошибкой'):
-        modal.check_error_displaying(wait_disappear=True)
+        modal.check_error_displaying(wait_disappear=True, error_text='Сущность не найдена')
 
     with allure.step('Ввести невалидный логин "{}" в поле лонина'.format(user.invalid_user.login)):
         login_page.enter_login(user.invalid_user.login)
@@ -89,7 +89,7 @@ def test_pkm_login_invalid(driver, parameters):
         login_page.login_as_admin()
 
     with allure.step('Проверить, отображение окна с ошибкой'):
-        modal.check_error_displaying(wait_disappear=True)
+        modal.check_error_displaying(wait_disappear=True, error_text='Сущность не найдена')
 
 
 @allure.feature('Логин/Логаут')

@@ -1,11 +1,7 @@
 from core import BasePage
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import InvalidArgumentException
 from selenium.common.exceptions import TimeoutException
 from pages.components.modals import Modals
-from api.api import ApiClasses
-from api.api import ApiModels
-from variables import PkmVars as Vars
 import time
 
 
@@ -28,7 +24,7 @@ class Tree(BasePage):
     LOCATOR_TREE_OPEN_BUTTON = (By.XPATH, "//div[@class='menu-open-button ng-star-inserted']")
     LOCATOR_TREE_CLASS_BUTTON = (By.XPATH, "//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' Классы ']")
     LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[@class='display-value ng-star-inserted']")
-    LOCATOR_DICTIONARY_TREE_ROOT_NODE = (By.XPATH, "//div[@class='tree-item-title' and .='Справочники']")
+    LOCATOR_TREE_ROOT_NODE = (By.XPATH, "(//div[@class='tree-item-title'])[1]")
     LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item-title') and contains(@class, 'selected')]")
     DICTIONARIES_TREE_NAME = 'Справочники'
 
@@ -43,23 +39,31 @@ class Tree(BasePage):
 
     @staticmethod
     def node_locator_creator(node_name):
-        locator = (By.XPATH, f"//div[@class='tree-item' and ./div[contains(@class, 'tree-item-title') and .='{node_name}']]")
+        locator = (By.XPATH, f"//div[contains(@class, 'tree-item-title') and .='{node_name}']")
         return locator
 
     @staticmethod
     def node_arrow_locator_creator(node_name):
         node_xpath = Tree.node_locator_creator(node_name)[1]
-        locator = (By.XPATH, node_xpath + "//div[contains(@class, 'item-arrow')]//fa-icon")
+        locator = (By.XPATH, node_xpath + "//preceding-sibling::div[contains(@class, 'item-arrow')]//fa-icon")
         return locator
 
     @staticmethod
     def context_option_locator_creator(option_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'context-menu-body')]//div[@class='context-menu-item' and .=' {option_name} ']")
+        locator = (By.XPATH, f"//div[contains(@class, 'context-menu-body')]//div[@class='context-menu-item-title' and .=' {option_name} ']")
         return locator
 
     @staticmethod
-    def children_node_locator_creator(parent_node_name):
-        locator = (By.XPATH, f"//div[@class='tree-item' and ./div[@class='tree-item-title' and .='{parent_node_name}']]//div[contains(@class, 'tree-item-children')] //div[@class='tree-item']")
+    def submenu_option_locator_creator(option_name):
+        locator = (By.XPATH, f"//div[contains(@class, 'context-menu-submenu')]//div[@class='context-menu-item' and .=' {option_name} ']")
+        return locator
+
+    @staticmethod
+    def children_node_locator_creator(parent_node_name, children_node_name=None):
+        if children_node_name:
+            locator = (By.XPATH, f"//div[@class='tree-item' and ./div[contains(@class, 'tree-item-title') and .='{parent_node_name}']]//div[contains(@class, 'tree-item-children')] //div[contains(@class, 'tree-item-title') and .='{children_node_name}']")
+        else:
+            locator = (By.XPATH, f"//div[@class='tree-item' and ./div[contains(@class, 'tree-item-title') and .='{parent_node_name}']]//div[contains(@class, 'tree-item-children')] //div[contains(@class, 'tree-item-title')]")
         return locator
 
     def open_tree(self):
@@ -96,7 +100,7 @@ class Tree(BasePage):
         self.find_and_click(choice_locator)
 
     def create_root_folder(self, folder_name):
-        self.find_and_context_click(self.LOCATOR_DICTIONARY_TREE_ROOT_NODE)
+        self.find_and_context_click(self.LOCATOR_TREE_ROOT_NODE)
         self.find_and_click(self.context_option_locator_creator('Создать папку'))
         self.modal.enter_and_save(folder_name)
 
@@ -114,6 +118,7 @@ class Tree(BasePage):
     def delete_node(self, node_name, node_type, parent_node_name=None):
         children = []
         if parent_node_name:
+            self.hide_node(node_name)
             children = self.get_node_children_names(parent_node_name)
             assert node_name in children, f'Нода для удаления не в родительской ноде "{parent_node_name}"'
         node_locator = self.node_locator_creator(node_name)
@@ -122,13 +127,14 @@ class Tree(BasePage):
         expected_deletion_modal_text = f'Вы действительно хотите удалить\n{node_type} {node_name} ?'
         assert actual_deletion_modal_text == expected_deletion_modal_text, 'Некорректный текст подтверждения удаления ноды'
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
-        assert self.is_element_disappearing(node_locator), f'Нода "{node_name}" не исчезает при удалении'
+        assert self.is_element_disappearing(node_locator, wait_display=False), f'Нода "{node_name}" не исчезает при удалении'
         if parent_node_name:
             children.remove(node_name)
             actual_nodes = self.get_node_children_names(parent_node_name)
             assert children == actual_nodes, f'Некорректный список нод папки "{parent_node_name}" после удаления ноды "{node_name}"'
 
     def rename_node(self, node_name, new_node_name):
+        time.sleep(3)
         self.context_selection(node_name, 'Переименовать')
         self.modal.clear_name_input()
         self.modal.enter_and_save(new_node_name)
@@ -141,21 +147,35 @@ class Tree(BasePage):
         return arrow
 
     def get_node_children_names(self, parent_node_name):
-        names = []
         arrow = self.get_node_arrow(parent_node_name)
         if not arrow:
-            return names
+            return None
         if arrow.get_attribute('ng-reflect-icon') == 'angle-right':
             arrow.click()
         if arrow.get_attribute('ng-reflect-icon') == 'angle-down':
             child_locator = self.children_node_locator_creator(parent_node_name)
-            names = [node.text for node in self.elements_generator(child_locator)]
+            names = [node.text for node in self.elements_generator(child_locator, wait=3)]
             return names
-        return names
+        return None
 
+    def expand_node(self, node_name):
+        arrow = self.get_node_arrow(node_name)
+        if not arrow:
+            return
+        if arrow.get_attribute('ng-reflect-icon') == 'angle-right':
+            arrow.click()
 
+    def hide_node(self, node_name):
+        arrow = self.get_node_arrow(node_name)
+        if not arrow:
+            return
+        if arrow.get_attribute('ng-reflect-icon') == 'angle-down':
+            arrow.click()
 
-
+    def select_node(self, node_name):
+        self.find_and_click(self.node_locator_creator(node_name))
+        time.sleep(2)
+        assert self.get_selected_node_name() == node_name, f'Нода {node_name} не отображается выбранной в дереве'
 
 
 '''
