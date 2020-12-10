@@ -52,14 +52,14 @@ class PreconditionsFront(BasePage, ApiEu):
             login_page.enter_pass(password)
         with allure.step('Войти в режим конечного пользователя'):
             login_page.login_as_eu()
-            main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=20)
-            self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
         if project_modal.is_project_modal_displaying():
             with allure.step(f'Выбрать проект {project}'):
                 project_modal.select_project(project)
         if publication_modal.is_publications_bar_displaying():
             with allure.step(f'Выбрать представление {publication}'):
                 publication_modal.select_publication(publication)
+        main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
+        self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
 
     @allure.title('Посмотреть последний созданный через k6 план мероприятий')
     def view_last_k6_plan(self):
