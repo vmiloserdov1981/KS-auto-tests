@@ -353,10 +353,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                 # построчный перебор
                 while self.driver.execute_script("return arguments[0].offsetTop", last_row) + (cell_height * 2) < total_height:
                     self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, cell_height)
-                    try:
-                        self.wait_element_replacing(last_row, last_row_locator, time=2)
-                    except TimeoutException:
-                        pass
+                    self.wait_element_changing(last_row.get_attribute('innerHTML'), last_row_locator, time=2, ignore_timeout=True)
                     last_row = self.find_element(last_row_locator)
                     self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);", last_row)
                     if names_only:
