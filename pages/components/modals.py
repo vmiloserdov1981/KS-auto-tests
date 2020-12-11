@@ -450,8 +450,16 @@ class PublicationsModal(BasePage):
         except TimeoutException:
             return False
 
+    def is_publications_modal_displaying(self):
+        try:
+            self.find_element(self.LOCATOR_PUBLICATIONS_SELECT_MODAL)
+            return True
+        except TimeoutException:
+            return False
+
     def select_publication(self, publication_name):
-        self.find_and_click(self.LOCATOR_PUBLICATIONS_HOME_ICON)
+        if not self.is_publications_modal_displaying():
+            self.find_and_click(self.LOCATOR_PUBLICATIONS_HOME_ICON)
         choice_locator = (By.XPATH, self.LOCATOR_PUBLICATIONS_SELECT_MODAL[1] + f"//div[contains(@class, 'list-item') and .=' {publication_name} ']")
         self.find_and_click(choice_locator, time=10)
         select_button_locator = (By.XPATH, self.LOCATOR_PUBLICATIONS_SELECT_MODAL[1] + "//button[.='Перейти']")
