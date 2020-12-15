@@ -49,5 +49,8 @@ class ApiDictionaries(BaseApi):
                 children.append(node.get('name'))
         return children if children != [] else None
 
+    def delete_node(self, uuid):
+        self.post(f'{Vars.PKM_API_URL}dictionaries/delete-node', self.token, payload={'uuid': uuid}, without_project=False)
+
 
 

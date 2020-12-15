@@ -211,20 +211,20 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
         class_page.tree.delete_node(indicator_name, 'Показатель', parent_node_name=class_name)
 
     with allure.step(f'Проверить удаление показателя {indicator_name} на странице класса'):
-        class_page.is_element_disappearing(class_page.list_element_creator(class_page.INDICATORS_LIST_NAME, indicator_name), wait_display=False)
+        assert class_page.is_element_disappearing(class_page.list_element_creator(class_page.INDICATORS_LIST_NAME, indicator_name), wait_display=False), f'показатель {indicator_name} не удаляется на странице класса'
 
     indicator_name = indicator_2['indicator_name']
     with allure.step(f'Удалить показатель {indicator_name} класса через страницу класса'):
         class_page.delete_indicator(indicator_name)
 
     with allure.step(f'Проверить удаление показателя {indicator_name} в дереве'):
-        class_page.is_element_disappearing(class_page.tree.children_node_locator_creator(class_name, children_node_name=indicator_name), wait_display=False)
+        assert class_page.is_element_disappearing(class_page.tree.children_node_locator_creator(class_name, children_node_name=indicator_name), wait_display=False), f'показатель {indicator_name} не удаляется на странице класса'
 
     with allure.step(f'Удалить связь {relation_1_name} через дерево'):
         class_page.tree.delete_node(relation_1_name, 'Связь', parent_node_name=class_name)
 
     with allure.step(f'Проверить удаление связи {relation_1_name} на странице класса'):
-        class_page.is_element_disappearing(class_page.list_element_creator(class_page.RELATIONS_LIST_NAME, relation_1_name), wait_display=False)
+        assert class_page.is_element_disappearing(class_page.list_element_creator(class_page.RELATIONS_LIST_NAME, relation_1_name), wait_display=False), f'связь {relation_1_name} не удаляется на странице класса'
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -243,7 +243,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
         expected_children = [relation_2['relation_name']]
         actual_children = class_page.tree.get_node_children_names(class_name)
         assert expected_children == actual_children, f'Некорректный список дочерних элементов класса {class_name}'
-    '''
+
     with allure.step(f'Удалить класс "{class_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}" в дереве классов'):
         class_page.tree.delete_node(class_name, 'Класс', parent_node_name=Vars.PKM_TEST_FOLDER_NAME)
 
@@ -255,4 +255,4 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
     with allure.step(f'Проверить отсутствие справочника "{class_name}" в дереве справочников'):
         assert class_name not in api.get_classes_names()
-    '''
+
