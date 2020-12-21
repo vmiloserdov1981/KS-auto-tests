@@ -182,6 +182,21 @@ class BasePage:
                 assert dict_a.get(key) == dict_b.get(key)
 
     @staticmethod
+    def compare_dicts_static(dict_a, dict_b):
+        if not BasePage.compare_lists(dict_a.keys(), dict_b.keys()):
+            return False
+        for key in dict_a:
+            if type(dict_a.get(key)) is list:
+                if not BasePage.compare_lists(dict_a.get(key), dict_b.get(key)):
+                    return False
+            elif type(dict_a.get(key)) is dict:
+                BasePage.compare_dicts_static(dict_a.get(key), dict_b.get(key))
+            else:
+                if not dict_a.get(key) == dict_b.get(key):
+                    return False
+        return True
+
+    @staticmethod
     def add_in_group(item, dictionary, group_value):
         if ' . ' in group_value:
             group_values = group_value.split(' . ')
@@ -267,12 +282,12 @@ class ElementChanged(object):
 
 
 class BaseApi:
-    def __init__(self, login, password, project_uuid, token=None):
+    def __init__(self, login, password, project_uuid, token=None, api_url=Vars.PKM_API_URL):
         self.login = login
         self.password = password
         self.project_uuid = project_uuid
         if token is None and login and password:
-            self.token = self.api_get_token(self.login, self.password, Vars.PKM_API_URL)
+            self.token = self.api_get_token(self.login, self.password, api_url)
         else:
             self.token = token
 
