@@ -61,10 +61,12 @@ class WebsiteUser(HttpUser):
 
         '''
         with self.client.post("/shapes/get", json.dumps({'diagramUuid': diagram_uuid}), headers=self.headers, catch_response=True) as response:
-            if '"error"' in response.text:
-                response.failure(f"Ошибка в полученных данных: \n {response.text}")
-            elif (resp := json.loads(response.text)) != check_data['shapes']:
-                response.failure(f"Полученные данные не совпадают с ожидаемыми: \n Ожидаемые: {check_data['shapes']} \n Фактические: {resp}")
+            resp = json.loads(response.text)
+            if resp.get('error'):
+                response.failure(f"Ошибка в полученных данных: \n {resp}")
+            elif not BasePage.compare_dicts_static(resp, check_data['shapes']):
+                response.failure(
+                    f"Полученные данные не совпадают с ожидаемыми: \n Ожидаемые: {check_data['shapes']} \n Фактические: {resp}")
         '''
 
         self.client.post("/shapes/get", json.dumps({'diagramUuid': diagram_uuid}), headers=self.headers)

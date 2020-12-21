@@ -190,9 +190,10 @@ class BasePage:
                 if not BasePage.compare_lists(dict_a.get(key), dict_b.get(key)):
                     return False
             elif type(dict_a.get(key)) is dict:
-                BasePage.compare_dicts_static(dict_a.get(key), dict_b.get(key))
+                if not BasePage.compare_dicts_static(dict_a.get(key), dict_b.get(key)):
+                    return False
             else:
-                if not dict_a.get(key) == dict_b.get(key):
+                if dict_a.get(key) != dict_b.get(key):
                     return False
         return True
 
