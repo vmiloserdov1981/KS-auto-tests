@@ -58,15 +58,13 @@ class WebsiteUser(HttpUser):
             elif json.loads(response.text) != check_data['diagram']:
                 response.failure("Полученные данные не совпадают с ожидаемыми")
 
-        '''
         with self.client.post("/shapes/get", json.dumps({'diagramUuid': diagram_uuid}), headers=self.headers, catch_response=True) as response:
             if '"error"' in response.text:
                 response.failure("Ошибка в полученных данных")
             elif json.loads(response.text) != check_data['shapes']:
                 response.failure("Полученные данные не совпадают с ожидаемыми")
-        '''
 
-        self.client.post("/shapes/get", json.dumps({'diagramUuid': diagram_uuid}), headers=self.headers)
+        # self.client.post("/shapes/get", json.dumps({'diagramUuid': diagram_uuid}), headers=self.headers)
 
         with self.client.post("/sets/get-list", json.dumps({}), headers=self.headers, catch_response=True) as response:
             if '"error"' in response.text:
@@ -74,7 +72,7 @@ class WebsiteUser(HttpUser):
             elif json.loads(response.text) != check_data['sets']:
                 response.failure("Полученные данные не совпадают с ожидаемыми")
 
-    wait_time = between(3, 10)
+    wait_time = between(1, 4)
     tasks = {
         check_diagram: 0,
         open_diagram: 1
@@ -84,4 +82,4 @@ class WebsiteUser(HttpUser):
 
 # locust -f locust/diagrams_load.py ------------> запускать в корне для стандартного запуска
 # locust -f locust/diagrams_load.py --master ------------> запускать в корне для многопоточного запуска (хаб)
-# locust -f locust/diagrams_load.py --master-bind-port=8089 ------------> запускать в корне для многопоточного запуска (нода)
+# locust -f locust/diagrams_load.py --worker --master-port=8089 ------------> запускать в корне для многопоточного запуска (нода)
