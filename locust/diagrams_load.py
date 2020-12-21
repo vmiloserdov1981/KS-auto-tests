@@ -53,9 +53,10 @@ class WebsiteUser(HttpUser):
 
     def check_diagram(self):
         with self.client.post("/diagrams/get-by-id", json.dumps({'uuid': diagram_uuid}), headers=self.headers, catch_response=True) as response:
-            if '"error"' in response.text:
-                response.failure(f"Ошибка в полученных данных: \n {response.text}")
-            elif (resp := json.loads(response.text)) != check_data['diagram']:
+            resp = json.loads(response.text)
+            if resp.get('error'):
+                response.failure(f"Ошибка в полученных данных: \n {resp}")
+            elif resp != check_data['diagram']:
                 response.failure(f"Полученные данные не совпадают с ожидаемыми: \n Ожидаемые: {check_data['diagram']} \n Фактические: {resp}")
 
         '''
@@ -69,9 +70,10 @@ class WebsiteUser(HttpUser):
         self.client.post("/shapes/get", json.dumps({'diagramUuid': diagram_uuid}), headers=self.headers)
 
         with self.client.post("/sets/get-list", json.dumps({}), headers=self.headers, catch_response=True) as response:
-            if '"error"' in response.text:
-                response.failure(f"Ошибка в полученных данных: \n {response.text}")
-            elif (resp := json.loads(response.text)) != check_data['sets']:
+            resp = json.loads(response.text)
+            if resp.get('error'):
+                response.failure(f"Ошибка в полученных данных: \n {resp}")
+            elif resp != check_data['sets']:
                 response.failure(f"Полученные данные не совпадают с ожидаемыми: \n Ожидаемые: {check_data['sets']} \n Фактические: {resp}")
 
     wait_time = between(1, 4)
