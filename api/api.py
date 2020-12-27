@@ -69,7 +69,7 @@ class ApiEu(BaseApi):
         }
         request = self.post(f'{Vars.PKM_API_URL}users/create', self.token, payload)
         if not ignore_error:
-            assert not request.get('error'), f'Ошибка при создании пользователя "{user_name}"'
+            assert not request.get('error'), f'Ошибка при создании пользователя "{user_name}" \n {request.get("error")}'
             assert request.get('uuid'), f'Невозможно получить uuid пользователя "{user_name}"'
         return request.get('uuid')
 
@@ -336,8 +336,8 @@ class ApiEu(BaseApi):
             "data": data
         }
         request = self.post(f'{Vars.PKM_API_URL}gantts/create-object', self.token, payload)
-        assert not request.get('error'), f'Ошибка при создании мероприятия'
-        assert request.get('uuid') is not None, 'Невозможно получить uuid мероприятия'
+        assert not request.get('error'), f'Ошибка при создании мероприятия \n {request}'
+        assert request.get('uuid') is not None, f'Невозможно получить uuid мероприятия \n {request}'
         uuid = request.get('uuid')
         event_data = {
             'event_uuid': uuid,

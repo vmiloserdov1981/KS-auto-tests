@@ -173,7 +173,7 @@ class NewEventModal(Calendar, BasePage):
         return field.text
 
     def check_option(self, option_name):
-        checkbox_locator = (By.XPATH, f"//div[contains(@class, 'checkbox-label ') and text()=' {option_name} ']//preceding-sibling::div")
+        checkbox_locator = (By.XPATH, f"//div[contains(@class, 'checkbox-label ') and text()='{option_name}']//preceding-sibling::div")
         checkbox = self.find_element(checkbox_locator)
         if 'checkbox-selected' in checkbox.get_attribute('class'):
             pass
@@ -181,7 +181,7 @@ class NewEventModal(Calendar, BasePage):
             self.find_and_click(checkbox_locator)
 
     def uncheck_option(self, option_name):
-        checkbox_locator = (By.XPATH, f"//div[contains(@class, 'checkbox-label ') and text()=' {option_name} ']//preceding-sibling::div")
+        checkbox_locator = (By.XPATH, f"//div[contains(@class, 'checkbox-label ') and text()='{option_name}']//preceding-sibling::div")
         checkbox = self.find_element(checkbox_locator)
         if 'checkbox-selected' in checkbox.get_attribute('class'):
             self.find_and_click(checkbox_locator)
@@ -189,7 +189,7 @@ class NewEventModal(Calendar, BasePage):
             pass
 
     def option_is_checked(self, option_name):
-        checkbox_locator = (By.XPATH, f"//div[contains(@class, 'checkbox-label ') and text()=' {option_name} ']//preceding-sibling::div")
+        checkbox_locator = (By.XPATH, f"//div[contains(@class, 'checkbox-label ') and text()='{option_name}']//preceding-sibling::div")
         checkbox = self.find_element(checkbox_locator)
         if 'checkbox-selected' in checkbox.get_attribute('class'):
             return True
@@ -421,7 +421,7 @@ class NewEventModal(Calendar, BasePage):
 class ProjectModal(BasePage):
     LOCATOR_SELECT_PROJECT_MODAL = (By.XPATH, "//div[@class='title-text' and text()='Выбор проекта']/ancestor:: div[@class='modal-window']")
     LOCATOR_ENTER_PROJECT_BUTTON = (By.XPATH, "//button[.=' Войти в проект ']")
-    LOCATOR_REMEMBER_PROJECT = (By.XPATH, "//div[contains(@class, 'checkbox-wrapper') and .=' Запомнить мой выбор ']//div[@class='checkbox-container']")
+    LOCATOR_REMEMBER_PROJECT = (By.XPATH, "//div[contains(@class, 'checkbox-wrapper') and .='Запомнить мой выбор']//div[@class='checkbox-container']")
 
     def is_project_modal_displaying(self):
         try:

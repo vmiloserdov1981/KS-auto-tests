@@ -179,7 +179,7 @@ class BasePage:
             elif type(dict_a.get(key)) is dict:
                 self.compare_dicts(dict_a.get(key), dict_b.get(key))
             else:
-                assert dict_a.get(key) == dict_b.get(key)
+                assert dict_a.get(key) == dict_b.get(key), f'{dict_a} не равно f{dict_b}'
 
     @staticmethod
     def compare_dicts_static(dict_a, dict_b):
