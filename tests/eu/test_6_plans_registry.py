@@ -3,6 +3,8 @@ from pages.plan_registry_po import PlanRegistry
 from pages.events_plan_po import EventsPlan
 from pages.components.eu_filter import EuFilter
 from variables import PkmVars as Vars
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 import users as user
 import allure
 import pytest
@@ -82,6 +84,12 @@ def test_eu_plan_versions_control(parametrized_login_driver, parameters):
 
     with allure.step('Обновить страницу'):
         parametrized_login_driver.refresh()
+
+    with allure.step('Закрыть сообщение о необходимости выбора проекта при его появлении'):
+        try:
+            plans_registry.find_and_click((By.XPATH, "//div[@class='modal-window']//button[contains(text(), 'Продолжить ')]"), time=5)
+        except TimeoutException:
+            pass
 
     with allure.step('Проверить, что в списке версий отображаются все версии плана, включая вновь созданные'):
         plans_registry.check_plan_versions(k6_plan_copy_uuid, expected_ui_versions=ui_versions)

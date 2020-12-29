@@ -4,6 +4,7 @@ from variables import PkmVars as Vars
 from pages.main_po import MainPage
 import allure
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 from pages.components.eu_header import EuHeader
 from pages.plan_registry_po import PlanRegistry
 from api.api import ApiEu
@@ -58,6 +59,10 @@ class PreconditionsFront(BasePage, ApiEu):
         if publication_modal.is_publications_bar_displaying():
             with allure.step(f'Выбрать представление {publication}'):
                 publication_modal.select_publication(publication)
+        try:
+            main_page.find_and_click((By.XPATH, "//div[@class='modal-window']//button[contains(text(), 'Продолжить ')]"), time=5)
+        except TimeoutException:
+            pass
         main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
         self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
 

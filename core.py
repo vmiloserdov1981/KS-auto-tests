@@ -6,14 +6,12 @@ from variables import PkmVars as Vars
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import TimeoutException
-from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 from datetime import datetime
 from datetime import date
 from datetime import timedelta
 from time import sleep
 import collections
-import users
 import os
 
 
