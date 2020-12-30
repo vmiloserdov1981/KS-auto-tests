@@ -98,16 +98,11 @@ class PlanRegistry(EuHeader, BasePage):
                     buttons.append(button.get_attribute('tooltip'))
         return buttons
 
-    '''
-    def select_version_old(self, name, with_dates=False):
-        for version in self.elements_generator(self.LOCATOR_VERSIONS_NAMES):
-            if not with_dates:
-                if self.cut_version_date(version.text) == name:
-                    return version.click()
-            else:
-                if version.text == name:
-                    return version.click()
-    '''
+    def close_modal(self):
+        try:
+            self.find_and_click((By.XPATH, "//div[@class='modal-window']//button[contains(text(), 'Продолжить ')]"), time=5)
+        except TimeoutException:
+            pass
 
     def select_version(self, name, with_dates=False):
         if not with_dates:

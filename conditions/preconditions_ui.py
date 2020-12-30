@@ -4,7 +4,6 @@ from variables import PkmVars as Vars
 from pages.main_po import MainPage
 import allure
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
 from pages.components.eu_header import EuHeader
 from pages.plan_registry_po import PlanRegistry
 from api.api import ApiEu
@@ -45,6 +44,7 @@ class PreconditionsFront(BasePage, ApiEu):
         main_page = MainPage(self.driver)
         project_modal = ProjectModal(self.driver)
         publication_modal = PublicationsModal(self.driver)
+        # plan_registry = PlanRegistry(self.driver)
         with allure.step('Перейти на сайт по адресу {}'.format(Vars.PKM_MAIN_URL)):
             login_page.go_to_site()
         with allure.step('Ввести логин "{}"'.format(login)):
@@ -59,18 +59,24 @@ class PreconditionsFront(BasePage, ApiEu):
         if publication_modal.is_publications_bar_displaying():
             with allure.step(f'Выбрать представление {publication}'):
                 publication_modal.select_publication(publication)
-        try:
-            main_page.find_and_click((By.XPATH, "//div[@class='modal-window']//button[contains(text(), 'Продолжить ')]"), time=5)
-        except TimeoutException:
-            pass
-        main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
-        self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
+
+        # plan_registry.close_modal()
+
+        with allure.step('Проверить наличие иконки меню'):
+            main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
+
+        with allure.step('Сохранить токен приложения в драйвере'):
+            self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
 
     @allure.title('Посмотреть последний созданный через k6 план мероприятий')
     def view_last_k6_plan(self):
         header = EuHeader(self.driver)
         k6_plan_comment = self.driver.test_data.get('last_k6_plan').get('settings').get('plan').get('comment')
         plan_registry_page = PlanRegistry(self.driver)
+
+        with allure.step('Закрыть модальное окно необходимости выбора плана при его появлении'):
+            plan_registry_page.close_modal()
+
         with allure.step('Перейти на страницу "Реестр ИП"'):
             header.navigate_to_page('Реестр интегрированных планов')
         with allure.step(f'Посмотреть на плане мероприятий последний план, созданный в к6 (с комментарием "{k6_plan_comment}")'):
@@ -88,6 +94,9 @@ class PreconditionsFront(BasePage, ApiEu):
             self.driver.test_data['copy_last_k6_plan'] = self.check_k6_plan_copy(k6_plan_comment, k6_plan_uuid)
             if self.driver.test_data['copy_last_k6_plan'].get('is_new_created'):
                 self.driver.refresh()
+
+        with allure.step('Закрыть модальное окно необходимости выбора плана при его появлении'):
+            plans_registry.close_modal()
 
         with allure.step('Перейти на страницу "Реестр ИП"'):
             header.navigate_to_page('Реестр интегрированных планов')
