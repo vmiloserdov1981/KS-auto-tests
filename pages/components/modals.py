@@ -433,8 +433,13 @@ class ProjectModal(BasePage):
     def select_project(self, project_name, remember_choice=False):
         choice_locator = (By.XPATH, f"//div[contains(@class, 'choice-project') and .='{project_name}']")
         self.find_and_click(choice_locator)
+        checkbox = self.find_element(self.LOCATOR_REMEMBER_PROJECT)
         if remember_choice:
-            self.find_and_click(self.LOCATOR_REMEMBER_PROJECT)
+            if 'checkbox-selected' not in checkbox.get_attribute('class'):
+                self.find_and_click(self.LOCATOR_REMEMBER_PROJECT)
+        else:
+            if 'checkbox-selected' in checkbox.get_attribute('class'):
+                self.find_and_click(self.LOCATOR_REMEMBER_PROJECT)
         self.find_and_click(self.LOCATOR_ENTER_PROJECT_BUTTON)
 
 
@@ -442,6 +447,7 @@ class PublicationsModal(BasePage):
     LOCATOR_PUBLICATIONS_BAR = (By.XPATH, "//div[contains(@class, 'publications-top-container')]")
     LOCATOR_PUBLICATIONS_HOME_ICON = (By.XPATH, LOCATOR_PUBLICATIONS_BAR[1] + "//fa-icon[@icon='home']")
     LOCATOR_PUBLICATIONS_SELECT_MODAL = (By.XPATH, "//div[@class='modal-window' and .//div[contains(@class, 'modal-window-title') and .='Выбор представления']]")
+    LOCATOR_REMEMBER_PUBLICATION = (By.XPATH, "//div[contains(@class, 'checkbox-wrapper') and .='Запомнить мой выбор']//div[@class='checkbox-container']")
 
     def is_publications_bar_displaying(self):
         try:
@@ -457,10 +463,17 @@ class PublicationsModal(BasePage):
         except TimeoutException:
             return False
 
-    def select_publication(self, publication_name):
+    def select_publication(self, publication_name, remember_choice=True):
         if not self.is_publications_modal_displaying():
             self.find_and_click(self.LOCATOR_PUBLICATIONS_HOME_ICON)
         choice_locator = (By.XPATH, self.LOCATOR_PUBLICATIONS_SELECT_MODAL[1] + f"//div[contains(@class, 'list-item') and .=' {publication_name} ']")
         self.find_and_click(choice_locator, time=10)
+        checkbox = self.find_element(self.LOCATOR_REMEMBER_PUBLICATION)
+        if remember_choice:
+            if 'checkbox-selected' not in checkbox.get_attribute('class'):
+                self.find_and_click(self.LOCATOR_REMEMBER_PUBLICATION)
+        else:
+            if 'checkbox-selected' in checkbox.get_attribute('class'):
+                self.find_and_click(self.LOCATOR_REMEMBER_PUBLICATION)
         select_button_locator = (By.XPATH, self.LOCATOR_PUBLICATIONS_SELECT_MODAL[1] + "//button[.='Перейти']")
         self.find_and_click(select_button_locator, time=10)
