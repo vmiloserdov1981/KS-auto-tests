@@ -38,7 +38,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
     new_class_name = api.create_unique_class_name(f'{class_name}_измененный')
 
-    with allure.step(f'Переименовать класс "{class_name}" на "{new_class_name}" на странице справочника'):
+    with allure.step(f'Переименовать класс "{class_name}" на "{new_class_name}" на странице класса'):
         class_page.rename_title(new_class_name)
 
     with allure.step(f'Проверить изменение названия справочника в дереве'):
@@ -47,7 +47,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
 
-    with allure.step('Проверить отображение обновленного имени справочника на странице справочника'):
+    with allure.step('Проверить отображение обновленного имени справочника на странице класса'):
         assert class_page.get_entity_page_title() == new_class_name.upper()
 
     with allure.step('Проверить отображение обновленного имени справочника в дереве'):
@@ -253,6 +253,6 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
     with allure.step(f'Проверить отсутствие класса "{class_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}"'):
         assert class_name not in class_page.tree.get_node_children_names(Vars.PKM_TEST_FOLDER_NAME)
 
-    with allure.step(f'Проверить отсутствие справочника "{class_name}" в дереве справочников'):
+    with allure.step(f'Проверить отсутствие класса "{class_name}" в дереве классов'):
         assert class_name not in api.get_classes_names()
 
