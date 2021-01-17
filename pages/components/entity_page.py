@@ -98,3 +98,15 @@ class EntityPage(BasePage):
     def get_list_elements_names(self, list_name):
         elements = [element.text for element in self.elements_generator(self.list_elements_creator(list_name), time=1)]
         return elements if elements != [] else None
+
+    def get_change_data(self):
+        create_info = self.get_element_text((By.XPATH, "//pkm-changes-entity-info//div[contains(@class, 'info__item') and ./span[.='Создано:']]//span[2]"))
+        update_info = self.get_element_text((By.XPATH, "//pkm-changes-entity-info//div[contains(@class, 'info__item') and ./span[.='Изменено:']]//span[2]"))
+        data = {
+            'created_at': create_info.split(' / ')[0],
+            'created_by': create_info.split(' / ')[1],
+            'updated_at': update_info.split(' / ')[0],
+            'updated_by': update_info.split(' / ')[1]
+        }
+        return data
+

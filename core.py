@@ -77,8 +77,14 @@ class BasePage:
                 return False
             return True
 
-    def get_element_text(self, locator, time=5):
-        element = self.find_element(locator)
+    def get_element_text(self, locator, time=5, ignore_error=False):
+        if ignore_error:
+            try:
+                element = self.find_element(locator, time=time)
+            except TimeoutException:
+                return
+        else:
+            element = self.find_element(locator, time=time)
         if element.text == '':
             WebDriverWait(self.driver, time).until((lambda text_present: self.find_element(locator).text.strip() != ''),
                                                    message=f"Empty element {locator}")
@@ -157,8 +163,8 @@ class BasePage:
         action = ActionChains(self.driver)
         action.drag_and_drop(element_1, element_2).perform()
 
-    def get_input_value(self, input_locator, return_empty=True):
-        input_element = self.find_element(input_locator)
+    def get_input_value(self, input_locator, return_empty=True, time=2):
+        input_element = self.find_element(input_locator, time=time)
         value = input_element.get_attribute('value')
         if return_empty:
             return value
@@ -329,6 +335,13 @@ class BaseApi:
         raw_date = datetime.utcnow()
         date_value = str(raw_date).split(' ')[0].split('-')[::-1]
         return date_value
+
+    @staticmethod
+    def get_utc_time():
+        raw_date = datetime.utcnow()
+        time_value = str(raw_date).split(' ')[1].split(':')
+        value = f'{time_value[0]}:{time_value[1]}'
+        return value
 
     @staticmethod
     def get_feature_date(start, offset):

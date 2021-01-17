@@ -143,8 +143,10 @@ def parametrized_login_admin_driver(parameters):
         preconditions_api.api_check_user(parameters.get('login'))
         ai_user = user.test_users[parameters.get('login')]
         preconditions_ui.login_as_admin(ai_user.login, ai_user.password, parameters.get('project'))
+        driver.current_user = ai_user
     else:
         preconditions_ui.login_as_admin(user.admin.login, user.admin.password, parameters.get('project'))
+        driver.current_user = user.admin
     if parameters.get('tree_type'):
         preconditions_ui.set_tree(parameters.get('tree_type'))
     yield driver
