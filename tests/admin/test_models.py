@@ -51,8 +51,7 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
         model_page.tree.rename_node(new_model_name, model_name)
 
     with allure.step(f'Проверить изменение названия модели на странице модели'):
-        #assert model_page.get_entity_page_title(prev_title_html=title_html) == model_name.upper()
-        pass
+        assert model_page.get_entity_page_title(prev_title_html=title_html) == model_name.upper()
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
