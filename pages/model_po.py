@@ -2,7 +2,7 @@ from pages.components.entity_page import EntityPage
 from pages.components.trees import Tree
 from pages.components.modals import Modals
 from selenium.webdriver.common.by import By
-import time
+import datetime
 import allure
 
 
@@ -29,6 +29,20 @@ class ModelPage(EntityPage):
             'solver_values': self.get_model_solvers(),
             'tags': self.get_model_tags()
         }
+        '''
+        template = {
+            'model_name': (self.get_entity_page_title, (), {"return_raw": True}),
+            'changes': [self.get_change_data],
+            'datasets': [self.get_model_datasets],
+            'dimensions': [self.get_model_dimensions],
+            'time_period': [self.get_model_period_type],
+            'period_amount': [self.get_model_period_amount],
+            'last_period': [self.get_model_last_period],
+            'solver_values': [self.get_model_solvers],
+            'tags': [self.get_model_tags]
+        }
+        data = self.get_page_data_by_template(template)
+        '''
         return data
 
     def create_model(self, parent_node, model_name):
@@ -62,7 +76,21 @@ class ModelPage(EntityPage):
                 'solver_values': None,
                 'tags': None
             }
-            self.compare_dicts(actual, expected)
+            try:
+                self.compare_dicts(actual, expected)
+            except AssertionError:
+                actual_datetime = datetime.datetime(int(actual_date.split('.')[2]), int(actual_date.split('.')[1]), int(actual_date.split('.')[0]), int(actual_time.split(':')[0]), int(actual_time.split(':')[1]))
+                interval = datetime.timedelta(minutes=1)
+                actual_datetime = str(actual_datetime + interval)
+                actual_date = actual_datetime.split(' ')[0]
+                actual_time = actual_datetime.split(' ')[1]
+                expected['changes'] = {
+                    'created_at': f'{actual_date} {actual_time}',
+                    'created_by': self.driver.current_user.name,
+                    'updated_at': f'{actual_date} {actual_time}',
+                    'updated_by': self.driver.current_user.name
+                }
+                self.compare_dicts(actual, expected)
 
     def get_model_dimensions(self):
         elements = self.get_list_elements_names(self.DIMENSIONS_LIST_NAME)
@@ -91,7 +119,7 @@ class ModelPage(EntityPage):
         return elements
 
     def get_model_tags(self):
-        elements = [element.text for element in self.elements_generator((By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{self.TAGS_LIST_NAME}'] ]//div[contains(@class, 'tag-item')]"))]
+        elements = [element.text for element in self.elements_generator((By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{self.TAGS_LIST_NAME}'] ]//div[contains(@class, 'tag-item')]"), time=1)]
         return elements if elements != [] else None
 
 

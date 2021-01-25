@@ -2,6 +2,7 @@ from core import BasePage
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webdriver import WebElement
+from concurrent.futures import ThreadPoolExecutor
 import time
 
 
@@ -109,4 +110,26 @@ class EntityPage(BasePage):
             'updated_by': update_info.split(' / ')[1]
         }
         return data
+
+
+    def get_page_data_by_template(self, template):
+        def write_data(function, args, kwargs, data, data_name):
+            data[data_name] = function(*args, **kwargs)
+
+        result = {}
+
+        with ThreadPoolExecutor() as executor:
+            for field in template:
+                function = template.get(field)[0]
+                try:
+                    args = template.get(field)[1]
+                except IndexError:
+                    args = ()
+                try:
+                    kwargs = template.get(field)[2]
+                except IndexError:
+                    kwargs = {}
+                future = executor.submit(write_data, function, args, kwargs, result, field)
+        return result
+
 

@@ -8,6 +8,7 @@ from conditions.postconditions_api import EuPostconditions
 from variables import PkmVars as Vars
 import os
 from webdriver_manager.chrome import ChromeDriverManager
+import json
 
 
 def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, token=None):
@@ -27,7 +28,8 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, token=
             "enableVideo": enable_video,
             'videoName': f'{name}.mp4',
             "name": name,
-            "sessionTimeout": timeout
+            "sessionTimeout": timeout,
+            "goog:loggingPrefs": {'browser': 'ALL'}
         }
         driver = webdriver.Remote(
             command_executor=ip,
@@ -58,6 +60,12 @@ def pytest_runtest_makereport(item, call):
                             web_driver.get_screenshot_as_png(),
                             name='screenshot',
                             attachment_type=allure.attachment_type.PNG
+                        )
+                        logs = json.dumps(web_driver.get_log('browser'))
+                        allure.attach(
+                            logs,
+                            name='logs',
+                            attachment_type=allure.attachment_type.JSON
                         )
                         return
                 print('Fail to take screen-shot')
