@@ -44,6 +44,19 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, token=
     return driver
 
 
+def attach_data(web_driver):
+    allure.attach(
+        web_driver.get_screenshot_as_png(),
+        name='screenshot',
+        attachment_type=allure.attachment_type.PNG
+    )
+    logs = json.dumps(web_driver.get_log('browser'))
+    allure.attach(
+        logs,
+        name='logs',
+        attachment_type=allure.attachment_type.JSON
+    )
+
 # Фикстура для создания скриншотов при фейле теста
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
@@ -56,17 +69,8 @@ def pytest_runtest_makereport(item, call):
                 for fixturename in item.fixturenames:
                     if 'driver' in fixturename:
                         web_driver = item.funcargs[fixturename]
-                        allure.attach(
-                            web_driver.get_screenshot_as_png(),
-                            name='screenshot',
-                            attachment_type=allure.attachment_type.PNG
-                        )
-                        logs = json.dumps(web_driver.get_log('browser'))
-                        allure.attach(
-                            logs,
-                            name='logs',
-                            attachment_type=allure.attachment_type.JSON
-                        )
+                        web_driver.is_test_failed = True
+                        attach_data(web_driver)
                         return
                 print('Fail to take screen-shot')
         except Exception as e:
@@ -147,15 +151,26 @@ def parametrized_login_admin_driver(parameters):
     driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid, token=token)
     preconditions_api = ApiPreconditions(None, None, project_uuid, token)
     preconditions_ui = PreconditionsFront(driver, project_uuid, token=token)
-    if not parameters.get('use_admin'):
-        preconditions_api.api_check_user(parameters.get('login'))
-        ai_user = user.test_users[parameters.get('login')]
-        preconditions_ui.login_as_admin(ai_user.login, ai_user.password, parameters.get('project'))
-        driver.current_user = ai_user
-    else:
-        preconditions_ui.login_as_admin(user.admin.login, user.admin.password, parameters.get('project'))
-        driver.current_user = user.admin
-    if parameters.get('tree_type'):
-        preconditions_ui.set_tree(parameters.get('tree_type'))
+    try:
+        if not parameters.get('use_admin'):
+            preconditions_api.api_check_user(parameters.get('login'))
+            ai_user = user.test_users[parameters.get('login')]
+            preconditions_ui.login_as_admin(ai_user.login, ai_user.password, parameters.get('project'))
+            driver.current_user = ai_user
+        else:
+            preconditions_ui.login_as_admin(user.admin.login, user.admin.password, parameters.get('project'))
+            driver.current_user = user.admin
+        if parameters.get('tree_type'):
+            preconditions_ui.set_tree(parameters.get('tree_type'))
+    except Exception as exc:
+        attach_data(driver)
+        raise exc
+
     yield driver
-    driver.quit()
+
+    try:
+        driver.quit()
+    except Exception as exc:
+        attach_data(driver)
+        raise exc
+

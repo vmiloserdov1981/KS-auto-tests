@@ -18,6 +18,7 @@ class ModelPage(EntityPage):
         self.modal = Modals(driver)
 
     def get_model_page_data(self) -> dict:
+        '''
         data = {
             'model_name': self.get_entity_page_title(return_raw=True),
             'changes': self.get_change_data(),
@@ -42,7 +43,6 @@ class ModelPage(EntityPage):
             'tags': [self.get_model_tags]
         }
         data = self.get_page_data_by_template(template)
-        '''
         return data
 
     def create_model(self, parent_node, model_name):
@@ -82,8 +82,8 @@ class ModelPage(EntityPage):
                 actual_datetime = datetime.datetime(int(actual_date.split('.')[2]), int(actual_date.split('.')[1]), int(actual_date.split('.')[0]), int(actual_time.split(':')[0]), int(actual_time.split(':')[1]))
                 interval = datetime.timedelta(minutes=1)
                 actual_datetime = str(actual_datetime + interval)
-                actual_date = actual_datetime.split(' ')[0]
-                actual_time = actual_datetime.split(' ')[1]
+                actual_date = '.'.join(actual_datetime.split(' ')[0].split('-')[::-1])
+                actual_time = actual_datetime.split(' ')[1][:-3]
                 expected['changes'] = {
                     'created_at': f'{actual_date} {actual_time}',
                     'created_by': self.driver.current_user.name,
