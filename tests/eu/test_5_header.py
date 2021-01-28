@@ -1,7 +1,6 @@
 from pages.components.eu_header import EuHeader
 from pages.plan_registry_po import PlanRegistry
 from pages.events_plan_po import EventsPlan
-from api.api import ApiEu
 from variables import PkmVars as Vars
 import users as user
 import allure

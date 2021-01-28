@@ -4,11 +4,11 @@ import allure
 from conditions.preconditions_ui import PreconditionsFront
 import users as user
 from conditions.preconditions_api import ApiPreconditions
-from conditions.postconditions_api import EuPostconditions
 from variables import PkmVars as Vars
 import os
 from webdriver_manager.chrome import ChromeDriverManager
 import json
+from conditions.clean_factory import delete as delete_entity
 
 
 def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, token=None):
@@ -35,6 +35,7 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, token=
             command_executor=ip,
             desired_capabilities=capabilities)
     driver.test_data = {}
+    driver.is_test_failed = False
     driver.token = token
     driver.project_uuid = project_uuid
     driver.implicitly_wait(impl_wait)
@@ -42,8 +43,6 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, token=
     if maximize:
         driver.maximize_window()
     return driver
-
-
 
 
 # Фикстура для создания скриншотов при фейле теста
@@ -107,7 +106,7 @@ def parametrized_login_driver(parameters):
                 k6_plan_comment = data.get('last_k6_plan').get('settings').get('plan').get('comment')
                 k6_plan_uuid = data.get('last_k6_plan').get('uuid')
                 data['copy_last_k6_plan'] = preconditions_api.check_k6_plan_copy(k6_plan_comment, k6_plan_uuid)
-            data['to_delete'] = {}
+            data['to_delete'] = []
             with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
                 driver.test_data = data
             preconditions.login_as_eu(eu_user.login, eu_user.password, parameters.get('project'))
@@ -121,11 +120,11 @@ def parametrized_login_driver(parameters):
     yield driver
 
     with AttachmentsCreator(driver):
-        if driver.test_data.get('to_delete') != {} and driver.test_data.get('to_delete'):
+        if driver.test_data.get('to_delete'):
             with allure.step(f'Удалить тестовые данные'):
-                postconditions_api = EuPostconditions(None, None, project_uuid, token=token)
-                postconditions_api.test_data_cleaner(driver.test_data)
-        driver.quit()
+                for entity in driver.test_data.get('to_delete'):
+                    delete_entity(entity)
+    driver.quit()
 
 
 @pytest.fixture()
@@ -159,8 +158,7 @@ def parametrized_login_admin_driver(parameters):
 
     yield driver
 
-    with AttachmentsCreator(driver):
-        driver.quit()
+    driver.quit()
 
 
 class AttachmentsCreator:
@@ -172,7 +170,9 @@ class AttachmentsCreator:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_val:
+            self.driver.is_test_failed = True
             self.attach_data()
+            self.driver.quit()
 
     def attach_data(self):
         allure.attach(

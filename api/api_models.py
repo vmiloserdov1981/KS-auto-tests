@@ -67,3 +67,8 @@ class ApiModels(BaseApi):
     def get_models_names(self):
         names = self.get_tree_nodes().get('model')
         return names
+
+    def delete_dataset(self, uuid):
+        payload = {'uuid': uuid}
+        resp = self.post(f'{Vars.PKM_API_URL}datasets/delete', self.token, payload)
+        assert not resp.get('error'), f'Ошибка при удалении наборов данных'

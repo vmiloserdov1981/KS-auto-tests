@@ -8,6 +8,7 @@ from selenium.common.exceptions import TimeoutException
 import users as user
 import allure
 import pytest
+from conditions.clean_factory import DatasetCreator
 
 
 @allure.feature('Интерфейс КП')
@@ -66,7 +67,7 @@ def test_eu_plan_versions_control(parametrized_login_driver, parameters):
 
     with allure.step(f'Добавить новую версию плана'):
         version1 = plans_registry.add_version(k6_plan_copy_uuid)
-        parametrized_login_driver.test_data['to_delete']['datasets'] = [version1[1]]
+        parametrized_login_driver.test_data['to_delete'].append(DatasetCreator(parametrized_login_driver, version1[1]))
 
     ui_versions.append(plans_registry.cut_version_date(version1[0]))
 
@@ -75,7 +76,7 @@ def test_eu_plan_versions_control(parametrized_login_driver, parameters):
 
     with allure.step(f'Добавить новую версию плана, созданную на основе версии "Проект плана"'):
         version2 = plans_registry.add_version(k6_plan_copy_uuid, based_on=versions[0])
-        parametrized_login_driver.test_data['to_delete']['datasets'].append(version2[1])
+        parametrized_login_driver.test_data['to_delete'].append(DatasetCreator(parametrized_login_driver, version2[1]))
 
     ui_versions.append(plans_registry.cut_version_date(version2[0]))
 
@@ -96,7 +97,6 @@ def test_eu_plan_versions_control(parametrized_login_driver, parameters):
 
     with allure.step('Проверить, что версия по умолчанию не изменилась'):
         assert plans_registry.get_default_version() == default_version, 'Версия по умолчанию не соответствует изначальной'
-
     with allure.step('Посмотреть выбранный план на плане мероприятий'):
         plans_registry.find_and_click(plans_registry.LOCATOR_VIEW_PLAN_BUTTON)
 
@@ -121,10 +121,9 @@ def test_eu_plan_versions_control(parametrized_login_driver, parameters):
         version2_tasks = api.api_get_gantt_tasks(api.api_get_gantt(plans_registry.cut_version_date(version2[0]), k6_plan_copy_uuid, login))
         base_version_tasks = api.api_get_gantt_tasks(api.api_get_gantt(versions[0], k6_plan_copy_uuid, login))
         events_plan.compare_dicts(base_version_tasks, version2_tasks)
-
+    
     with allure.step('Перейти на страницу "Реестр ИП"'):
         header.navigate_to_page('Реестр интегрированных планов')
-
     plans_registry_url = parametrized_login_driver.current_url
 
     with allure.step('Выбрать план-копию последнего плана к6'):
@@ -132,7 +131,7 @@ def test_eu_plan_versions_control(parametrized_login_driver, parameters):
 
     with allure.step(f'Удалить вновь созданную версию f{version2[0]}'):
         plans_registry.delete_version(version2[0])
-        parametrized_login_driver.test_data['to_delete']['datasets'].remove(version2[1])
+        parametrized_login_driver.test_data['to_delete'] = parametrized_login_driver.test_data['to_delete'][:-1]
         ui_versions.remove(plans_registry.cut_version_date(version2[0]))
 
     with allure.step(f'Установить вновь созданную версию {version1[0]} версией по умолчанию (отметить звездочкой)'):
@@ -163,7 +162,6 @@ def test_eu_plan_versions_control(parametrized_login_driver, parameters):
 
     with allure.step(f'Перейти к странице "Реестр интегрированных планов" (по ссылке, чтобы обновить страницу)'):
         parametrized_login_driver.get(plans_registry_url)
-
     with allure.step('Выбрать план-копию последнего плана к6'):
         plans_registry.select_plan_by_uuid(k6_plan_copy_uuid)
 
