@@ -44,18 +44,7 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, token=
     return driver
 
 
-def attach_data(web_driver):
-    allure.attach(
-        web_driver.get_screenshot_as_png(),
-        name='screenshot',
-        attachment_type=allure.attachment_type.PNG
-    )
-    logs = json.dumps(web_driver.get_log('browser'))
-    allure.attach(
-        logs,
-        name='logs',
-        attachment_type=allure.attachment_type.JSON
-    )
+
 
 # Фикстура для создания скриншотов при фейле теста
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -70,7 +59,8 @@ def pytest_runtest_makereport(item, call):
                     if 'driver' in fixturename:
                         web_driver = item.funcargs[fixturename]
                         web_driver.is_test_failed = True
-                        attach_data(web_driver)
+                        attachments_creator = AttachmentsCreator(web_driver)
+                        attachments_creator.attach_data()
                         return
                 print('Fail to take screen-shot')
         except Exception as e:
@@ -108,30 +98,34 @@ def parametrized_login_driver(parameters):
     driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid, token=token)
     preconditions_api = ApiPreconditions(None, None, project_uuid, token)
     preconditions = PreconditionsFront(driver, project_uuid, token=token)
-    preconditions_api.api_check_user(parameters.get('login'))
-    eu_user = user.test_users[parameters.get('login')]
-    if parameters.get('get_last_k6_plan'):
-        data = {'last_k6_plan': preconditions_api.api_get_last_k6_plan()}
-        if parameters.get('get_last_k6_plan_copy'):
-            k6_plan_comment = data.get('last_k6_plan').get('settings').get('plan').get('comment')
-            k6_plan_uuid = data.get('last_k6_plan').get('uuid')
-            data['copy_last_k6_plan'] = preconditions_api.check_k6_plan_copy(k6_plan_comment, k6_plan_uuid)
-        data['to_delete'] = {}
-        with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
-            driver.test_data = data
-        preconditions.login_as_eu(eu_user.login, eu_user.password, parameters.get('project'))
-        if parameters.get('select_last_k6_plan'):
-            preconditions.view_last_k6_plan()
-        elif parameters.get('select_last_k6_plan_copy'):
-            preconditions.view_last_k6_plan_copy()
-    else:
-        preconditions.login_as_eu(eu_user.login, eu_user.password, parameters.get('project'))
+    with AttachmentsCreator(driver):
+        preconditions_api.api_check_user(parameters.get('login'))
+        eu_user = user.test_users[parameters.get('login')]
+        if parameters.get('get_last_k6_plan'):
+            data = {'last_k6_plan': preconditions_api.api_get_last_k6_plan()}
+            if parameters.get('get_last_k6_plan_copy'):
+                k6_plan_comment = data.get('last_k6_plan').get('settings').get('plan').get('comment')
+                k6_plan_uuid = data.get('last_k6_plan').get('uuid')
+                data['copy_last_k6_plan'] = preconditions_api.check_k6_plan_copy(k6_plan_comment, k6_plan_uuid)
+            data['to_delete'] = {}
+            with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
+                driver.test_data = data
+            preconditions.login_as_eu(eu_user.login, eu_user.password, parameters.get('project'))
+            if parameters.get('select_last_k6_plan'):
+                preconditions.view_last_k6_plan()
+            elif parameters.get('select_last_k6_plan_copy'):
+                preconditions.view_last_k6_plan_copy()
+        else:
+            preconditions.login_as_eu(eu_user.login, eu_user.password, parameters.get('project'))
+
     yield driver
-    if driver.test_data.get('to_delete') != {} and driver.test_data.get('to_delete'):
-        with allure.step(f'Удалить тестовые данные'):
-            postconditions_api = EuPostconditions(None, None, project_uuid, token=token)
-            postconditions_api.test_data_cleaner(driver.test_data)
-    driver.quit()
+
+    with AttachmentsCreator(driver):
+        if driver.test_data.get('to_delete') != {} and driver.test_data.get('to_delete'):
+            with allure.step(f'Удалить тестовые данные'):
+                postconditions_api = EuPostconditions(None, None, project_uuid, token=token)
+                postconditions_api.test_data_cleaner(driver.test_data)
+        driver.quit()
 
 
 @pytest.fixture()
@@ -151,7 +145,7 @@ def parametrized_login_admin_driver(parameters):
     driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid, token=token)
     preconditions_api = ApiPreconditions(None, None, project_uuid, token)
     preconditions_ui = PreconditionsFront(driver, project_uuid, token=token)
-    try:
+    with AttachmentsCreator(driver):
         if not parameters.get('use_admin'):
             preconditions_api.api_check_user(parameters.get('login'))
             ai_user = user.test_users[parameters.get('login')]
@@ -162,15 +156,33 @@ def parametrized_login_admin_driver(parameters):
             driver.current_user = user.admin
         if parameters.get('tree_type'):
             preconditions_ui.set_tree(parameters.get('tree_type'))
-    except Exception as exc:
-        attach_data(driver)
-        raise exc
 
     yield driver
 
-    try:
+    with AttachmentsCreator(driver):
         driver.quit()
-    except Exception as exc:
-        attach_data(driver)
-        raise exc
 
+
+class AttachmentsCreator:
+    def __init__(self, driver):
+        self.driver = driver
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_val:
+            self.attach_data()
+
+    def attach_data(self):
+        allure.attach(
+            self.driver.get_screenshot_as_png(),
+            name='screenshot',
+            attachment_type=allure.attachment_type.PNG
+        )
+        logs = json.dumps(self.driver.get_log('browser'))
+        allure.attach(
+            logs,
+            name='logs',
+            attachment_type=allure.attachment_type.JSON
+        )
