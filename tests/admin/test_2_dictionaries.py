@@ -50,10 +50,6 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
     with allure.step('Проверить отображение обновленного имени справочника на странице справочника'):
         assert dictionary_page.get_entity_page_title() == new_dict_name.upper()
 
-        #выключить!
-        dictionary_page.tree.expand_node(Vars.PKM_TEST_FOLDER_NAME)
-        #выключить!
-
     with allure.step('Проверить отображение обновленного имени справочника в дереве'):
         assert dictionary_page.tree.get_selected_node_name() == new_dict_name
 
@@ -61,8 +57,7 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
         dictionary_page.tree.rename_node(new_dict_name, dict_name)
 
     with allure.step(f'Проверить изменение названия справочника на странице справочника'):
-        #assert dictionary_page.get_entity_page_title(return_raw=True) == dict_name
-        pass
+        assert dictionary_page.get_entity_page_title(return_raw=True) == dict_name
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -71,8 +66,7 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
         assert dictionary_page.get_entity_page_title() == dict_name.upper()
 
     with allure.step('Проверить отображение обновленного имени справочника в дереве'):
-        #assert dictionary_page.tree.get_selected_node_name() == dict_name
-        pass
+        assert dictionary_page.tree.get_selected_node_name() == dict_name
 
     with allure.step(f'Создать новый элемент справочника "{element_1}"'):
         dictionary_page.create_dict_element(element_1)
