@@ -2,8 +2,9 @@ import allure
 import pytest
 from variables import PkmVars as Vars
 from pages.model_po import ModelPage
+from conditions.clean_factory import ModelNodeCreator
 
-'''
+
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
 @allure.title('Управление моделями')
@@ -75,7 +76,6 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
         assert model_name not in api.get_models_names()
 
 
-'''
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
 @allure.title('Управление наборами данных')
@@ -91,6 +91,8 @@ def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
     model_page = ModelPage(parametrized_login_admin_driver)
     api = model_page.api_creator.get_api_models()
     test_folder_name = Vars.PKM_TEST_FOLDER_NAME
+    dataset_1 = 'Проверенные данные'
+    dataset_2 = 'Непроверенные данные'
 
     with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
         test_folder_uuid = api.check_test_folder(test_folder_name)
@@ -100,3 +102,15 @@ def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Создать тестовую модель {model_name} в папке {test_folder_name} через API'):
         model_uuid = api.create_model_node(model_name, parent_uuid=test_folder_uuid)
+
+    with allure.step(f'Добавить модель {model_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ModelNodeCreator(parametrized_login_admin_driver, model_uuid))
+
+    with allure.step(f'развернуть тестовую папку {test_folder_name}'):
+        model_page.tree.expand_node(test_folder_name)
+
+    with allure.step(f'Перейти на страницу модели {model_name}'):
+        model_page.tree.select_node(model_name)
+
+    with allure.step(f'Создать новый набор данных {dataset_1}'):
+        model_page.create_dataset(dataset_1)

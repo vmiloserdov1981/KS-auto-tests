@@ -122,4 +122,7 @@ class ModelPage(EntityPage):
         elements = [element.text for element in self.elements_generator((By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{self.TAGS_LIST_NAME}'] ]//div[contains(@class, 'tag-item')]"), time=1)]
         return elements if elements != [] else None
 
+    def create_dataset(self, dataset_name, is_default=None):
+        pass
+
 

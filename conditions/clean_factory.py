@@ -18,6 +18,11 @@ class DatasetCreator(Creator):
         return DatasetProduct(self.driver, self.uuid, self.delete_anyway)
 
 
+class ModelNodeCreator(Creator):
+    def factory_method(self):
+        return ModelNode(self.driver, self.uuid, self.delete_anyway)
+
+
 class Product(ABC):
     """
     Интерфейс Продукта объявляет операции, которые должны выполнять все
@@ -38,6 +43,12 @@ class DatasetProduct(Product):
     def delete_entity(self):
         api = ApiModels(None, None, self.driver.project_uuid, token=self.driver.token)
         api.delete_dataset(self.uuid)
+
+
+class ModelNode(Product):
+    def delete_entity(self):
+        api = ApiModels(None, None, self.driver.project_uuid, token=self.driver.token)
+        api.delete_model_node(self.uuid)
 
 
 def delete(creator: Creator):

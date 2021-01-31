@@ -4,46 +4,6 @@ from variables import PkmVars as Vars
 
 class ApiModels(BaseApi):
 
-    """
-    def api_get_nodes(self):
-        return self.post('{}models/get-tree'.format(Vars.PKM_API_URL), self.token, {})
-
-    def api_get_models_list(self):
-        return self.post('{}models/get-list'.format(Vars.PKM_API_URL), self.token, {})
-
-    def api_get_models_names(self):
-        models_list = self.api_get_models_list()
-        list = []
-        for i in models_list.get('data'):
-            list.append(i.get('name'))
-        return list
-
-    def api_get_models_folders_names(self):
-        nodes_list = ApiModels.api_get_nodes(self)
-        list = []
-        for i in nodes_list.get('data'):
-            if i.get('type') == 'folder':
-                list.append(i.get('name'))
-        return list
-
-    def model_name_is_exists(self, name):
-        models_names = self.api_get_models_names()
-        return name in models_names
-
-    def folder_name_is_exists(self, name):
-        folders_names = self.api_get_models_folders_names()
-        return name in folders_names
-
-    def create_unique_model_name(self, basename):
-        models_list = self.api_get_models_names()
-        count = 0
-        newname = basename
-        while newname in models_list:
-            count += 1
-            newname = f"{basename}_{count}"
-        return newname
-    """
-
     def api_get_models_tree(self):
         resp = self.post('{}models/get-tree'.format(Vars.PKM_API_URL), self.token, {})
         return resp.get('data')
@@ -102,6 +62,12 @@ class ApiModels(BaseApi):
         payload = {'uuid': uuid}
         resp = self.post(f'{Vars.PKM_API_URL}datasets/delete', self.token, payload)
         assert not resp.get('error'), f'Ошибка при удалении наборов данных'
+
+    def delete_model_node(self, uuid):
+        payload = {'uuid': uuid}
+        resp = self.post(f'{Vars.PKM_API_URL}models/delete-node', self.token, payload)
+        assert not resp.get('error'), f'Ошибка при удалении ноды модели'
+
 
     def create_model_node(self, model_name, parent_uuid=None):
         payload = {
