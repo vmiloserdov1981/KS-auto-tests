@@ -3,7 +3,7 @@ import pytest
 from variables import PkmVars as Vars
 from pages.model_po import ModelPage
 
-
+'''
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
 @allure.title('Управление моделями')
@@ -73,3 +73,30 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Проверить отсутствие модели "{model_name}" в дереве моделей'):
         assert model_name not in api.get_models_names()
+
+
+'''
+@allure.feature('Интерфейс Администратора')
+@allure.story('Дерево моделей')
+@allure.title('Управление наборами данных')
+@allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.red_label
+@pytest.mark.parametrize("parameters", [({
+        'login': 'eu_user',
+        'project': Vars.PKM_PROJECT_NAME,
+        'tree_type': 'Модели',
+        'name': 'Управление моделями'
+    })])
+def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
+    model_page = ModelPage(parametrized_login_admin_driver)
+    api = model_page.api_creator.get_api_models()
+    test_folder_name = Vars.PKM_TEST_FOLDER_NAME
+
+    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
+        test_folder_uuid = api.check_test_folder(test_folder_name)
+
+    with allure.step(f'Определить уникальное название модели'):
+        model_name = api.create_unique_model_name(Vars.PKM_BASE_MODEL_NAME + '_НД')
+
+    with allure.step(f'Создать тестовую модель {model_name} в папке {test_folder_name} через API'):
+        model_uuid = api.create_model_node(model_name, parent_uuid=test_folder_uuid)
