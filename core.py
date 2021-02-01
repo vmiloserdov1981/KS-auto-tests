@@ -172,7 +172,7 @@ class BasePage:
             return value if value != '' else None
 
     @staticmethod
-    def compare_lists(list_a, list_b):
+    def compare_lists(list_a: list, list_b: list):
         return collections.Counter(list_a) == collections.Counter(list_b)
 
     def compare_dicts(self, dict_a, dict_b):

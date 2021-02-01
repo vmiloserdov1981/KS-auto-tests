@@ -13,8 +13,30 @@ class EntityPage(BasePage):
     LOCATOR_TITLE_CHECK_ICON = (By.XPATH, "//div[@class='page-title-container']//fa-icon[@icon='check']")
 
     @staticmethod
-    def add_list_element_button_creator(list_name):
-        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()=' {list_name} '] ]//fa-icon[@icon='plus']")
+    def add_list_element_button_creator(list_name, without_spaces=False):
+        if without_spaces:
+            locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()='{list_name}'] ]//fa-icon[@icon='plus']")
+        else:
+            locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()=' {list_name} '] ]//fa-icon[@icon='plus']")
+        return locator
+
+    @staticmethod
+    def list_sort_button_creator(list_name, without_spaces=False):
+        if without_spaces:
+            locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()='{list_name}'] ]//fa-icon[@icon='sort']")
+        else:
+            locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()=' {list_name} '] ]//fa-icon[@icon='sort']")
+        return locator
+
+    @staticmethod
+    def sort_type_button_creator(sort_type):
+        locator = (By.XPATH, f"//div[contains(@class, 'overlay-item') and ./div[.='{sort_type}']]")
+        return locator
+
+    @staticmethod
+    def sort_order_icon_creator(sort_type):
+        element_xpath = EntityPage.sort_type_button_creator(sort_type)[1]
+        locator = (By.XPATH, element_xpath + "//fa-icon[contains(@ng-reflect-icon, 'arrow-')]")
         return locator
 
     @staticmethod

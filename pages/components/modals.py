@@ -28,6 +28,11 @@ class Modals(BasePage):
         locator = (By.XPATH, f"//div[@class='overlay']//div[contains(@class, 'dropdown-item') and text()=' {item_name} ']")
         return locator
 
+    @staticmethod
+    def checkbox_locator_creator(checkbox_name):
+        locator = (By.XPATH, f"//div[./label[.='{checkbox_name}']]//input[@type='checkbox']")
+        return locator
+
     def enter_and_save(self, name, clear_input=False):
         if clear_input:
             name_input = self.find_element(self.LOCATOR_NAME_INPUT)
@@ -61,6 +66,17 @@ class Modals(BasePage):
     def clear_name_input(self):
         name_input = self.find_element(self.LOCATOR_NAME_INPUT)
         name_input.clear()
+
+    def check_checkbox(self, checkbox_name):
+        checkbox = self.find_element(self.checkbox_locator_creator(checkbox_name))
+        if not checkbox.is_selected():
+            checkbox.click()
+
+    def uncheck_checkbox(self, checkbox_name):
+        checkbox = self.find_element(self.checkbox_locator_creator(checkbox_name))
+        if checkbox.is_selected():
+            checkbox.click()
+
 
 
 class Calendar(BasePage, BaseApi):

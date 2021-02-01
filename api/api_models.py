@@ -77,6 +77,25 @@ class ApiModels(BaseApi):
         if parent_uuid:
             payload['parentUuid'] = parent_uuid
         resp = self.post(f'{Vars.PKM_API_URL}models/create-node', self.token, payload)
-        node_uuid = resp.get('nodeUuid')
-        return node_uuid
+        return resp
+
+    def get_datasets_by_model(self, model_uuid):
+        payload = {'modelUuid': model_uuid}
+        resp = self.post(f'{Vars.PKM_API_URL}datasets/get-by-model-id', self.token, payload)
+        data = resp.get('data')
+        return data
+
+    def get_datasets_names(self, model_uuid, group_value=None, reverse=None):
+        datasets = self.get_datasets_by_model(model_uuid)
+        result = []
+
+        if group_value and reverse is not None:
+            def sort_function(dataset_data):
+                return dataset_data.get(group_value)
+            datasets.sort(key=sort_function, reverse=reverse)
+
+        for dataset in datasets:
+            result.append({'name': dataset.get('name'), 'is_default': dataset.get('default')})
+
+        return result
 
