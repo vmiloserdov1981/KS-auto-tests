@@ -199,3 +199,10 @@ class ModelPage(EntityPage):
         delete_button_locator = (By.XPATH, f"{self.datasets_list_value_locator_creator(dataset_name)[1]}//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='trash']")
         self.find_and_click(delete_button_locator)
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
+
+    def add_dimension(self, dimension_name):
+        self.find_and_click(self.add_entity_button_locator_creator(self.DIMENSIONS_LIST_NAME))
+        dimensions_field = (By.XPATH, f"//div[contains(@class, 'list-header') and .='{self.DIMENSIONS_LIST_NAME}']//input")
+        self.find_and_enter(dimensions_field, dimension_name)
+        self.find_and_click(self.modal.dropdown_item_locator_creator(dimension_name))
+        self.find_element(self.list_element_creator(f'{self.DIMENSIONS_LIST_NAME}', dimension_name))

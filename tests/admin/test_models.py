@@ -75,6 +75,7 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Проверить отсутствие модели "{model_name}" в дереве моделей'):
         assert model_name not in api.get_models_names()
 
+
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
 @allure.title('Управление наборами данных')
@@ -84,7 +85,7 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
         'login': 'eu_user',
         'project': Vars.PKM_PROJECT_NAME,
         'tree_type': 'Модели',
-        'name': 'Управление моделями'
+        'name': 'Управление наборами данных модели'
     })])
 def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
     model_page = ModelPage(parametrized_login_admin_driver)
@@ -193,3 +194,57 @@ def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
         api_datasets = api.get_datasets_names(model_uuid, 'createdAt', True)
         ui_datasets = model_page.get_model_datasets()
         assert api_datasets == ui_datasets, 'Некорректная сортировка по умолчанию'
+        
+
+@allure.feature('Интерфейс Администратора')
+@allure.story('Дерево моделей')
+@allure.title('Управление измерениями модели')
+@allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.red_label
+@pytest.mark.parametrize("parameters", [({
+        'login': 'eu_user',
+        'project': Vars.PKM_PROJECT_NAME,
+        'tree_type': 'Модели',
+        'name': 'Управление измерениями модели'
+    })])
+def test_admin_dimensions_control(parametrized_login_admin_driver, parameters):
+    model_page = ModelPage(parametrized_login_admin_driver)
+    model_api = model_page.api_creator.get_api_models()
+    dictionary_api = model_page.api_creator.get_api_dictionaries()
+    test_folder_name = Vars.PKM_TEST_FOLDER_NAME
+    dimension_1 = {'name': 'Типы данных (автотест)', 'elements': ['Числовые', 'Текстовые']}
+    dimension_2 = {'name': 'Виды данных (автотест)', 'elements': ['Статистические', 'Эмпирические']}
+    dimension_3 = {'name': 'Функциональность данных (автотест)', 'elements': ['Базовая', 'Расширенная']}
+
+    with allure.step(f'Проверить наличие тестовых справочников'):
+        dictionary_api.check_test_dictionaries([dimension_1, dimension_2, dimension_3], parent_node_name=test_folder_name)
+
+    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
+        test_folder_uuid = model_api.check_test_folder(test_folder_name)
+
+    with allure.step(f'Определить уникальное название модели'):
+        model_name = model_api.create_unique_model_name(Vars.PKM_BASE_MODEL_NAME + '_измерения')
+
+    with allure.step(f'Создать тестовую модель {model_name} в папке {test_folder_name} через API'):
+        model = model_api.create_model_node(model_name, parent_uuid=test_folder_uuid)
+        model_node_uuid = model.get('nodeUuid')
+        model_uuid = model.get('referenceUuid')
+
+    with allure.step(f'Добавить модель {model_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ModelNodeCreator(parametrized_login_admin_driver, model_node_uuid, delete_anyway=True))
+
+    with allure.step(f'развернуть тестовую папку {test_folder_name}'):
+        model_page.tree.expand_node(test_folder_name)
+
+    with allure.step(f'Перейти на страницу модели {model_name}'):
+        model_page.tree.select_node(model_name)
+
+    with allure.step(f'Добавить измерение {dimension_1.get("name")} в модель'):
+        model_page.add_dimension(dimension_1.get("name"))
+
+    with allure.step(f'Добавить измерение {dimension_2.get("name")} в модель'):
+        model_page.add_dimension(dimension_2.get("name"))
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+

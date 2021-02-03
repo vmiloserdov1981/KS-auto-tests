@@ -34,8 +34,6 @@ class PreconditionsFront(BasePage, ApiEu):
             with allure.step(f'Выбрать проект {project}'):
                 project_modal.select_project(project)
         with allure.step('Проверить отображение блока профиля пользователя'):
-            #убрать следующую строку после исправления PKM-4518
-            main_page.driver.get('http://pkm.andersenlab.com/#/main?treeType=model')
             main_page.find_element(main_page.LOCATOR_PKM_PROFILENAME_BLOCK)
         with allure.step('Сохранить токен приложения в драйвере'):
             self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
