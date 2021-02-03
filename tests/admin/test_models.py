@@ -2,6 +2,7 @@ import allure
 import pytest
 from variables import PkmVars as Vars
 from pages.model_po import ModelPage
+from conditions.clean_factory import ModelNodeCreator
 
 
 @allure.feature('Интерфейс Администратора')
@@ -73,3 +74,122 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Проверить отсутствие модели "{model_name}" в дереве моделей'):
         assert model_name not in api.get_models_names()
+
+@allure.feature('Интерфейс Администратора')
+@allure.story('Дерево моделей')
+@allure.title('Управление наборами данных')
+@allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.red_label
+@pytest.mark.parametrize("parameters", [({
+        'login': 'eu_user',
+        'project': Vars.PKM_PROJECT_NAME,
+        'tree_type': 'Модели',
+        'name': 'Управление моделями'
+    })])
+def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
+    model_page = ModelPage(parametrized_login_admin_driver)
+    api = model_page.api_creator.get_api_models()
+    test_folder_name = Vars.PKM_TEST_FOLDER_NAME
+    dataset_1 = 'Проверенные данные'
+    dataset_2 = 'Непроверенные данные'
+    dataset_3 = 'Требуют согласования'
+
+    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
+        test_folder_uuid = api.check_test_folder(test_folder_name)
+
+    with allure.step(f'Определить уникальное название модели'):
+        model_name = api.create_unique_model_name(Vars.PKM_BASE_MODEL_NAME + '_НД')
+
+    with allure.step(f'Создать тестовую модель {model_name} в папке {test_folder_name} через API'):
+        model = api.create_model_node(model_name, parent_uuid=test_folder_uuid)
+        model_node_uuid = model.get('nodeUuid')
+        model_uuid = model.get('referenceUuid')
+
+    with allure.step(f'Добавить модель {model_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ModelNodeCreator(parametrized_login_admin_driver, model_node_uuid, delete_anyway=True))
+
+    with allure.step(f'развернуть тестовую папку {test_folder_name}'):
+        model_page.tree.expand_node(test_folder_name)
+
+    with allure.step(f'Перейти на страницу модели {model_name}'):
+        model_page.tree.select_node(model_name)
+
+    with allure.step(f'Создать новый набор данных "{dataset_1}"'):
+        model_page.create_dataset(dataset_1)
+
+    with allure.step(f'Создать новый набор данных "{dataset_2}" по умолчанию'):
+        model_page.create_dataset(dataset_2, is_default=True)
+
+    with allure.step(f'Проверить корректное отображение наборов данных в списке'):
+        expected = [{'name': dataset_1, 'is_default': False}, {'name': dataset_2, 'is_default': True}]
+        actual = model_page.get_model_datasets()
+        #PKM-4552
+        #assert actual == expected, 'Актуальные наборы данных не совпадают с ожидаемыми'
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить корректное отображение наборов данных в списке'):
+        expected = [{'name': dataset_2, 'is_default': True}, {'name': dataset_1, 'is_default': False}]
+        actual = model_page.get_model_datasets()
+        assert actual == expected, 'Актуальные наборы данных не совпадают с ожидаемыми'
+
+    with allure.step(f'Создать новый набор данных "{dataset_3}"'):
+        model_page.create_dataset(dataset_3, is_default=False)
+
+    with allure.step(f'Проверить сортировку наборов данных по дате (DESC) по умолчанию'):
+        api_datasets = api.get_datasets_names(model_uuid, 'createdAt', True)
+        ui_datasets = model_page.get_model_datasets()
+        # PKM-4554
+        # assert api_datasets == ui_datasets, 'Некорректная сортировка по умолчанию'
+
+    with allure.step(f'Проверить сортировку наборов данных по дате (ASC)'):
+        ui_datasets = model_page.get_model_datasets('По дате создания', 'ASC')
+        api_datasets = api.get_datasets_names(model_uuid, 'createdAt', False)
+        # PKM-4554
+        #assert api_datasets == ui_datasets, 'Отсортированные наборы данных UI и API не совпадают'
+
+    with allure.step(f'Проверить сортировку наборов данных по дате (DESC)'):
+        ui_datasets = model_page.get_model_datasets('По дате создания', 'DESC')
+        api_datasets = api.get_datasets_names(model_uuid, 'createdAt', True)
+        # PKM-4554
+        #assert api_datasets == ui_datasets, 'Отсортированные наборы данных UI и API не совпадают'
+
+
+    with allure.step(f'Проверить сортировку наборов данных по алфавиту (ASC)'):
+        ui_datasets = model_page.get_model_datasets('По алфавиту', 'ASC')
+        api_datasets = api.get_datasets_names(model_uuid, 'name', False)
+        assert api_datasets == ui_datasets, 'Отсортированные наборы данных UI и API не совпадают'
+
+    with allure.step(f'Проверить сортировку наборов данных по алфавиту (DESC)'):
+        ui_datasets = model_page.get_model_datasets('По алфавиту', 'DESC')
+        api_datasets = api.get_datasets_names(model_uuid, 'name', True)
+        assert api_datasets == ui_datasets, 'Отсортированные наборы данных UI и API не совпадают'
+
+    with allure.step(f'Переименовать набор данных {dataset_1}'):
+        dataset_1_new = f'{dataset_1}_(переименовано)'
+        model_page.rename_dataset(dataset_1, dataset_1_new)
+        for dataset in api_datasets:
+            if dataset.get('name') == dataset_1:
+                dataset['name'] = dataset_1_new
+                break
+
+    with allure.step(f'Удалить набор данных {dataset_2}'):
+        model_page.delete_dataset(dataset_2)
+        for dataset in api_datasets:
+            if dataset.get('name') == dataset_2:
+                api_datasets.remove(dataset)
+                break
+
+    with allure.step(f'Проверить корректное отображение наборов данных в списке'):
+        expected = api_datasets
+        actual = model_page.get_model_datasets()
+        assert actual == expected, 'Актуальные наборы данных не совпадают с ожидаемыми'
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить сортировку наборов данных по дате (DESC) по умолчанию'):
+        api_datasets = api.get_datasets_names(model_uuid, 'createdAt', True)
+        ui_datasets = model_page.get_model_datasets()
+        assert api_datasets == ui_datasets, 'Некорректная сортировка по умолчанию'

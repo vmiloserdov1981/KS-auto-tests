@@ -34,7 +34,7 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, token=
         driver = webdriver.Remote(
             command_executor=ip,
             desired_capabilities=capabilities)
-    driver.test_data = {}
+    driver.test_data = {'to_delete': []}
     driver.is_test_failed = False
     driver.token = token
     driver.project_uuid = project_uuid
@@ -157,6 +157,12 @@ def parametrized_login_admin_driver(parameters):
             preconditions_ui.set_tree(parameters.get('tree_type'))
 
     yield driver
+
+    with AttachmentsCreator(driver):
+        if driver.test_data.get('to_delete'):
+            with allure.step(f'Удалить тестовые данные'):
+                for entity in driver.test_data.get('to_delete'):
+                    delete_entity(entity)
 
     driver.quit()
 
