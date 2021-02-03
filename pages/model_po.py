@@ -173,8 +173,29 @@ class ModelPage(EntityPage):
 
         self.find_and_click(self.list_sort_button_creator(self.DATASETS_LIST_NAME, without_spaces=True))
 
+    def rename_dataset(self, dataset_name, dataset_new_name, is_default=None):
+        dataset_locator = self.datasets_list_value_locator_creator(dataset_name)
+        name = self.get_element_text(dataset_locator)
+        if '\n(По умолчанию)' in name:
+            actual_default = True
+        else:
+            actual_default = False
 
+        self.hover_over_element(dataset_locator)
+        rename_button_locator = (By.XPATH, f"{self.datasets_list_value_locator_creator(dataset_name)[1]}//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='pencil-alt']")
+        self.find_and_click(rename_button_locator)
+        assert self.modal.is_input_checked(self.modal.checkbox_locator_creator('По умолчанию')) == actual_default, 'Состояние чекбокса по умолчанию не соответствыует названию набора данных'
 
+        if is_default is True:
+            self.modal.check_checkbox('По умолчанию')
+        elif is_default is False:
+            self.modal.uncheck_checkbox('По умолчанию')
 
+        self.modal.enter_and_save(dataset_new_name, clear_input=True)
 
-
+    def delete_dataset(self, dataset_name):
+        dataset_locator = self.datasets_list_value_locator_creator(dataset_name)
+        self.hover_over_element(dataset_locator)
+        delete_button_locator = (By.XPATH, f"{self.datasets_list_value_locator_creator(dataset_name)[1]}//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='trash']")
+        self.find_and_click(delete_button_locator)
+        self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
