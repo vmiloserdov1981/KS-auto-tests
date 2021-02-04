@@ -97,7 +97,9 @@ class ModelPage(EntityPage):
                 }
                 self.compare_dicts(actual, expected)
 
-    def get_model_dimensions(self):
+    def get_model_dimensions(self, sort_value=None, sort_order=None):
+        if sort_value and sort_order:
+            self.sort_dimensions(sort_value, sort_order)
         elements = self.get_list_elements_names(self.DIMENSIONS_LIST_NAME)
         return elements
 
@@ -173,6 +175,25 @@ class ModelPage(EntityPage):
 
         self.find_and_click(self.list_sort_button_creator(self.DATASETS_LIST_NAME, without_spaces=True))
 
+    def sort_dimensions(self, sort_type, sort_order):
+        self.find_and_click(self.list_sort_button_creator(self.DIMENSIONS_LIST_NAME, without_spaces=True))
+        self.find_and_click(self.sort_type_button_creator(sort_type))
+        sort_order_icon_locator = self.sort_order_icon_creator(sort_type)
+
+        if sort_order == 'ASC':
+            if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-down':
+                self.find_and_click(self.sort_type_button_creator(sort_type))
+                if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-down':
+                    raise AssertionError('Не удалось установить сортировку по возрастанию')
+
+        elif sort_order == 'DESC':
+            if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-up':
+                self.find_and_click(self.sort_type_button_creator(sort_type))
+                if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-up':
+                    raise AssertionError('Не удалось установить сортировку по убыванию')
+
+        self.find_and_click(self.list_sort_button_creator(self.DIMENSIONS_LIST_NAME, without_spaces=True))
+
     def rename_dataset(self, dataset_name, dataset_new_name, is_default=None):
         dataset_locator = self.datasets_list_value_locator_creator(dataset_name)
         name = self.get_element_text(dataset_locator)
@@ -206,3 +227,11 @@ class ModelPage(EntityPage):
         self.find_and_enter(dimensions_field, dimension_name)
         self.find_and_click(self.modal.dropdown_item_locator_creator(dimension_name))
         self.find_element(self.list_element_creator(f'{self.DIMENSIONS_LIST_NAME}', dimension_name))
+
+    def delete_dimension(self, dimension_name):
+        dimension_locator = self.list_element_creator(self.DIMENSIONS_LIST_NAME, dimension_name)
+        self.hover_over_element(dimension_locator)
+        delete_button_locator = (By.XPATH, f"{dimension_locator[1]}//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='trash']")
+        self.find_and_click(delete_button_locator)
+        self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
+

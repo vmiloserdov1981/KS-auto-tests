@@ -213,8 +213,8 @@ def test_admin_dimensions_control(parametrized_login_admin_driver, parameters):
     dictionary_api = model_page.api_creator.get_api_dictionaries()
     test_folder_name = Vars.PKM_TEST_FOLDER_NAME
     dimension_1 = {'name': 'Типы данных (автотест)', 'elements': ['Числовые', 'Текстовые']}
-    dimension_2 = {'name': 'Виды данных (автотест)', 'elements': ['Статистические', 'Эмпирические']}
-    dimension_3 = {'name': 'Функциональность данных (автотест)', 'elements': ['Базовая', 'Расширенная']}
+    dimension_2 = {'name': 'Функциональность данных (автотест)', 'elements': ['Базовая', 'Расширенная']}
+    dimension_3 = {'name': 'Виды данных (автотест)', 'elements': ['Статистические', 'Эмпирические']}
 
     with allure.step(f'Проверить наличие тестовых справочников'):
         dictionary_api.check_test_dictionaries([dimension_1, dimension_2, dimension_3], parent_node_name=test_folder_name)
@@ -247,4 +247,57 @@ def test_admin_dimensions_control(parametrized_login_admin_driver, parameters):
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Добавить измерение {dimension_3.get("name")} в модель'):
+        model_page.add_dimension(dimension_3.get("name"))
+
+    with allure.step(f'Проверить отображение всех добавленных измерений в списке измерений'):
+        ui_dimensions = model_page.get_model_dimensions()
+        added_dimensions = [dimension_1.get('name'), dimension_2.get('name'), dimension_3.get('name')]
+        assert model_page.compare_lists(ui_dimensions, added_dimensions), 'Измерения в списке не совпадают из созданными'
+
+    with allure.step(f'Проверить сортировку измерений по дате (DESC) по умолчанию'):
+        ui_dimensions = model_page.get_model_dimensions()
+        api_dimensions = model_api.get_model_dictionaries_names(model_uuid, group_value='createdAt', reverse=True)
+        assert api_dimensions == ui_dimensions, 'Некорректная сортировка по умолчанию'
+
+    with allure.step(f'Проверить сортировку измерений по дате (ASC)'):
+        ui_dimensions = model_page.get_model_dimensions('По дате создания', 'ASC')
+        api_dimensions = model_api.get_model_dictionaries_names(model_uuid, 'createdAt', False)
+        assert ui_dimensions == api_dimensions
+
+    with allure.step(f'Проверить сортировку измерений по дате (DESC)'):
+        ui_dimensions = model_page.get_model_dimensions('По дате создания', 'DESC')
+        api_dimensions = model_api.get_model_dictionaries_names(model_uuid, 'createdAt', True)
+        assert ui_dimensions == api_dimensions
+
+    with allure.step(f'Проверить сортировку измерений по алфавиту (ASC)'):
+        ui_dimensions = model_page.get_model_dimensions('По алфавиту', 'ASC')
+        api_dimensions = model_api.get_model_dictionaries_names(model_uuid, 'name', False)
+        assert ui_dimensions == api_dimensions
+
+    with allure.step(f'Проверить сортировку измерений по алфавиту (DESC)'):
+        ui_dimensions = model_page.get_model_dimensions('По алфавиту', 'DESC')
+        api_dimensions = model_api.get_model_dictionaries_names(model_uuid, 'name', True)
+        assert ui_dimensions == api_dimensions
+
+    with allure.step(f'Удалить измерение {dimension_2.get("name")}'):
+        model_page.delete_dimension(dimension_2.get("name"))
+        api_dimensions.remove(dimension_2.get("name"))
+
+    with allure.step(f'Проверить корректное отображение измерений в списке'):
+        expected = api_dimensions
+        actual = model_page.get_model_dimensions()
+        assert actual == expected, 'Актуальные измерения не совпадают с ожидаемыми'
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить сортировку измерений по дате (DESC) по умолчанию'):
+        api_dimensions = model_api.get_model_dictionaries_names(model_uuid, group_value='createdAt', reverse=True)
+        assert api_dimensions == ui_dimensions, 'Некорректная сортировка по умолчанию'
+
+
+
+
 
