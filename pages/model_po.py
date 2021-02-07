@@ -1,6 +1,7 @@
 from pages.components.entity_page import EntityPage
 from pages.components.trees import Tree
 from pages.components.modals import Modals
+from core import antistale
 from selenium.webdriver.common.by import By
 import datetime
 import allure
@@ -103,6 +104,7 @@ class ModelPage(EntityPage):
         elements = self.get_list_elements_names(self.DIMENSIONS_LIST_NAME)
         return elements
 
+    @antistale
     def get_model_datasets(self, sort_value=None, sort_order=None):
         if sort_value and sort_order:
             self.sort_datasets(sort_value, sort_order)

@@ -35,6 +35,9 @@ def test_eu_plan_versions_control(parametrized_login_driver, parameters):
     eu_filter = EuFilter(parametrized_login_driver)
     api = events_plan.api_creator.get_api_eu()
 
+    #убрать обновление после исправлений PKM-4559
+    parametrized_login_driver.refresh()
+
     with allure.step('Перейти на страницу "Реестр ИП"'):
         header.navigate_to_page('Реестр интегрированных планов')
 
