@@ -42,8 +42,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
         class_page.rename_title(new_class_name)
 
     with allure.step(f'Проверить изменение названия класса в дереве'):
-        #class_page.wait_until_text_in_element(class_page.tree.LOCATOR_SELECTED_NODE, new_class_name)
-        pass
+        class_page.wait_until_text_in_element(class_page.tree.LOCATOR_SELECTED_NODE, new_class_name)
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -147,12 +146,10 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
         relation_1['relation_name'] = relation_1_name
 
     with allure.step(f'Проверить переименование связи в дереве'):
-        #assert class_page.tree.get_selected_node_name() == relation_1['relation_name'], 'Некорректное название связи в дереве'
-        #удалить остальные строчки в шаге после включения первой
-        class_page.tree.expand_node(class_name)
+        assert class_page.tree.get_selected_node_name() == relation_1['relation_name'], 'Некорректное название связи в дереве'
         expected_children = [indicator_1['indicator_name'], indicator_2['indicator_name'], relation_1['relation_name'], relation_2['relation_name']]
         actual_children = class_page.tree.get_node_children_names(class_name)
-        #assert expected_children == actual_children, f'Некорректный список дочерних элементов класса {class_name}'
+        assert expected_children == actual_children, f'Некорректный список дочерних элементов класса {class_name}'
 
     with allure.step(f'Перейти на страницу класса "{class_name}"'):
         class_page.find_and_click(class_page.tree.node_locator_creator(class_name))
@@ -169,7 +166,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
     with allure.step(f'Проверить переименование показателя "{indicator_name}" в дереве'):
         actual_children = class_page.tree.get_node_children_names(class_name)
         expected_children = [indicator_1['indicator_name'], indicator_2['indicator_name'], relation_1['relation_name'], relation_2['relation_name']]
-        #assert expected_children == actual_children, f'Некорректный список дочерних элементов класса {class_name}'
+        assert expected_children == actual_children, f'Некорректный список дочерних элементов класса {class_name}'
 
     with allure.step(f'Проверить переименование показателя "{indicator_name}" на странице показателя'):
         class_page.find_and_click(class_page.list_element_creator(class_page.INDICATORS_LIST_NAME, indicator_1['indicator_name']))
@@ -236,4 +233,3 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
     with allure.step(f'Проверить отсутствие класса "{class_name}" в дереве классов'):
         assert class_name not in api.get_classes_names()
-

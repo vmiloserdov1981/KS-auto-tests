@@ -72,7 +72,7 @@ class PlanRegistry(EuHeader, BasePage):
     def get_versions_names(self, with_dates=True):
         element = self.find_element(self.LOCATOR_VERSIONS_NAMES)
         try:
-            self.wait_element_replacing(element, self.LOCATOR_VERSIONS_NAMES, time=3)
+            self.wait_element_replacing(element, self.LOCATOR_VERSIONS_NAMES, time=10)
         except TimeoutException:
             pass
         if with_dates:

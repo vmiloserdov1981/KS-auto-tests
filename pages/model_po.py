@@ -24,7 +24,7 @@ class ModelPage(EntityPage):
         return locator
 
     def get_model_page_data(self) -> dict:
-        '''
+        """
         data = {
             'model_name': self.get_entity_page_title(return_raw=True),
             'changes': self.get_change_data(),
@@ -36,7 +36,7 @@ class ModelPage(EntityPage):
             'solver_values': self.get_model_solvers(),
             'tags': self.get_model_tags()
         }
-        '''
+        """
         template = {
             'model_name': (self.get_entity_page_title, (), {"return_raw": True}),
             'changes': [self.get_change_data],
@@ -60,8 +60,7 @@ class ModelPage(EntityPage):
         actual_date = f'{".".join(api.get_utc_date())}'
         actual_time = api.get_utc_time()
         with allure.step(f'Проверить отображение модели {model_name} в дереве моделей выбранной'):
-            #assert self.tree.get_selected_node_name() == model_name, f'В дереве не выбрана нода {model_name}'
-            pass
+            assert self.tree.get_selected_node_name() == model_name, f'В дереве не выбрана нода {model_name}'
         with allure.step(f'Проверить переход на страницу вновь соданной модели'):
             assert self.get_entity_page_title() == model_name.upper(), f'Некорректный заголовок на странице модели'
         with allure.step(f'Проверить заполнение созданной модели данными по умолчанию'):
@@ -222,6 +221,7 @@ class ModelPage(EntityPage):
         delete_button_locator = (By.XPATH, f"{self.datasets_list_value_locator_creator(dataset_name)[1]}//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='trash']")
         self.find_and_click(delete_button_locator)
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
+        assert self.is_element_disappearing(dataset_locator, wait_display=False), f'Набор данных {dataset_name} не исчезает из списка после удаления'
 
     def add_dimension(self, dimension_name):
         self.find_and_click(self.add_entity_button_locator_creator(self.DIMENSIONS_LIST_NAME))
@@ -236,4 +236,3 @@ class ModelPage(EntityPage):
         delete_button_locator = (By.XPATH, f"{dimension_locator[1]}//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='trash']")
         self.find_and_click(delete_button_locator)
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
-

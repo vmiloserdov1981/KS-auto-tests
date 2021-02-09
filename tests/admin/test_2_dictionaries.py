@@ -94,7 +94,6 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить корректное отображение списка элементов справочника'):
-        #dictionary_page.find_element(dictionary_page.list_element_creator(f" {dictionary_page.ELEMENTS_LIST_NAME} ", elements[0]))
         assert dictionary_page.get_dict_elements() == elements, 'Некорректный список элементов справочника'
 
     with allure.step(f'Удалить справочник "{dict_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}" в дереве справочников'):
