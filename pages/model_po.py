@@ -236,3 +236,4 @@ class ModelPage(EntityPage):
         delete_button_locator = (By.XPATH, f"{dimension_locator[1]}//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='trash']")
         self.find_and_click(delete_button_locator)
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
+        assert self.is_element_disappearing(dimension_locator, wait_display=False), f'Измерение {dimension_name} не исчезает из списка при удалении'

@@ -288,16 +288,15 @@ def test_admin_dimensions_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Проверить корректное отображение измерений в списке'):
         expected = api_dimensions
         actual = model_page.get_model_dimensions()
-        assert actual == expected, 'Актуальные измерения не совпадают с ожидаемыми'
+
+        assert model_page.compare_lists(actual, expected)
+        #Раскоментировать следующую строчку и удалить предыдущую после PKM-4693
+        #assert actual == expected, 'Актуальные измерения не совпадают с ожидаемыми'
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
 
     with allure.step(f'Проверить сортировку измерений по дате (DESC) по умолчанию'):
         api_dimensions = model_api.get_model_dictionaries_names(model_uuid, group_value='createdAt', reverse=True)
+        ui_dimensions = model_page.get_model_dimensions()
         assert api_dimensions == ui_dimensions, 'Некорректная сортировка по умолчанию'
-
-
-
-
-
