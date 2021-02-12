@@ -8,9 +8,11 @@ class ApiDictionaries(BaseApi):
         tree = self.post(f'{Vars.PKM_API_URL}dictionaries/get-tree', self.token, {}).get('data')
         return tree
 
-    def api_get_dicts_names(self):
-        tree = self.get_tree_nodes()
-        dicts = tree.get('dictionary')
+    def api_get_dicts_names(self, tree=None):
+        if not tree:
+            tree = self.get_dicts_tree()
+        nodes = self.get_tree_nodes(tree=tree)
+        dicts = nodes.get('dictionary')
         return dicts
 
     def create_unique_dict_name(self, basename, subname=None):
@@ -24,9 +26,10 @@ class ApiDictionaries(BaseApi):
             newname = self.create_unique_dict_name(f'{basename}_{count-1}_{subname}')
         return newname
 
-    def get_tree_nodes(self):
+    def get_tree_nodes(self, tree=None):
         nodes = {}
-        tree = self.get_dicts_tree()
+        if not tree:
+            tree = self.get_dicts_tree()
         for node in tree:
             self.add_in_group(node.get('name'), nodes, node.get('type'))
         return nodes
@@ -49,8 +52,54 @@ class ApiDictionaries(BaseApi):
                 children.append(node.get('name'))
         return children
 
+    def create_folder_node(self, folder_name, parent_uuid=None):
+        payload = {
+            'name': folder_name,
+            'description': '',
+            'type': 'folder'
+        }
+        if parent_uuid:
+            payload['parentUuid'] = parent_uuid
+
+        resp = self.post(f'{Vars.PKM_API_URL}dictionaries/create-node', self.token, payload)
+        return resp.get('nodeInserted')
+
+    def create_dictionary_node(self, dictionary_name, parent_uuid=None):
+        payload = {
+            'name': dictionary_name,
+            'description': '',
+            'type': 'dictionary'
+        }
+        if parent_uuid:
+            payload['parentUuid'] = parent_uuid
+
+        resp = self.post(f'{Vars.PKM_API_URL}dictionaries/create-node', self.token, payload)
+        return resp.get('nodeInserted')
+
     def delete_node(self, uuid):
         self.post(f'{Vars.PKM_API_URL}dictionaries/delete-node', self.token, payload={'uuid': uuid}, without_project=False)
+
+    def check_test_dictionaries(self, dictionaries: list, parent_node_name: str = None):
+        """
+        dimensions = [
+            {'name': 'Типы данных (автотест)', 'elements': ['Числовые', 'Текстовые']},
+            {'name': 'Виды данных (автотест)', 'elements': ['Статистические', 'Эмпирические']}
+        ]
+        """
+        tree = self.get_dicts_tree()
+        dict_names = self.api_get_dicts_names(tree=tree)
+        test_folder_uuid = self.get_node_uuid_by_name(parent_node_name, tree=tree) if parent_node_name else None
+
+        if parent_node_name and not test_folder_uuid:
+            test_folder_uuid = self.create_folder_node(parent_node_name).get('uuid')
+
+        for dictionary in dictionaries:
+            if dictionary.get('name') not in dict_names:
+                self.create_dictionary_node(dictionary.get('name'), parent_uuid=test_folder_uuid)
+
+
+
+
 
 
 

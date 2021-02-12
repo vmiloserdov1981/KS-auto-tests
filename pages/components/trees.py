@@ -1,4 +1,4 @@
-from core import BasePage
+from core import BasePage, antistale
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from pages.components.modals import Modals
@@ -132,7 +132,7 @@ class Tree(BasePage):
         if parent_node_name:
             children.remove(node_name)
             actual_nodes = self.get_node_children_names(parent_node_name)
-            assert children == actual_nodes, f'Некорректный список нод папки "{parent_node_name}" после удаления ноды "{node_name}"'
+            assert children == actual_nodes, f'Некорректный список нод папки "{parent_node_name}" после удаления ноды "{node_name}" \n ожидаемо: "{children}" \n актуально: "{actual_nodes}"'
 
     def rename_node(self, node_name, new_node_name):
         time.sleep(3)
@@ -147,6 +147,7 @@ class Tree(BasePage):
             return
         return arrow
 
+    @antistale
     def get_node_children_names(self, parent_node_name):
         arrow = self.get_node_arrow(parent_node_name)
         if not arrow:

@@ -28,7 +28,7 @@ class DictionaryPage(EntityPage):
             assert not self.get_dict_elements()
 
     def get_dict_elements(self):
-        elements = [element.text for element in self.elements_generator(self.LOCATOR_DICTIONARY_ELEMENTS, time=3)]
+        elements = [element.text for element in self.elements_generator(self.LOCATOR_DICTIONARY_ELEMENTS, time=5)]
         return elements if elements != [] else None
 
     def rename_dictionary(self, new_name):

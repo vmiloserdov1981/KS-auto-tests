@@ -481,7 +481,10 @@ class PublicationsModal(BasePage):
 
     def select_publication(self, publication_name, remember_choice=True):
         if not self.is_publications_modal_displaying():
-            self.find_and_click(self.LOCATOR_PUBLICATIONS_HOME_ICON)
+            try:
+                self.find_and_click(self.LOCATOR_PUBLICATIONS_HOME_ICON)
+            except TimeoutException:
+                return
         choice_locator = (By.XPATH, self.LOCATOR_PUBLICATIONS_SELECT_MODAL[1] + f"//div[contains(@class, 'list-item') and .=' {publication_name} ']")
         self.find_and_click(choice_locator, time=10)
         checkbox = self.find_element(self.LOCATOR_REMEMBER_PUBLICATION)

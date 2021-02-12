@@ -68,7 +68,6 @@ class ApiModels(BaseApi):
         resp = self.post(f'{Vars.PKM_API_URL}models/delete-node', self.token, payload)
         assert not resp.get('error'), f'Ошибка при удалении ноды модели'
 
-
     def create_model_node(self, model_name, parent_uuid=None):
         payload = {
             'name': model_name,
@@ -98,4 +97,35 @@ class ApiModels(BaseApi):
             result.append({'name': dataset.get('name'), 'is_default': dataset.get('default')})
 
         return result
+
+    def get_model_data(self, model_uuid: str):
+        resp = self.post(f'{Vars.PKM_API_URL}models/get', self.token, {'uuids': [model_uuid]})
+        return resp.get('data')[0]
+
+    def get_model_dictionaries(self, model_uuid):
+        model_data = self.get_model_data(model_uuid)
+        dimensions = model_data.get('dimensions')
+        dictionaries_uuids = [i.get('dictionaryUuid') for i in dimensions]
+        resp = self.post(f'{Vars.PKM_API_URL}dictionaries/get-by-ids', self.token, {'uuids': dictionaries_uuids})
+        dictionaries = [resp.get('data').get(i) for i in resp.get('data')]
+        return dictionaries
+
+    def get_model_dictionaries_names(self, model_uuid, group_value=None, reverse=None):
+        dictionaries = self.get_model_dictionaries(model_uuid)
+        result = []
+
+        if group_value and reverse is not None:
+            def sort_function(dictionary_data):
+                return dictionary_data.get(group_value)
+            dictionaries.sort(key=sort_function, reverse=reverse)
+
+        for dictionary in dictionaries:
+            result.append(dictionary.get('name'))
+
+        return result
+
+
+
+
+
 

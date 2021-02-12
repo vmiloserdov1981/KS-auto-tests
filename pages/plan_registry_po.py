@@ -72,7 +72,7 @@ class PlanRegistry(EuHeader, BasePage):
     def get_versions_names(self, with_dates=True):
         element = self.find_element(self.LOCATOR_VERSIONS_NAMES)
         try:
-            self.wait_element_replacing(element, self.LOCATOR_VERSIONS_NAMES, time=3)
+            self.wait_element_replacing(element, self.LOCATOR_VERSIONS_NAMES, time=10)
         except TimeoutException:
             pass
         if with_dates:
@@ -130,7 +130,7 @@ class PlanRegistry(EuHeader, BasePage):
         else:
             self.find_and_click(self.LOCATOR_ADD_VERSION_BUTTON)
         actual_versions = self.get_versions_names(with_dates=True)
-        assert self.compare_lists(expected_versions, actual_versions), 'Добавленная версия отображается некорректно'
+        assert self.compare_lists(expected_versions, actual_versions), f'Добавленная версия отображается некорректно \n Ожидаемые версии: "{expected_versions}", \n текущие версии: "{actual_versions}"'
         elements = (expected_name, api.get_plan_version_uuid_by_name(plan_uuid, self.cut_version_date(expected_name)))
         return elements
 
