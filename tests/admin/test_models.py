@@ -3,6 +3,7 @@ import pytest
 from variables import PkmVars as Vars
 from pages.model_po import ModelPage
 from conditions.clean_factory import ModelNodeCreator
+from pages.components.modals import TagModal
 
 
 @allure.feature('Интерфейс Администратора')
@@ -482,3 +483,63 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
 
     with allure.step(f'Проверить очистку полей временного интервала'):
         assert model_page.get_model_period_data() == expected_period_data
+
+
+@allure.feature('Интерфейс Администратора')
+@allure.story('Дерево моделей')
+@allure.title('Управление тегами модели')
+@allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.red_label
+@pytest.mark.parametrize("parameters", [({
+        'login': 'eu_user',
+        'project': Vars.PKM_PROJECT_NAME,
+        'tree_type': 'Модели',
+        'name': 'Управление тегами модели'
+    })])
+def test_admin_model_tags_control(parametrized_login_admin_driver, parameters):
+    model_page = ModelPage(parametrized_login_admin_driver)
+    tag_modal = TagModal(parametrized_login_admin_driver)
+    model_api = model_page.api_creator.get_api_models()
+    test_folder_name = Vars.PKM_TEST_FOLDER_NAME
+    tag_1 = 'Тестовый тег'
+    tag_2 = 'Базовый тег'
+
+    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
+        test_folder_uuid = model_api.check_test_folder(test_folder_name)
+
+    with allure.step(f'Определить уникальное название модели'):
+        model_name = model_api.create_unique_model_name(Vars.PKM_BASE_MODEL_NAME + '_теги')
+
+    with allure.step(f'Создать тестовую модель {model_name} в папке {test_folder_name} через API'):
+        model = model_api.create_model_node(model_name, parent_uuid=test_folder_uuid)
+        model_node_uuid = model.get('nodeUuid')
+
+    with allure.step(f'Добавить модель {model_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ModelNodeCreator(parametrized_login_admin_driver, model_node_uuid, delete_anyway=True))
+
+    with allure.step(f'развернуть тестовую папку {test_folder_name}'):
+        model_page.tree.expand_node(test_folder_name)
+
+    with allure.step(f'Перейти на страницу модели {model_name}'):
+        model_page.tree.select_node(model_name)
+
+    with allure.step(f'Добавить тег {tag_1}'):
+        model_page.add_tag(tag_1)
+
+    with allure.step(f'Открыть тег {tag_1}'):
+        model_page.open_tag(tag_1)
+
+    with allure.step(f'Проверить что в окне связанных моделей тега отображаются все связанные модели включая текущую'):
+        api_tag_models = model_api.get_models_names_by_tag(tag_1)
+        ui_tag_models = tag_modal.get_linked_models()
+        assert model_name in ui_tag_models, f'Модель {model_name} отсутствует в списке моделей тега'
+        assert model_page.compare_lists(api_tag_models, ui_tag_models), "Некорректный список моделей"
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить отображение корректного списка тегов модели'):
+        assert model_page.compare_lists([tag_1], model_page.get_model_tags()), 'Некорректный список тегов'
+
+    with allure.step(f'Добавить тег {tag_2}'):
+        model_page.add_tag(tag_2)

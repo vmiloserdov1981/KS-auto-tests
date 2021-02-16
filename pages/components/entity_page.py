@@ -94,7 +94,7 @@ class EntityPage(BasePage):
 
     @staticmethod
     def dropdown_value_locator_creator(value_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'dropdown-item') and .='{value_name}']")
+        locator = (By.XPATH, f"//div[contains(@class, 'dropdown-item') and .='{value_name}' or contains(@class, 'dropdown-item') and .=' {value_name} ']")
         return locator
 
     def get_entity_page_title(self, return_raw=False, prev_title_html: str = None):

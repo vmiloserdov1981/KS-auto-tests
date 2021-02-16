@@ -23,6 +23,8 @@ class ModelPage(EntityPage):
     LOCATOR_MODEL_PERIOD_TIME = (By.XPATH, "//pkm-dropdown[@formcontrolname='timePeriod']")
     LOCATOR_MODEL_PERIOD_AMOUNT_INPUT = EntityPage.input_locator_creator('amount')
     LOCATOR_MODEL_PERIOD_START_YEAR = (By.XPATH, "//pkm-dropdown[@formcontrolname='year']")
+    LOCATOR_MODEL_SEARCH_TAG_INPUT = (By.XPATH, "//div[contains(@class, 'search-tag-field')]//input")
+    LOCATOR_MODEL_TAG = (By.XPATH, "//div[@class='list' and .//div[@class='title' and .='Теги'] ]//div[contains(@class, 'tag-item')]")
 
     def __init__(self, driver):
         super().__init__(driver)
@@ -33,6 +35,13 @@ class ModelPage(EntityPage):
     @staticmethod
     def datasets_list_value_locator_creator(dataset_name):
         locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{ModelPage.DATASETS_LIST_NAME}'] ]//div[contains(@class, 'list-item ') and ./div[.='{dataset_name}']]")
+        return locator
+
+    @staticmethod
+    def model_tag_locator_creator(tag_name):
+        xpath = ModelPage.LOCATOR_MODEL_TAG[1]
+        xpath = xpath + f"[.=' {tag_name} ' or .='{tag_name}']"
+        locator = (By.XPATH, xpath)
         return locator
 
     def get_model_page_data(self) -> dict:
@@ -162,7 +171,7 @@ class ModelPage(EntityPage):
         return elements
 
     def get_model_tags(self):
-        elements = [element.text for element in self.elements_generator((By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{self.TAGS_LIST_NAME}'] ]//div[contains(@class, 'tag-item')]"), time=1)]
+        elements = [element.text for element in self.elements_generator(self.LOCATOR_MODEL_TAG, time=2)]
         return elements if elements != [] else None
 
     def create_dataset(self, dataset_name, is_default=None):
@@ -295,6 +304,23 @@ class ModelPage(EntityPage):
         self.find_and_click(self.LOCATOR_MODEL_PERIOD_DELETE_BUTTON)
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
         assert self.is_element_disappearing(self.LOCATOR_MODEL_PERIOD_START_YEAR, wait_display=False)
+
+    def add_tag(self, tag_name: str):
+        self.find_and_enter(self.LOCATOR_MODEL_SEARCH_TAG_INPUT, tag_name)
+        found_value_locator = self.dropdown_value_locator_creator(tag_name)
+        try:
+            self.find_and_click(found_value_locator, time=3)
+        except TimeoutException:
+            self.find_element(self.LOCATOR_MODEL_SEARCH_TAG_INPUT).send_keys(Keys.ENTER)
+        self.find_element(self.model_tag_locator_creator(tag_name))
+
+    def open_tag(self, tag_name):
+        tag_locator = self.model_tag_locator_creator(tag_name)
+        self.find_and_click(tag_locator)
+        title_text = self.get_element_text(self.modal.LOCATOR_MODAL_TITLE)
+        assert title_text == f'Информация о теге {tag_name}', "Некорректный заголовок окна тега"
+
+
 
 
 
