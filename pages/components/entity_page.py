@@ -13,19 +13,13 @@ class EntityPage(BasePage):
     LOCATOR_TITLE_CHECK_ICON = (By.XPATH, "//div[@class='page-title-container']//fa-icon[@icon='check']")
 
     @staticmethod
-    def add_list_element_button_creator(list_name, without_spaces=False):
-        if without_spaces:
-            locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()='{list_name}'] ]//fa-icon[@icon='plus']")
-        else:
-            locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()=' {list_name} '] ]//fa-icon[@icon='plus']")
+    def add_list_element_button_creator(list_name):
+        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()='{list_name}'] ]//fa-icon[@icon='plus']")
         return locator
 
     @staticmethod
-    def list_sort_button_creator(list_name, without_spaces=False):
-        if without_spaces:
-            locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()='{list_name}'] ]//fa-icon[@icon='sort']")
-        else:
-            locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()=' {list_name} '] ]//fa-icon[@icon='sort']")
+    def list_sort_button_creator(list_name):
+        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()='{list_name}' or @class='title' and text()=' {list_name} '] ]//fa-icon[@icon='sort']")
         return locator
 
     @staticmethod
@@ -41,7 +35,7 @@ class EntityPage(BasePage):
 
     @staticmethod
     def list_element_creator(list_name, element_name):
-        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{list_name}'] ]//div[contains(@class, 'list-item ') and .=' {element_name} ']")
+        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{list_name}'] ]//div[contains(@class, 'list-item ') and .='{element_name}' or contains(@class, 'list-item ') and .=' {element_name} ']")
         return locator
 
     @staticmethod
@@ -98,6 +92,11 @@ class EntityPage(BasePage):
         locator = (By.XPATH, element_xpath + "//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='pencil-alt']")
         return locator
 
+    @staticmethod
+    def dropdown_value_locator_creator(value_name):
+        locator = (By.XPATH, f"//div[contains(@class, 'dropdown-item') and .='{value_name}']")
+        return locator
+
     def get_entity_page_title(self, return_raw=False, prev_title_html: str = None):
         if prev_title_html:
             self.wait_element_changing(prev_title_html, self.LOCATOR_ENTITY_PAGE_TITLE, time=5, ignore_timeout=True)
@@ -135,6 +134,19 @@ class EntityPage(BasePage):
 
 
     def get_page_data_by_template(self, template):
+        '''
+        template = {
+            'model_name': (self.get_entity_page_title, (), {"return_raw": True}),
+            'changes': [self.get_change_data],
+            'datasets': [self.get_model_datasets],
+            'dimensions': [self.get_model_dimensions],
+            'time_period': [self.get_model_period_type],
+            'period_amount': [self.get_model_period_amount],
+            'last_period': [self.get_model_last_period],
+            'solver_values': [self.get_model_solvers],
+            'tags': [self.get_model_tags]
+        }
+        '''
         def write_data(function, args, kwargs, data, data_name):
             data[data_name] = function(*args, **kwargs)
 
@@ -152,6 +164,11 @@ class EntityPage(BasePage):
                 except IndexError:
                     kwargs = {}
                 future = executor.submit(write_data, function, args, kwargs, result, field)
-        return result
+        sorted_result = {}
+        for field in template:
+            if field in result.keys():
+                sorted_result[field] = result.get(field)
+
+        return sorted_result
 
 

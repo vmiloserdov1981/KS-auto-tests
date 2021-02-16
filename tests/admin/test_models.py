@@ -288,7 +288,6 @@ def test_admin_dimensions_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Проверить корректное отображение измерений в списке'):
         expected = api_dimensions
         actual = model_page.get_model_dimensions()
-
         assert model_page.compare_lists(actual, expected)
         #Раскоментировать следующую строчку и удалить предыдущую после PKM-4693
         #assert actual == expected, 'Актуальные измерения не совпадают с ожидаемыми'
@@ -300,3 +299,186 @@ def test_admin_dimensions_control(parametrized_login_admin_driver, parameters):
         api_dimensions = model_api.get_model_dictionaries_names(model_uuid, group_value='createdAt', reverse=True)
         ui_dimensions = model_page.get_model_dimensions()
         assert api_dimensions == ui_dimensions, 'Некорректная сортировка по умолчанию'
+
+
+@allure.feature('Интерфейс Администратора')
+@allure.story('Дерево моделей')
+@allure.title('Управление временными интервалами модели')
+@allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.red_label
+@pytest.mark.parametrize("parameters", [({
+        'login': 'eu_user',
+        'project': Vars.PKM_PROJECT_NAME,
+        'tree_type': 'Модели',
+        'name': 'Управление временными интервалами модели'
+    })])
+def test_admin_model_period_control(parametrized_login_admin_driver, parameters):
+    model_page = ModelPage(parametrized_login_admin_driver)
+    model_api = model_page.api_creator.get_api_models()
+    test_folder_name = Vars.PKM_TEST_FOLDER_NAME
+    today = model_api.get_utc_date()
+    expected_date = model_api.get_utc_date()
+    days_amount_period = '14'
+    mounth_amount_period = '2'
+    years_amount_period = '3'
+
+    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
+        test_folder_uuid = model_api.check_test_folder(test_folder_name)
+
+    with allure.step(f'Определить уникальное название модели'):
+        model_name = model_api.create_unique_model_name(Vars.PKM_BASE_MODEL_NAME + '_временные_интервалы')
+
+    with allure.step(f'Создать тестовую модель {model_name} в папке {test_folder_name} через API'):
+        model = model_api.create_model_node(model_name, parent_uuid=test_folder_uuid)
+        model_node_uuid = model.get('nodeUuid')
+
+    with allure.step(f'Добавить модель {model_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ModelNodeCreator(parametrized_login_admin_driver, model_node_uuid, delete_anyway=True))
+
+    with allure.step(f'развернуть тестовую папку {test_folder_name}'):
+        model_page.tree.expand_node(test_folder_name)
+
+    with allure.step(f'Перейти на страницу модели {model_name}'):
+        model_page.tree.select_node(model_name)
+
+    with allure.step(f'Задать тип временного интервала "День"'):
+        model_page.set_model_period_type('День')
+
+    with allure.step(f'Проверить корректное заполнение полей временного интервала'):
+        assert model_page.get_model_period_data() == {
+            "period_type": 'День',
+            'period_start_value': '.'.join(expected_date),
+            'period_start_year': None,
+            'period_amount': None,
+            'last_period': '.'.join(expected_date)
+        }
+
+    with allure.step(f'Указать количество периодов {days_amount_period}'):
+        model_page.set_period_amount(days_amount_period)
+
+    with allure.step(f'Проверить что временной интервал пересчитан правильно'):
+        expected_period_data = {
+            "period_type": 'День',
+            'period_start_value': '.'.join(expected_date),
+            'period_start_year': None,
+            'period_amount': days_amount_period,
+            'last_period': '.'.join(model_api.get_feature_date(expected_date, int(days_amount_period) - 1))
+        }
+        assert model_page.get_model_period_data() == expected_period_data
+
+    with allure.step(f'Сохранить временной интервал'):
+        model_page.save_model_period()
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить корректное заполнение полей временного интервала'):
+        assert model_page.get_model_period_data() == expected_period_data
+
+    with allure.step(f'Изменить дату начала интервала на 25-е число текущего месяца'):
+        model_page.set_start_period_day('25')
+
+    with allure.step(f'Проверить что временной интервал пересчитан правильно'):
+        expected_date[0] = '25'
+        expected_period_data = {
+            "period_type": 'День',
+            'period_start_value': '.'.join(expected_date),
+            'period_start_year': None,
+            'period_amount': days_amount_period,
+            'last_period': '.'.join(model_api.get_feature_date(expected_date, int(days_amount_period) - 1))
+        }
+        assert model_page.get_model_period_data() == expected_period_data
+
+    with allure.step(f'Сохранить временной интервал'):
+        model_page.save_model_period()
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить корректное заполнение полей временного интервала'):
+        assert model_page.get_model_period_data() == expected_period_data
+
+    current_mounth = model_api.get_mounth_name_by_number(today[1])
+    current_year = today[2]
+
+    with allure.step(f'Задать тип временного интервала "Месяц"'):
+        model_page.set_model_period_type('Месяц')
+
+    with allure.step(f'Проверить корректное заполнение полей временного интервала'):
+        expected_period_data = {
+            "period_type": 'Месяц',
+            'period_start_value': current_mounth,
+            'period_start_year': current_year,
+            'period_amount': None,
+            'last_period': f'{current_mounth} {current_year}'.lower()
+        }
+        assert model_page.get_model_period_data() == expected_period_data
+
+    with allure.step(f'Указать количество периодов {mounth_amount_period}'):
+        model_page.set_period_amount(mounth_amount_period)
+
+    expected_period_data['period_amount'] = mounth_amount_period
+    feature_month = model_api.get_feature_month([today[1], today[2]], int(mounth_amount_period))
+    expected_period_data['last_period'] = f'{model_api.get_mounth_name_by_number(feature_month[0])} {feature_month[1]}'.lower()
+
+    with allure.step(f'Проверить корректное заполнение полей временного интервала'):
+        assert model_page.get_model_period_data() == expected_period_data
+
+    with allure.step(f'Сохранить временной интервал'):
+        model_page.save_model_period()
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить корректное заполнение полей временного интервала'):
+        assert model_page.get_model_period_data() == expected_period_data
+
+    with allure.step(f'Задать тип временного интервала "Год"'):
+        model_page.set_model_period_type('Год')
+
+    with allure.step(f'Проверить корректное заполнение полей временного интервала'):
+        expected_period_data = {
+            "period_type": 'Год',
+            'period_start_value': None,
+            'period_start_year': current_year,
+            'period_amount': None,
+            'last_period': current_year
+        }
+        assert model_page.get_model_period_data() == expected_period_data
+
+    with allure.step(f'Указать количество периодов {years_amount_period}'):
+        model_page.set_period_amount(years_amount_period)
+
+    expected_period_data['period_amount'] = years_amount_period
+    expected_period_data['last_period'] = str(int(current_year) + int(years_amount_period) - 1)
+
+    with allure.step(f'Проверить корректное заполнение полей временного интервала'):
+        assert model_page.get_model_period_data() == expected_period_data
+
+    with allure.step(f'Сохранить временной интервал'):
+        model_page.save_model_period()
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить корректное заполнение полей временного интервала'):
+        assert model_page.get_model_period_data() == expected_period_data
+
+    with allure.step(f'Удалить временной интервал модели'):
+        model_page.delete_model_period()
+
+    with allure.step(f'Проверить очистку полей временного интервала'):
+        expected_period_data = {
+            "period_type": None,
+            'period_start_value': None,
+            'period_start_year': None,
+            'period_amount': None,
+            'last_period': None
+        }
+        assert model_page.get_model_period_data() == expected_period_data, 'Временной интервал модели не очищен'
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить очистку полей временного интервала'):
+        assert model_page.get_model_period_data() == expected_period_data

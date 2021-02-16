@@ -163,8 +163,11 @@ class BasePage:
         action = ActionChains(self.driver)
         action.drag_and_drop(element_1, element_2).perform()
 
-    def get_input_value(self, input_locator, return_empty=True, time=2):
-        input_element = self.find_element(input_locator, time=time)
+    def get_input_value(self, input_locator, return_empty=True, webelement=None, time=2):
+        if not webelement:
+            input_element = self.find_element(input_locator, time=time)
+        else:
+            input_element = webelement
         value = input_element.get_attribute('value')
         if return_empty:
             return value
@@ -363,6 +366,50 @@ class BaseApi:
         year = str(year)
         feature_date = [day, month, year]
         return feature_date
+
+    @staticmethod
+    def get_feature_month(start: list, offset: int):
+        '''
+        start = ['01', '2012']
+        '''
+        start_month = int(start[0])
+        start_year = int(start[1])
+        end_month = start_month + offset
+        if end_month > 12:
+            year_add = end_month // 12
+            month_add = (end_month % 12) - 1
+            start_month += month_add
+            start_year += year_add
+        else:
+            start_month += offset - 1
+
+        if start_month < 10:
+            start_month = f'0{start_month}'
+        else:
+            start_month = str(start_month)
+
+        start_year = str(start_year)
+
+        result = [start_month, start_year]
+        return result
+
+    @staticmethod
+    def get_mounth_name_by_number(mounth_number: str):
+        mounth = {
+            '01': 'Январь',
+            '02': 'Февраль',
+            '03': 'Март',
+            '04': 'Апрель',
+            '05': 'Май',
+            '06': 'Июнь',
+            '07': 'Июль',
+            '08': 'Август',
+            '09': 'Сентябрь',
+            '10': 'Октябрь',
+            '11': 'Ноябрь',
+            '12': 'Декабрь'
+        }
+        return mounth.get(mounth_number)
 
     def api_get_user_by_login(self, login):
         payload = {"login": login}

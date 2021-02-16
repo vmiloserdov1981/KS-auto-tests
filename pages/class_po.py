@@ -72,7 +72,8 @@ class ClassPage(EntityPage):
         with allure.step(f'Укзать название показателя {indicator_name} и сохранить его'):
             self.modal.enter_and_save(indicator_name)
         with allure.step(f'Проверить отображение показателя {indicator_name} в дереве классов выбранным'):
-            assert self.tree.get_selected_node_name() == indicator_name, f'В дереве не выбрана нода {indicator_name}'
+            #assert self.tree.get_selected_node_name() == indicator_name, f'В дереве не выбрана нода {indicator_name}'
+            self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, indicator_name)
         with allure.step(f'Проверить заполнение созданного показателя данными по умолчанию'):
             expected_data = {
                 'indicator_name': indicator_name,
@@ -124,7 +125,8 @@ class ClassPage(EntityPage):
         with allure.step(f'Укзать название связи {relation_name} и создать ее'):
             self.modal.enter_and_create(relation_name)
         with allure.step(f'Проверить отображение связи {relation_name} в дереве классов выбранной'):
-            assert self.tree.get_selected_node_name() == relation_name, f'В дереве не выбрана нода {relation_name}'
+            #assert self.tree.get_selected_node_name() == relation_name, f'В дереве не выбрана нода {relation_name}'
+            self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, relation_name)
         with allure.step(f'Проверить заполнение созданной связи данными по умолчанию'):
             expected_data = {
                 'relation_name': relation_name,
