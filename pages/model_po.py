@@ -182,7 +182,7 @@ class ModelPage(EntityPage):
             assert row.text == dataset_name
 
     def sort_datasets(self, sort_type, sort_order):
-        self.find_and_click(self.list_sort_button_creator(self.DATASETS_LIST_NAME, without_spaces=True))
+        self.find_and_click(self.list_sort_button_creator(self.DATASETS_LIST_NAME))
         self.find_and_click(self.sort_type_button_creator(sort_type))
         sort_order_icon_locator = self.sort_order_icon_creator(sort_type)
 
@@ -198,10 +198,10 @@ class ModelPage(EntityPage):
                 if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-up':
                     raise AssertionError('Не удалось установить сортировку по убыванию')
 
-        self.find_and_click(self.list_sort_button_creator(self.DATASETS_LIST_NAME, without_spaces=True))
+        self.find_and_click(self.list_sort_button_creator(self.DATASETS_LIST_NAME))
 
     def sort_dimensions(self, sort_type, sort_order):
-        self.find_and_click(self.list_sort_button_creator(self.DIMENSIONS_LIST_NAME, without_spaces=True))
+        self.find_and_click(self.list_sort_button_creator(self.DIMENSIONS_LIST_NAME))
         self.find_and_click(self.sort_type_button_creator(sort_type))
         sort_order_icon_locator = self.sort_order_icon_creator(sort_type)
 
@@ -217,7 +217,7 @@ class ModelPage(EntityPage):
                 if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-up':
                     raise AssertionError('Не удалось установить сортировку по убыванию')
 
-        self.find_and_click(self.list_sort_button_creator(self.DIMENSIONS_LIST_NAME, without_spaces=True))
+        self.find_and_click(self.list_sort_button_creator(self.DIMENSIONS_LIST_NAME))
 
     def rename_dataset(self, dataset_name, dataset_new_name, is_default=None):
         dataset_locator = self.datasets_list_value_locator_creator(dataset_name)

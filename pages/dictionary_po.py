@@ -50,7 +50,7 @@ class DictionaryPage(EntityPage):
             assert actual_elements == prev_elements, 'Некорректный список элементов справочника'
 
     def delete_dict_element(self, element_name):
-        element_locator = self.list_element_creator(f'{self.ELEMENTS_LIST_NAME}', element_name, without_spaces=True)
+        element_locator = self.list_element_creator(f'{self.ELEMENTS_LIST_NAME}', element_name)
         self.hover_over_element(element_locator)
         self.find_and_click(self.list_element_delete_button_creator(f'{self.ELEMENTS_LIST_NAME}', element_name))
         actual_deletion_modal_text = self.modal.get_deletion_confirm_modal_text()
@@ -59,13 +59,13 @@ class DictionaryPage(EntityPage):
         assert self.is_element_disappearing(element_locator, wait_display=False), f'Элемент {element_name} не исчезает из списка элементов справочника'
 
     def rename_dict_element(self, element_name, new_element_name):
-        element_locator = self.list_element_creator(f'{self.ELEMENTS_LIST_NAME}', element_name, without_spaces=True)
+        element_locator = self.list_element_creator(f'{self.ELEMENTS_LIST_NAME}', element_name)
         self.hover_over_element(element_locator)
         self.find_and_click(self.list_element_rename_button_creator(f'{self.ELEMENTS_LIST_NAME}', element_name))
         self.modal.clear_name_input()
         self.modal.enter_and_save(new_element_name)
         assert self.is_element_disappearing(element_locator, wait_display=False)
-        element_locator = self.list_element_creator(f'{self.ELEMENTS_LIST_NAME}', new_element_name, without_spaces=True)
+        element_locator = self.list_element_creator(f'{self.ELEMENTS_LIST_NAME}', new_element_name)
         self.find_element(element_locator)
 
     def check_tree_node_children(self, parent_node_name: str):

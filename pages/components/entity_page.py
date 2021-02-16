@@ -18,11 +18,8 @@ class EntityPage(BasePage):
         return locator
 
     @staticmethod
-    def list_sort_button_creator(list_name, without_spaces=False):
-        if without_spaces:
-            locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()='{list_name}'] ]//fa-icon[@icon='sort']")
-        else:
-            locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()=' {list_name} '] ]//fa-icon[@icon='sort']")
+    def list_sort_button_creator(list_name):
+        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()='{list_name}' or @class='title' and text()=' {list_name} '] ]//fa-icon[@icon='sort']")
         return locator
 
     @staticmethod
@@ -37,11 +34,8 @@ class EntityPage(BasePage):
         return locator
 
     @staticmethod
-    def list_element_creator(list_name, element_name, without_spaces=False):
-        if without_spaces:
-            locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{list_name}'] ]//div[contains(@class, 'list-item ') and .='{element_name}']")
-        else:
-            locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{list_name}'] ]//div[contains(@class, 'list-item ') and .=' {element_name} ']")
+    def list_element_creator(list_name, element_name):
+        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{list_name}'] ]//div[contains(@class, 'list-item ') and .='{element_name}' or contains(@class, 'list-item ') and .=' {element_name} ']")
         return locator
 
     @staticmethod
@@ -62,13 +56,13 @@ class EntityPage(BasePage):
 
     @staticmethod
     def list_element_rename_button_creator(list_name, element_name):
-        element_xpath = EntityPage.list_element_creator(list_name, element_name, without_spaces=True)[1]
+        element_xpath = EntityPage.list_element_creator(list_name, element_name)[1]
         locator = (By.XPATH, element_xpath + "//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='edit']")
         return locator
 
     @staticmethod
     def list_element_delete_button_creator(list_name, element_name):
-        element_xpath = EntityPage.list_element_creator(list_name, element_name, without_spaces=True)[1]
+        element_xpath = EntityPage.list_element_creator(list_name, element_name)[1]
         locator = (By.XPATH, element_xpath + "//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='trash']")
         return locator
 
