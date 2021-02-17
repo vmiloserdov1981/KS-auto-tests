@@ -5,7 +5,7 @@ from pages.model_po import ModelPage
 from conditions.clean_factory import ModelNodeCreator
 from pages.components.modals import TagModal
 
-
+'''
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
 @allure.title('Управление моделями')
@@ -76,7 +76,7 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Проверить отсутствие модели "{model_name}" в дереве моделей'):
         assert model_name not in api.get_models_names()
 
-
+'''
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
 @allure.title('Управление наборами данных')
@@ -123,10 +123,9 @@ def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
         model_page.create_dataset(dataset_2, is_default=True)
 
     with allure.step(f'Проверить корректное отображение наборов данных в списке'):
-        expected = [{'name': dataset_1, 'is_default': False}, {'name': dataset_2, 'is_default': True}]
+        expected = [{'name': dataset_2, 'is_default': True}, {'name': dataset_1, 'is_default': False}]
         actual = model_page.get_model_datasets()
-        #PKM-4552
-        #assert actual == expected, 'Актуальные наборы данных не совпадают с ожидаемыми'
+        assert actual == expected, 'Актуальные наборы данных не совпадают с ожидаемыми'
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -196,7 +195,7 @@ def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
         ui_datasets = model_page.get_model_datasets()
         assert api_datasets == ui_datasets, 'Некорректная сортировка по умолчанию'
         
-
+'''
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
 @allure.title('Управление измерениями модели')
@@ -543,3 +542,31 @@ def test_admin_model_tags_control(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Добавить тег {tag_2}'):
         model_page.add_tag(tag_2)
+
+    with allure.step(f'Удалить тег {tag_1}'):
+        model_page.delete_tag(tag_1)
+
+    with allure.step(f'Проверить, что в списке тегов модели отображается только тег {tag_2}'):
+        assert model_page.get_model_tags() == [tag_2]
+
+    with allure.step(f'Открыть тег {tag_2}'):
+        model_page.open_tag(tag_2)
+
+    with allure.step(f'Проверить что в окне связанных моделей тега отображаются все связанные модели включая текущую'):
+        api_tag_models = model_api.get_models_names_by_tag(tag_2)
+        ui_tag_models = tag_modal.get_linked_models()
+        assert model_name in ui_tag_models, f'Модель {model_name} отсутствует в списке моделей тега'
+        assert model_page.compare_lists(api_tag_models, ui_tag_models), "Некорректный список моделей"
+
+    with allure.step(f'Закрыть модальное окно тега'):
+        model_page.close_tag_modal()
+
+    with allure.step(f'Удалить тег {tag_2}'):
+        model_page.delete_tag(tag_2)
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step('Проверить отображение пустого списка тегов модели'):
+        assert model_page.get_model_tags() is None, 'Некорректный список тегов'
+'''

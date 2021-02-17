@@ -320,6 +320,20 @@ class ModelPage(EntityPage):
         title_text = self.get_element_text(self.modal.LOCATOR_MODAL_TITLE)
         assert title_text == f'Информация о теге {tag_name}', "Некорректный заголовок окна тега"
 
+    def delete_tag(self, tag_name):
+        tag_locator = self.model_tag_locator_creator(tag_name)
+        tag_xpath = tag_locator[1]
+        tag_xpath = tag_xpath + "//fa-icon[@icon='times']"
+        delete_icon_locator = (By.XPATH, tag_xpath)
+        self.find_and_click(delete_icon_locator)
+        assert self.is_element_disappearing(tag_locator, wait_display=False), f'тег {tag_name} не исчезает из списка тегов'
+
+    def close_tag_modal(self):
+        self.find_and_click(self.modal.LOCATOR_CLOSE_MODAL_BUTTON)
+
+
+
+
 
 
 

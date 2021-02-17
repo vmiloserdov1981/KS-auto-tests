@@ -16,6 +16,7 @@ class Modals(BasePage):
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]//div[@class='title-text']")
     LOCATOR_ACCEPT_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Принять ']")
     LOCATOR_DELETION_CONFIRM_TEXT = (By.XPATH, "//div[contains(@class, 'deletion-notifications-container')]")
+    LOCATOR_CLOSE_MODAL_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[.=' Закрыть ']")
     LOCATOR_DELETE_BUTTON = (By.XPATH, "//button[.=' Удалить ']")
 
     @staticmethod
