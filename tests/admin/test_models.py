@@ -5,7 +5,7 @@ from pages.model_po import ModelPage
 from conditions.clean_factory import ModelNodeCreator
 from pages.components.modals import TagModal
 
-'''
+
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
 @allure.title('Управление моделями')
@@ -76,7 +76,7 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Проверить отсутствие модели "{model_name}" в дереве моделей'):
         assert model_name not in api.get_models_names()
 
-'''
+
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
 @allure.title('Управление наборами данных')
@@ -141,21 +141,17 @@ def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Проверить сортировку наборов данных по дате (DESC) по умолчанию'):
         api_datasets = api.get_datasets_names(model_uuid, 'createdAt', True)
         ui_datasets = model_page.get_model_datasets()
-        # PKM-4554
-        # assert api_datasets == ui_datasets, 'Некорректная сортировка по умолчанию'
+        assert api_datasets == ui_datasets, 'Некорректная сортировка по умолчанию'
 
     with allure.step(f'Проверить сортировку наборов данных по дате (ASC)'):
         ui_datasets = model_page.get_model_datasets('По дате создания', 'ASC')
         api_datasets = api.get_datasets_names(model_uuid, 'createdAt', False)
-        # PKM-4554
-        #assert api_datasets == ui_datasets, 'Отсортированные наборы данных UI и API не совпадают'
+        assert api_datasets == ui_datasets, 'Отсортированные наборы данных UI и API не совпадают'
 
     with allure.step(f'Проверить сортировку наборов данных по дате (DESC)'):
         ui_datasets = model_page.get_model_datasets('По дате создания', 'DESC')
         api_datasets = api.get_datasets_names(model_uuid, 'createdAt', True)
-        # PKM-4554
-        #assert api_datasets == ui_datasets, 'Отсортированные наборы данных UI и API не совпадают'
-
+        assert api_datasets == ui_datasets, 'Отсортированные наборы данных UI и API не совпадают'
 
     with allure.step(f'Проверить сортировку наборов данных по алфавиту (ASC)'):
         ui_datasets = model_page.get_model_datasets('По алфавиту', 'ASC')
@@ -194,8 +190,8 @@ def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
         api_datasets = api.get_datasets_names(model_uuid, 'createdAt', True)
         ui_datasets = model_page.get_model_datasets()
         assert api_datasets == ui_datasets, 'Некорректная сортировка по умолчанию'
-        
-'''
+
+
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
 @allure.title('Управление измерениями модели')
@@ -569,4 +565,3 @@ def test_admin_model_tags_control(parametrized_login_admin_driver, parameters):
 
     with allure.step('Проверить отображение пустого списка тегов модели'):
         assert model_page.get_model_tags() is None, 'Некорректный список тегов'
-'''
