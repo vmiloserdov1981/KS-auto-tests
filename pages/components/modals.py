@@ -466,14 +466,14 @@ class PublicationsModal(BasePage):
 
     def is_publications_bar_displaying(self):
         try:
-            self.find_element(self.LOCATOR_PUBLICATIONS_BAR)
+            self.find_element(self.LOCATOR_PUBLICATIONS_BAR, time=2)
             return True
         except TimeoutException:
             return False
 
     def is_publications_modal_displaying(self):
         try:
-            self.find_element(self.LOCATOR_PUBLICATIONS_SELECT_MODAL)
+            self.find_element(self.LOCATOR_PUBLICATIONS_SELECT_MODAL, time=2)
             return True
         except TimeoutException:
             return False
@@ -481,7 +481,7 @@ class PublicationsModal(BasePage):
     def select_publication(self, publication_name, remember_choice=True):
         if not self.is_publications_modal_displaying():
             try:
-                self.find_and_click(self.LOCATOR_PUBLICATIONS_HOME_ICON)
+                self.find_and_click(self.LOCATOR_PUBLICATIONS_HOME_ICON, time=1)
             except TimeoutException:
                 return
         choice_locator = (By.XPATH, self.LOCATOR_PUBLICATIONS_SELECT_MODAL[1] + f"//div[contains(@class, 'list-item') and .=' {publication_name} ']")
