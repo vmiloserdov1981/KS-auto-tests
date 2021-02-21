@@ -497,9 +497,10 @@ class PublicationsModal(BasePage):
         select_button_locator = (By.XPATH, self.LOCATOR_PUBLICATIONS_SELECT_MODAL[1] + "//button[.='Перейти']")
         self.find_and_click(select_button_locator, time=10)
 
+
 class TagModal(BasePage):
     LOCATOR_LINKED_MODEL = (By.XPATH, "//div[contains(@class, 'linked-models-list')]//div[contains(@class, 'linked-models-list-item')]")
 
     def get_linked_models(self):
-        models = [element.text for element in self.elements_generator(self.LOCATOR_LINKED_MODEL, time=3)]
+        models = [element.text for element in self.elements_generator(self.LOCATOR_LINKED_MODEL, time=10)]
         return models
