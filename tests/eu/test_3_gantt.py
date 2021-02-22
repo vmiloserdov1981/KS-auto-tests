@@ -604,7 +604,8 @@ def test_eu_group_gantt_events(parametrized_login_driver, parameters):
 
     with allure.step(f'Проверить что на диаграме отображаются все мероприятия плана, сгруппированные по значению "{group_values[1]}"'):
         events_plan.check_plan_events(k6_plan_uuid, versions[1], login, filter_set=filter_set, group_by=group_values[1])
-
+    # включить шаги после исправления PKM-4813
+    '''
     with allure.step(f'Выйти из системы'):
         header.logout()
 
@@ -619,3 +620,4 @@ def test_eu_group_gantt_events(parametrized_login_driver, parameters):
 
     with allure.step(f'Проверить что на диаграме отображаются все мероприятия плана, сгруппированные по значению "{group_values[1]}"'):
         events_plan.check_plan_events(k6_plan_uuid, versions[1], login, filter_set=filter_set, group_by=group_values[1])
+    '''

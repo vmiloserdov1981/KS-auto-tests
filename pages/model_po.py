@@ -171,7 +171,7 @@ class ModelPage(EntityPage):
         return elements
 
     def get_model_tags(self):
-        elements = [element.text for element in self.elements_generator(self.LOCATOR_MODEL_TAG, time=2)]
+        elements = [element.text for element in self.elements_generator(self.LOCATOR_MODEL_TAG, time=10)]
         return elements if elements != [] else None
 
     def create_dataset(self, dataset_name, is_default=None):
