@@ -129,7 +129,7 @@ class ApiEu(BaseApi):
             "datasetUuid": version_uuid
         }
         request = self.post(f'{Vars.PKM_API_URL}gantts/get-by-id', self.token, payload)
-        assert not request.get('error'), f'Ошибка при получении Ганта'
+        assert not request.get('error'), f'Ошибка при получении Ганта \n response: \n {request}'
         return request
 
     @staticmethod
