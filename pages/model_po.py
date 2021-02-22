@@ -313,6 +313,7 @@ class ModelPage(EntityPage):
         except TimeoutException:
             self.find_element(self.LOCATOR_MODEL_SEARCH_TAG_INPUT).send_keys(Keys.ENTER)
         self.find_element(self.model_tag_locator_creator(tag_name))
+        time.sleep(3)
 
     def open_tag(self, tag_name):
         tag_locator = self.model_tag_locator_creator(tag_name)
