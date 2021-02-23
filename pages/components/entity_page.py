@@ -118,7 +118,7 @@ class EntityPage(BasePage):
         time.sleep(2)
 
     def get_list_elements_names(self, list_name):
-        elements = [element.text for element in self.elements_generator(self.list_elements_creator(list_name), time=1)]
+        elements = [element.text for element in self.elements_generator(self.list_elements_creator(list_name), time=5)]
         return elements if elements != [] else None
 
     def get_change_data(self):

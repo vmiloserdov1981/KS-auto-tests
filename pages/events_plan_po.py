@@ -553,7 +553,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                     self.add_in_group(event_name, ui_events, summary)
                 else:
                     ui_events.append(event_name)
-            assert self.compare_lists(all_api_events, ui_events), f'Мероприятия в API и UI не совпадают. API - {len(all_api_events)} шт, UI - {len(ui_events) if type(ui_events) is list else "None"} шт'
+            assert self.compare_lists(all_api_events, ui_events), f'Мероприятия в API и UI не совпадают. API - {len(all_api_events)} шт, UI - {len(ui_events) if type(ui_events) is list else "None"} шт \n ui_events: \n {ui_events}'
 
         else:
             api_events = api.api_get_events(version, plan_uuid, login, filter_set=filter_set, group_by=group_by)
@@ -561,7 +561,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             if type(ui_events) is dict:
                 self.compare_dicts(ui_events, api_events)
             else:
-                assert self.compare_lists(api_events, ui_events), f'Мероприятия в API и UI не совпадают. API - {len(api_events)} шт, UI - {len(ui_events) if type(ui_events) is list else "None"} шт'
+                assert self.compare_lists(api_events, ui_events), f'Мероприятия в API и UI не совпадают. API - {len(api_events)} шт, UI - {len(ui_events) if type(ui_events) is list else "None"} шт \n ui_events: \n {ui_events}'
 
     def set_grouping(self, group_value):
         self.find_and_click(self.LOCATOR_GROUPING_ICON)
