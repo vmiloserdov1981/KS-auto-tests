@@ -159,7 +159,7 @@ class ModelPage(EntityPage):
             input_element = self.find_element(self.LOCATOR_MODEL_PERIOD_DATEPICKER, time=3)
             value = self.get_input_value(None, webelement=input_element)
         except TimeoutException:
-            value = self.get_element_text(self.LOCATOR_MODEL_PERIOD_TIME, ignore_error=True)
+            value = self.get_element_text(self.LOCATOR_MODEL_PERIOD_TIME, time=1, ignore_error=True)
         return value
 
     def get_model_start_year(self):
@@ -171,7 +171,7 @@ class ModelPage(EntityPage):
         return elements
 
     def get_model_tags(self):
-        elements = [element.text for element in self.elements_generator(self.LOCATOR_MODEL_TAG, time=10)]
+        elements = [element.text for element in self.elements_generator(self.LOCATOR_MODEL_TAG, time=5)]
         return elements if elements != [] else None
 
     def create_dataset(self, dataset_name, is_default=None):

@@ -147,13 +147,11 @@ class EntityPage(BasePage):
             'tags': [self.get_model_tags]
         }
         '''
-        def write_data(function, args, kwargs, data, data_name):
-            data[data_name] = function(*args, **kwargs)
-
         result = {}
 
         with ThreadPoolExecutor() as executor:
             for field in template:
+
                 function = template.get(field)[0]
                 try:
                     args = template.get(field)[1]
@@ -163,12 +161,13 @@ class EntityPage(BasePage):
                     kwargs = template.get(field)[2]
                 except IndexError:
                     kwargs = {}
-                future = executor.submit(write_data, function, args, kwargs, result, field)
+
+                result[field] = executor.submit(function, *args, **kwargs).result()
+
         sorted_result = {}
         for field in template:
             if field in result.keys():
                 sorted_result[field] = result.get(field)
-
         return sorted_result
 
 
