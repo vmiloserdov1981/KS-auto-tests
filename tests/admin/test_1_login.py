@@ -93,14 +93,15 @@ def test_pkm_login_invalid(driver, parameters):
 
 
 @allure.feature('Логин/Логаут')
-@allure.story('Логаут админа')
+@allure.story('Логаут')
 @allure.title('Логаут')
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
-        'use_admin': True,
+        'use_admin': False,
+        'login': 'eu_user',
         'project': Vars.PKM_PROJECT_NAME,
-        'name': 'Логаут админа'
+        'name': 'Логаут'
     })])
 def test_pkm_logout(parametrized_login_admin_driver, parameters):
     login_page = LoginPage(parametrized_login_admin_driver, f'{Vars.PKM_MAIN_URL}#/login')

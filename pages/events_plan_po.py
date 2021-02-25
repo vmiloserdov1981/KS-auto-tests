@@ -231,79 +231,6 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                             else:
                                 yield row
 
-    '''
-    !!!Самый стабильный генератор!!!
-    
-    def events_generator(self, names_only=False):
-        # перебирает мероприятия построчно, стабильный но менее быстрый
-        last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
-        rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
-        stop_gen = False
-
-        # скролл в начало диаграммы
-        self.scroll_to_gantt_top()
-        time.sleep(5)
-
-        # Перебор мероприятий которые уже отрисованы
-        while not stop_gen:
-            try:
-                self.find_element(rows_locator, time=5)
-            except TimeoutException:
-                stop_gen = True
-                yield None
-
-            if not stop_gen:
-                time.sleep(3)
-                rows = self.driver.find_elements(*rows_locator)
-                for row in rows:
-                    if '\n' not in row.text:
-                        self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
-                                                   row)
-                    if names_only:
-                        row_text = row.text
-                        row_name = row_text.split('\n')[1]
-                        yield row_name
-                    else:
-                        yield row
-                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
-                try:
-                    self.find_element(scroll_area, time=2)
-                except TimeoutException:
-                    stop_gen = True
-
-            # настройка построчного перебора
-            if not stop_gen:
-                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
-                scrollbar = self.find_element(scroll_area, time=2)
-                start_height = self.driver.execute_script("return arguments[0].clientHeight", scrollbar)
-                cell_height = self.driver.execute_script("return arguments[0].clientHeight",
-                                                         self.find_element(last_row_locator))
-                step = ((start_height // cell_height) + 0) * cell_height
-                delta = start_height % step
-                total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
-                new_height = 0
-                last_row = self.find_element(last_row_locator)
-
-                # построчный перебор
-                while new_height + cell_height + start_height + delta <= total_height:
-                    self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar,
-                                               cell_height)
-                    new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
-                    try:
-                        self.wait_element_replacing(last_row, last_row_locator, time=3)
-                    except TimeoutException:
-                        continue
-                    last_row = self.find_element(last_row_locator)
-                    self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);", last_row)
-                    if names_only:
-                        last_row_text = last_row.text
-                        last_row_name = last_row_text.split('\n')[1]
-                        yield last_row_name
-                    else:
-                        yield last_row
-                break
-    '''
-
     def events_generator(self, names_only=False):
         # отрефакторенный
         # перебирает мероприятия построчно, стабильный но менее быстрый
@@ -318,7 +245,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         # Перебор мероприятий которые уже отрисованы
         while not stop_gen:
             try:
-                self.find_element(rows_locator, time=5)
+                self.find_element(rows_locator, time=10)
             except TimeoutException:
                 stop_gen = True
                 yield None
@@ -405,6 +332,9 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         self.find_and_click(self.LOCATOR_COPY_ICON)
         self.find_element(self.LOCATOR_MODAL_TITLE, time=10)
 
+    '''
+    Стандартное открытие, отключил т.к. есть вероятность что не всегда открывает
+    
     @antistale
     def open_event(self, event_name, start_date=None, end_date=None, from_top=False):
         found = False
@@ -437,6 +367,32 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                 aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
                 assert aria_end == end_date
             self.find_and_click(event_locator)
+            time.sleep(2)
+            action.double_click(self.find_element(event_locator)).perform()
+            title = self.get_title()
+            assert title == event_name
+            return True
+        else:
+            raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
+    '''
+
+    @antistale
+    def open_event(self, event_name, start_date=None, end_date=None, from_top=False):
+        event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
+        try:
+            time.sleep(Vars.PKM_USER_WAIT_TIME)
+            self.find_element(event_locator, time=5)
+            found = True
+        except TimeoutException:
+            found = False
+            for event in self.events_generator(names_only=False):
+                if event.text.split('\n')[1] == event_name:
+                    found = True
+                    self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=true);", event)
+                    break
+        if found:
+            action = ActionChains(self.driver)
+            self.find_and_click(event_locator, scroll_to_element=False)
             time.sleep(2)
             action.double_click(self.find_element(event_locator)).perform()
             title = self.get_title()

@@ -103,7 +103,7 @@ class EntityPage(BasePage):
         if return_raw:
             title = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
         else:
-            title = self.get_element_text(self.LOCATOR_ENTITY_PAGE_TITLE)
+            title = self.get_element_text(self.LOCATOR_ENTITY_PAGE_TITLE, time=10)
         return title
 
     def rename_title(self, title_name):

@@ -92,7 +92,8 @@ def test_eu_create_gantt_event(parametrized_login_driver, parameters):
         eu_filter.switch_off_empty_events()
 
     with allure.step(f'Проверить, что мероприятие "{event_name}" не отображается на Ганте'):
-        assert event_name not in events_plan.get_event_names()
+        gantt_events = events_plan.get_event_names()
+        assert event_name not in gantt_events, f"текущие мероприятия \n {gantt_events}"
 
     with allure.step('Включить в фильтре отображение незаполненных мероприятий'):
         eu_filter.switch_on_empty_events()
@@ -604,8 +605,7 @@ def test_eu_group_gantt_events(parametrized_login_driver, parameters):
 
     with allure.step(f'Проверить что на диаграме отображаются все мероприятия плана, сгруппированные по значению "{group_values[1]}"'):
         events_plan.check_plan_events(k6_plan_uuid, versions[1], login, filter_set=filter_set, group_by=group_values[1])
-    # включить шаги после исправления PKM-4813
-    '''
+
     with allure.step(f'Выйти из системы'):
         header.logout()
 
@@ -620,4 +620,3 @@ def test_eu_group_gantt_events(parametrized_login_driver, parameters):
 
     with allure.step(f'Проверить что на диаграме отображаются все мероприятия плана, сгруппированные по значению "{group_values[1]}"'):
         events_plan.check_plan_events(k6_plan_uuid, versions[1], login, filter_set=filter_set, group_by=group_values[1])
-    '''
