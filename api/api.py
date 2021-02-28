@@ -129,7 +129,7 @@ class ApiEu(BaseApi):
             "datasetUuid": version_uuid
         }
         request = self.post(f'{Vars.PKM_API_URL}gantts/get-by-id', self.token, payload)
-        assert not request.get('error'), f'Ошибка при получении Ганта'
+        assert not request.get('error'), f'Ошибка при получении Ганта \n response: \n {request}'
         return request
 
     @staticmethod
@@ -207,14 +207,15 @@ class ApiEu(BaseApi):
                     }
                 }
             ],
-            duration_uuid: [
-                {
-                    "value": {
-                        "data": duration,
-                        "type": "number"
-                    }
-                }
-            ],
+            #Вернуть длительность после исправления PKM-4742
+            #duration_uuid: [
+                #{
+                    #"value": {
+                        #"data": duration,
+                        #"type": "number"
+                    #}
+                #}
+            #],
             end_uuid: [
                 {
                     "value": {

@@ -124,6 +124,20 @@ class ApiModels(BaseApi):
 
         return result
 
+    def get_tag_uuid_by_name(self, tag_name):
+        tags = self.post(f'{Vars.PKM_API_URL}models/find-tag', self.token, {'tag': tag_name}).get('data')
+        for tag in tags:
+            if tag.get('tag') == tag_name:
+                return tag.get('uuid')
+
+    def get_models_names_by_tag(self, tag_name):
+        names = []
+        tag_uuid = self.get_tag_uuid_by_name(tag_name)
+        resp = self.post(f'{Vars.PKM_API_URL}models/get-by-tag', self.token, {'uuid': tag_uuid})
+        for model in resp.get('data'):
+            names.append(model.get('name'))
+        return names
+
 
 
 

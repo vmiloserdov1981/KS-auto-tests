@@ -13,9 +13,10 @@ class Modals(BasePage):
     LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Сохранить ']")
     LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Создать ']")
     LOCATOR_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class,'notification-type-error') and text()='Ошибка сервера']")
-    LOCATOR_MODAL_TITLE = (By.XPATH, "//div[@class='modal-window-title']//div[@class='title-text']")
+    LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]//div[@class='title-text']")
     LOCATOR_ACCEPT_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Принять ']")
     LOCATOR_DELETION_CONFIRM_TEXT = (By.XPATH, "//div[contains(@class, 'deletion-notifications-container')]")
+    LOCATOR_CLOSE_MODAL_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[.=' Закрыть ']")
     LOCATOR_DELETE_BUTTON = (By.XPATH, "//button[.=' Удалить ']")
 
     @staticmethod
@@ -76,7 +77,6 @@ class Modals(BasePage):
         checkbox = self.find_element(self.checkbox_locator_creator(checkbox_name))
         if checkbox.is_selected():
             checkbox.click()
-
 
 
 class Calendar(BasePage, BaseApi):
@@ -467,14 +467,14 @@ class PublicationsModal(BasePage):
 
     def is_publications_bar_displaying(self):
         try:
-            self.find_element(self.LOCATOR_PUBLICATIONS_BAR)
+            self.find_element(self.LOCATOR_PUBLICATIONS_BAR, time=2)
             return True
         except TimeoutException:
             return False
 
     def is_publications_modal_displaying(self):
         try:
-            self.find_element(self.LOCATOR_PUBLICATIONS_SELECT_MODAL)
+            self.find_element(self.LOCATOR_PUBLICATIONS_SELECT_MODAL, time=2)
             return True
         except TimeoutException:
             return False
@@ -482,7 +482,7 @@ class PublicationsModal(BasePage):
     def select_publication(self, publication_name, remember_choice=True):
         if not self.is_publications_modal_displaying():
             try:
-                self.find_and_click(self.LOCATOR_PUBLICATIONS_HOME_ICON)
+                self.find_and_click(self.LOCATOR_PUBLICATIONS_HOME_ICON, time=1)
             except TimeoutException:
                 return
         choice_locator = (By.XPATH, self.LOCATOR_PUBLICATIONS_SELECT_MODAL[1] + f"//div[contains(@class, 'list-item') and .=' {publication_name} ']")
@@ -496,3 +496,11 @@ class PublicationsModal(BasePage):
                 self.find_and_click(self.LOCATOR_REMEMBER_PUBLICATION)
         select_button_locator = (By.XPATH, self.LOCATOR_PUBLICATIONS_SELECT_MODAL[1] + "//button[.='Перейти']")
         self.find_and_click(select_button_locator, time=10)
+
+
+class TagModal(BasePage):
+    LOCATOR_LINKED_MODEL = (By.XPATH, "//div[contains(@class, 'linked-models-list')]//div[contains(@class, 'linked-models-list-item')]")
+
+    def get_linked_models(self):
+        models = [element.text for element in self.elements_generator(self.LOCATOR_LINKED_MODEL, time=10)]
+        return models

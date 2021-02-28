@@ -110,8 +110,6 @@ def parametrized_login_driver(parameters):
             with allure.step(f'Сохранить тестовые данные {data} в драйвере'):
                 driver.test_data = data
             preconditions.login_as_eu(eu_user.login, eu_user.password, parameters.get('project'))
-            #выключить перезагрузку а\после исправления бага PKM-4559
-            driver.refresh()
             if parameters.get('select_last_k6_plan'):
                 preconditions.view_last_k6_plan()
             elif parameters.get('select_last_k6_plan_copy'):

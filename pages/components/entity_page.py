@@ -94,7 +94,7 @@ class EntityPage(BasePage):
 
     @staticmethod
     def dropdown_value_locator_creator(value_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'dropdown-item') and .='{value_name}']")
+        locator = (By.XPATH, f"//div[contains(@class, 'dropdown-item') and .='{value_name}' or contains(@class, 'dropdown-item') and .=' {value_name} ']")
         return locator
 
     def get_entity_page_title(self, return_raw=False, prev_title_html: str = None):
@@ -103,7 +103,7 @@ class EntityPage(BasePage):
         if return_raw:
             title = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
         else:
-            title = self.get_element_text(self.LOCATOR_ENTITY_PAGE_TITLE)
+            title = self.get_element_text(self.LOCATOR_ENTITY_PAGE_TITLE, time=10)
         return title
 
     def rename_title(self, title_name):
@@ -118,7 +118,7 @@ class EntityPage(BasePage):
         time.sleep(2)
 
     def get_list_elements_names(self, list_name):
-        elements = [element.text for element in self.elements_generator(self.list_elements_creator(list_name), time=1)]
+        elements = [element.text for element in self.elements_generator(self.list_elements_creator(list_name), time=5)]
         return elements if elements != [] else None
 
     def get_change_data(self):
@@ -147,13 +147,11 @@ class EntityPage(BasePage):
             'tags': [self.get_model_tags]
         }
         '''
-        def write_data(function, args, kwargs, data, data_name):
-            data[data_name] = function(*args, **kwargs)
-
         result = {}
 
         with ThreadPoolExecutor() as executor:
             for field in template:
+
                 function = template.get(field)[0]
                 try:
                     args = template.get(field)[1]
@@ -163,12 +161,13 @@ class EntityPage(BasePage):
                     kwargs = template.get(field)[2]
                 except IndexError:
                     kwargs = {}
-                future = executor.submit(write_data, function, args, kwargs, result, field)
+
+                result[field] = executor.submit(function, *args, **kwargs).result()
+
         sorted_result = {}
         for field in template:
             if field in result.keys():
                 sorted_result[field] = result.get(field)
-
         return sorted_result
 
 

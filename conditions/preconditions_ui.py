@@ -44,7 +44,7 @@ class PreconditionsFront(BasePage, ApiEu):
         main_page = MainPage(self.driver)
         project_modal = ProjectModal(self.driver)
         publication_modal = PublicationsModal(self.driver)
-        # plan_registry = PlanRegistry(self.driver)
+        plan_registry = PlanRegistry(self.driver)
         with allure.step('Перейти на сайт по адресу {}'.format(Vars.PKM_MAIN_URL)):
             login_page.go_to_site()
         with allure.step('Ввести логин "{}"'.format(login)):
@@ -59,8 +59,7 @@ class PreconditionsFront(BasePage, ApiEu):
         if publication_modal.is_publications_bar_displaying():
             with allure.step(f'Выбрать представление {publication}'):
                 publication_modal.select_publication(publication)
-
-        # plan_registry.close_modal()
+        plan_registry.close_modal()
 
         with allure.step('Проверить наличие иконки меню'):
             main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
