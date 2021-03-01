@@ -7,7 +7,7 @@ from selenium.common.exceptions import TimeoutException
 
 
 class PlanRegistry(EuHeader, BasePage):
-    LOCATOR_VIEW_PLAN_BUTTON = (By.XPATH, "//button[contains(@class, 'user-button') and text()=' Посмотреть ']")
+    LOCATOR_VIEW_PLAN_BUTTON = (By.XPATH, "//pkm-button[.//button[contains(@class, 'user-button') and text()=' Посмотреть ']]")
     LOCATOR_SELECTED_PLAN_ROW = (By.XPATH, "//div[@class='plans-table-container']//fa-icon[@icon='star']/../..")
     LOCATOR_STAR = (By.XPATH, "//div[@class='plans-table-container']//fa-icon[@icon='star']")
     LOCATOR_VERSIONS_NAMES = (By.XPATH, "//div[contains(@class, 'version-element')]/div[2]")
@@ -29,7 +29,10 @@ class PlanRegistry(EuHeader, BasePage):
         target = (By.XPATH, f"(//tr[contains(@class, 'plan-row')]//td)[last() and text()='{comment}']")
         self.find_and_click(target)
         self.find_and_click(self.LOCATOR_VIEW_PLAN_BUTTON)
-        self.wait_until_text_in_element(self.LOCATOR_EU_PAGE_TITLE, 'ПЛАН МЕРОПРИЯТИЙ (ГЛАВНАЯ)')
+        try:
+            self.wait_until_text_in_element(self.LOCATOR_EU_PAGE_TITLE, 'ПЛАН МЕРОПРИЯТИЙ (ГЛАВНАЯ)')
+        except TimeoutException:
+            self.find_and_click(self.LOCATOR_VIEW_PLAN_BUTTON)
 
     def get_selected_plan(self):
         selected_row = self.find_element(self.LOCATOR_SELECTED_PLAN_ROW)
