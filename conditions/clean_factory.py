@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from api.api_models import ApiModels
+from api.api_classes import ApiClasses
 
 
 class Creator(ABC):
@@ -16,6 +17,11 @@ class Creator(ABC):
 class DatasetCreator(Creator):
     def factory_method(self):
         return DatasetProduct(self.driver, self.uuid, self.delete_anyway)
+
+
+class ClassNodeCreator(Creator):
+    def factory_method(self):
+        return ClassNode(self.driver, self.uuid, self.delete_anyway)
 
 
 class ModelNodeCreator(Creator):
@@ -49,6 +55,12 @@ class ModelNode(Product):
     def delete_entity(self):
         api = ApiModels(None, None, self.driver.project_uuid, token=self.driver.token)
         api.delete_model_node(self.uuid)
+
+
+class ClassNode(Product):
+    def delete_entity(self):
+        api = ApiClasses(None, None, self.driver.project_uuid, token=self.driver.token)
+        api.delete_class_node(self.uuid)
 
 
 def delete(creator: Creator):

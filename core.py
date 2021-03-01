@@ -473,8 +473,8 @@ def antistale(func):
         stale = True
         count = 0
         while stale:
-            if count > 3:
-                break
+            if count > 6:
+                raise AssertionError('Превышено количество повторных перезапусков метода')
             try:
                 return func(*args, **kwargs)
             except StaleElementReferenceException:

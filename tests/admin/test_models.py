@@ -2,7 +2,8 @@ import allure
 import pytest
 from variables import PkmVars as Vars
 from pages.model_po import ModelPage
-from conditions.clean_factory import ModelNodeCreator
+from pages.object_po import ObjectPage
+from conditions.clean_factory import ModelNodeCreator, ClassNodeCreator
 from pages.components.modals import TagModal
 
 
@@ -565,3 +566,91 @@ def test_admin_model_tags_control(parametrized_login_admin_driver, parameters):
 
     with allure.step('Проверить отображение пустого списка тегов модели'):
         assert model_page.get_model_tags() is None, 'Некорректный список тегов'
+
+
+@allure.feature('Интерфейс Администратора')
+@allure.story('Дерево моделей')
+@allure.title('Управление объектами модели')
+@allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.red_label
+@pytest.mark.parametrize("parameters", [({
+        'login': 'eu_user',
+        'project': 'тест',
+        'tree_type': 'Модели',
+        'name': 'Управление объектами модели'
+    })])
+def test_admin_model_objects_control(parametrized_login_admin_driver, parameters):
+    object_page = ObjectPage(parametrized_login_admin_driver)
+    model_api = object_page.api_creator.get_api_models()
+    classes_api = object_page.api_creator.get_api_classes()
+    test_folder_name = Vars.PKM_TEST_FOLDER_NAME
+    src_class_name = 'Тест объектов (источник)'
+    dst_class_name = 'Тест объектов (приемник)'
+    indicator_name = 'Показатель_1'
+    relation_name = 'Связь для теста объектов'
+    object_1_name = 'Объект_1'
+    object_2_name = 'Объект_2'
+
+    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
+        models_test_folder_uuid = model_api.check_test_folder(test_folder_name)
+    '''
+    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве классов через API'):
+        classes_test_folder_uuid = classes_api.check_test_folder(test_folder_name)
+
+    with allure.step(f'Определить уникальное название класса_источника'):
+        src_class_name = classes_api.create_unique_class_name(src_class_name)
+
+    with allure.step(f'Создать класс источник через API'):
+        src_class_data = classes_api.create_class_node(src_class_name, parent_uuid=classes_test_folder_uuid)
+
+    with allure.step(f'Создать показатель класса источника через API'):
+        classes_api.create_indicator_node(indicator_name, src_class_data.get('referenceUuid'), src_class_data.get('nodeUuid'), 'number')
+
+    with allure.step(f'Определить уникальное название класса_приемника'):
+        dst_class_name = classes_api.create_unique_class_name(dst_class_name)
+
+    with allure.step(f'Создать класс приемник через API'):
+        dst_class_data = classes_api.create_class_node(dst_class_name, parent_uuid=classes_test_folder_uuid)
+
+    with allure.step(f'Создать показатель класса приемника через API'):
+        classes_api.create_indicator_node(indicator_name, dst_class_data.get('referenceUuid'), dst_class_data.get('nodeUuid'), 'number')
+
+    with allure.step(f'Определить уникальное название связи классов'):
+        relation_name = classes_api.create_unique_class_name(relation_name)
+
+    with allure.step(f'Создать связь классов {src_class_name} и {dst_class_name} через API'):
+        classes_api.create_classes_relation_node(relation_name, src_class_data.get('nodeUuid'), src_class_data.get('referenceUuid'), dst_class_data.get('referenceUuid'))
+    '''
+    with allure.step(f'Определить уникальное название модели'):
+        model_name = model_api.create_unique_model_name(Vars.PKM_BASE_MODEL_NAME + '_объекты')
+
+    with allure.step(f'Создать тестовую модель {model_name} в папке {test_folder_name} через API'):
+        model = model_api.create_model_node(model_name, parent_uuid=models_test_folder_uuid)
+        model_node_uuid = model.get('nodeUuid')
+    '''
+    with allure.step(f'Добавить класс {src_class_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, src_class_data.get('nodeUuid'), delete_anyway=True))
+
+    with allure.step(f'Добавить класс {dst_class_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, dst_class_data.get('nodeUuid'), delete_anyway=True))
+    '''
+    with allure.step(f'Добавить модель {model_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ModelNodeCreator(parametrized_login_admin_driver, model_node_uuid, delete_anyway=True))
+
+    with allure.step(f'развернуть тестовую папку {test_folder_name}'):
+        object_page.tree.expand_node(test_folder_name)
+
+    with allure.step(f'Создать объект {object_1_name} класса {src_class_name} в модели {model_name}'):
+        object_1_data = object_page.create_object(object_1_name, model_name, src_class_name)
+
+    with allure.step(f'Проверить заполнение созданного объекта данными по умолчанию'):
+        expected_data = {
+            'object_name': object_1_name,
+            'description': None,
+            'object_class': src_class_name,
+            'relations': [[src_class_name, relation_name, dst_class_name]]
+        }
+        assert object_1_data == expected_data, 'Объект заполнен некорректными данными'
+
+    with allure.step(f'Создать объект {object_2_name} класса {src_class_name} в модели {model_name}'):
+        object_2_data = object_page.create_object(object_2_name, model_name, src_class_name)

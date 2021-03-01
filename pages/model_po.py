@@ -331,11 +331,3 @@ class ModelPage(EntityPage):
 
     def close_tag_modal(self):
         self.find_and_click(self.modal.LOCATOR_CLOSE_MODAL_BUTTON)
-
-
-
-
-
-
-
-
