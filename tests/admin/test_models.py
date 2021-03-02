@@ -652,5 +652,46 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         }
         assert object_1_data == expected_data, 'Объект заполнен некорректными данными'
 
-    with allure.step(f'Создать объект {object_2_name} класса {src_class_name} в модели {model_name}'):
-        object_2_data = object_page.create_object(object_2_name, model_name, src_class_name)
+    with allure.step(f'Создать объект {object_2_name} класса {dst_class_name} в модели {model_name}'):
+        object_2_data = object_page.create_object(object_2_name, model_name, dst_class_name)
+
+    with allure.step(f'Проверить заполнение созданного объекта данными по умолчанию'):
+        expected_data = {
+            'object_name': object_2_name,
+            'description': None,
+            'object_class': dst_class_name,
+            'relations': [[src_class_name, relation_name, dst_class_name]]
+        }
+        assert object_2_data == expected_data, 'Объект заполнен некорректными данными'
+
+    with allure.step(f'Создать связь объектов {object_1_name} и {object_2_name}'):
+        object_relation = object_page.create_object_relation(src_class_name, relation_name, dst_class_name, object_1_name)
+
+    with allure.step(f'Открыть объект {object_1_name} через дерево'):
+        object_page.tree.select_node(object_1_name)
+
+    with allure.step(f'Проверить отображение коректных связей на странице объекта'):
+        actual_relations = object_page.get_object_relations()
+        expected_relations = [[src_class_name, relation_name, dst_class_name], object_relation]
+        #assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
+
+    with allure.step(f'Переименовать объект {object_1_name} на странице объекта'):
+        object_1_name += '_ред'
+        object_page.rename_title(object_1_name)
+
+    with allure.step(f'Проверить изменение названия объекта в дереве'):
+        object_page.wait_until_text_in_element(object_page.tree.LOCATOR_SELECTED_NODE, object_1_name)
+
+    with allure.step(f'Переименовать объект {object_1_name} в дереве'):
+        object_page.tree.rename_node(object_1_name, f'{object_1_name}_2')
+        object_1_name += '_2'
+
+    with allure.step(f'Открыть объект {object_2_name} через дерево'):
+        object_page.tree.select_node(object_2_name)
+
+    with allure.step(f'Проверить отображение коректных связей на странице объекта'):
+        actual_relations = object_page.get_object_relations()
+        object_relation[0] = object_1_name
+        expected_relations = [[src_class_name, relation_name, dst_class_name], object_relation]
+        # assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
+

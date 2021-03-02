@@ -178,8 +178,9 @@ class Tree(BasePage):
             arrow.click()
 
     def select_node(self, node_name):
+        selected_node = self.find_element(self.LOCATOR_SELECTED_NODE)
         self.find_and_click(self.node_locator_creator(node_name))
-        time.sleep(2)
+        self.wait_element_replacing(selected_node, self.LOCATOR_SELECTED_NODE)
         assert self.get_selected_node_name() == node_name, f'Нода {node_name} не отображается выбранной в дереве'
 
 

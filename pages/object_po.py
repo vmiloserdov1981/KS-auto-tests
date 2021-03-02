@@ -16,6 +16,16 @@ class ObjectPage(EntityPage):
         self.tree = Tree(driver)
         self.modal = Modals(driver)
 
+    @staticmethod
+    def relation_row_locator_creator(src_class, relation_name, dst_class):
+        xpath = (f"(//div[@class='list' and .//div[@class='title' and .='{ObjectPage.RELATIONS_LIST_NAME}' ] ]"
+                 + "//div[contains(@class, 'list-item ')])"
+                 + f"[.//div[@class='object-relation-column' and .=' {src_class} '] "
+                 + f"and .//div[@class='object-relation-column' and .=' {relation_name} '] "
+                 + f"and .//div[@class='object-relation-column' and .=' {dst_class} ']]")
+        locator = (By.XPATH, xpath)
+        return locator
+
     def create_object(self, object_name: str, model_name, class_name) -> dict:
         with allure.step(f'Создать объект {object_name} в ноде "{model_name}"'):
             self.find_and_context_click(self.tree.node_locator_creator(model_name))
@@ -26,7 +36,7 @@ class ObjectPage(EntityPage):
 
         with allure.step(f'Проверить отображение объекта {object_name} в дереве классов выбранным'):
             self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, object_name)
-
+        self.wait_until_text_in_element(self.LOCATOR_ENTITY_PAGE_TITLE, object_name.upper())
         actual_data = self.get_object_page_data()
         return actual_data
 
@@ -52,10 +62,34 @@ class ObjectPage(EntityPage):
     def get_object_page_data(self):
         template = {
             'object_name': (self.get_entity_page_title, (), {"return_raw": True}),
-            # 'changes': [self.get_change_data],
             'description': [self.get_object_description],
             'object_class': [self.get_object_class],
             'relations': [self.get_object_relations]
         }
         data = self.get_page_data_by_template(template)
         return data
+
+    def create_object_relation(self, src_class_name, classes_relation_name, dst_class_name, relation_object_name):
+        current_object_name = self.get_entity_page_title(return_raw=True)
+        current_object_class = self.get_object_class()
+        classes_relation_row_locator = self.relation_row_locator_creator(src_class_name, classes_relation_name, dst_class_name)
+        objects_relation_row_locator = self.relation_row_locator_creator(current_object_name, f'{current_object_name}_{relation_object_name}', relation_object_name)
+        '''
+        if current_object_class == dst_class_name:
+            objects_relation_row_locator = self.relation_row_locator_creator(current_object_name, f'{classes_relation_name}:{relation_object_name}_{current_object_name}', relation_object_name)
+        else:
+            objects_relation_row_locator = self.relation_row_locator_creator(current_object_name, f'{classes_relation_name}:{current_object_name}_{relation_object_name}', relation_object_name)
+        '''
+        add_icon_locator = (By.XPATH, classes_relation_row_locator[1]+"//fa-icon")
+        dropdown_locator = (By.XPATH, f"(//div[@class='list' and .//div[@class='title' and .='Связи' ] ]//div[contains(@class, 'list-item ')])[.//div[@class='object-relation-column' and .=' {classes_relation_name} '] ]//pkm-dropdown")
+        dropdown_value_locator = self.dropdown_value_locator_creator(relation_object_name)
+        self.find_and_click(add_icon_locator)
+        self.find_and_click(dropdown_locator)
+        self.find_and_click(dropdown_value_locator)
+        self.find_element(objects_relation_row_locator)
+        objects_relation_value = self.get_element_text(objects_relation_row_locator).split('\n')
+        objects_relation_row = self.find_element(objects_relation_row_locator)
+        if 'point-left' in objects_relation_row.get_attribute('innerHTML'):
+            objects_relation_value = objects_relation_value[::-1]
+        return objects_relation_value
+

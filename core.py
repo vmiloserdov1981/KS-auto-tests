@@ -473,7 +473,7 @@ def antistale(func):
         stale = True
         count = 0
         while stale:
-            if count > 6:
+            if count > 10:
                 raise AssertionError('Превышено количество повторных перезапусков метода')
             try:
                 return func(*args, **kwargs)
