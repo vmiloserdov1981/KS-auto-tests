@@ -116,7 +116,6 @@ class Tree(BasePage):
             return
 
     def delete_node(self, node_name, node_type, parent_node_name=None):
-        children = []
         if parent_node_name:
             self.hide_node(node_name)
             children = self.get_node_children_names(parent_node_name)
@@ -129,13 +128,6 @@ class Tree(BasePage):
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
         time.sleep(3)
         assert self.is_element_disappearing(node_locator, wait_display=False), f'Нода "{node_name}" не исчезает при удалении'
-        # Отключил проверку корректного порядка нод из за условий гонки
-        '''
-        if parent_node_name:
-            children.remove(node_name)
-            actual_nodes = self.get_node_children_names(parent_node_name)            
-            assert children == actual_nodes, f'Некорректный список нод папки "{parent_node_name}" после удаления ноды "{node_name}" \n ожидаемо: "{children}" \n актуально: "{actual_nodes}"'
-        '''
 
     def rename_node(self, node_name, new_node_name):
         time.sleep(3)
@@ -178,10 +170,8 @@ class Tree(BasePage):
             arrow.click()
 
     def select_node(self, node_name):
-        selected_node = self.find_element(self.LOCATOR_SELECTED_NODE)
         self.find_and_click(self.node_locator_creator(node_name))
-        self.wait_element_replacing(selected_node, self.LOCATOR_SELECTED_NODE)
-        assert self.get_selected_node_name() == node_name, f'Нода {node_name} не отображается выбранной в дереве'
+        self.wait_until_text_in_element(self.LOCATOR_SELECTED_NODE, node_name)
 
 
 '''

@@ -392,7 +392,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                     break
         if found:
             action = ActionChains(self.driver)
-            self.find_and_click(event_locator, scroll_to_element=False)
+            self.find_and_click(event_locator)
             time.sleep(2)
             action.double_click(self.find_element(event_locator)).perform()
             title = self.get_title()
