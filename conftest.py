@@ -20,7 +20,7 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, token=
         ip = os.getenv('SELENOID_IP', '127.0.0.1')
         ip = f'http://{ip}:4444/wd/hub'
         enable_video = True if os.getenv('ENABLE_VIDEO') == 'true' else False
-        timeout = os.getenv('TIMEOUT', '90s')
+        timeout = os.getenv('TIMEOUT', '180s')
         capabilities = {
             "browserName": "chrome",
             # "version": "83.0",
