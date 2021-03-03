@@ -2,6 +2,7 @@ from pages.components.entity_page import EntityPage
 from pages.components.trees import Tree
 from pages.components.modals import Modals
 from selenium.webdriver.common.by import By
+from core import antistale
 import allure
 
 
@@ -50,6 +51,7 @@ class ObjectPage(EntityPage):
         value = class_field_value.split('Класс: ')[1]
         return value
 
+    @antistale
     def get_object_relations(self):
         elements = []
         for element in self.elements_generator(self.list_elements_creator(self.RELATIONS_LIST_NAME), time=5):

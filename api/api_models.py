@@ -27,11 +27,14 @@ class ApiModels(BaseApi):
         node_uuid = resp.get('nodeUuid')
         return node_uuid
 
-
     def check_test_folder(self, folder_name: str) -> str:
         models_tree = self.api_get_models_tree()
         nodes = self.get_tree_nodes(tree=models_tree)
-        test_folder_count = nodes.get('folder').count(folder_name)
+        folders = nodes.get('folder')
+        if folders:
+            test_folder_count = folders.count(folder_name)
+        else:
+            test_folder_count = 0
         if test_folder_count == 0:
             uuid = self.create_folder(folder_name)
             return uuid

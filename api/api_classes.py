@@ -67,7 +67,11 @@ class ApiClasses(BaseApi):
     def check_test_folder(self, folder_name: str) -> str:
         classes_tree = self.api_get_classes_tree()
         nodes = self.get_tree_nodes(tree=classes_tree)
-        test_folder_count = nodes.get('folder').count(folder_name)
+        folders = nodes.get('folder')
+        if folders:
+            test_folder_count = folders.count(folder_name)
+        else:
+            test_folder_count = 0
         if test_folder_count == 0:
             uuid = self.create_folder(folder_name)
             return uuid

@@ -447,7 +447,7 @@ class ProjectModal(BasePage):
             return False
 
     def select_project(self, project_name, remember_choice=False):
-        choice_locator = (By.XPATH, f"//div[contains(@class, 'choice-project') and .='{project_name}']")
+        choice_locator = (By.XPATH, f"//div[contains(@class, 'choice-project__item') and .='{project_name}']")
         self.find_and_click(choice_locator)
         checkbox = self.find_element(self.LOCATOR_REMEMBER_PROJECT)
         if remember_choice:
