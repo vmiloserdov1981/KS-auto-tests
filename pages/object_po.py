@@ -74,6 +74,7 @@ class ObjectPage(EntityPage):
         current_object_class = self.get_object_class()
         classes_relation_row_locator = self.relation_row_locator_creator(src_class_name, classes_relation_name, dst_class_name)
         objects_relation_row_locator = self.relation_row_locator_creator(current_object_name, f'{current_object_name}_{relation_object_name}', relation_object_name)
+        # Заменить objects_relation_row_locator на закомментированные ниже строки после исправления PKM-4900
         '''
         if current_object_class == dst_class_name:
             objects_relation_row_locator = self.relation_row_locator_creator(current_object_name, f'{classes_relation_name}:{relation_object_name}_{current_object_name}', relation_object_name)

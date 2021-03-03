@@ -37,8 +37,7 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
         model_page.rename_title(new_model_name)
 
     with allure.step(f'Проверить изменение названия модели в дереве'):
-        #model_page.wait_until_text_in_element(model_page.tree.LOCATOR_SELECTED_NODE, new_model_name)
-        pass
+        model_page.wait_until_text_in_element(model_page.tree.LOCATOR_SELECTED_NODE, new_model_name)
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -593,6 +592,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
 
     with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
         models_test_folder_uuid = model_api.check_test_folder(test_folder_name)
+    # включить шаги после исправления PKM-4899
     '''
     with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве классов через API'):
         classes_test_folder_uuid = classes_api.check_test_folder(test_folder_name)
@@ -627,6 +627,8 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
     with allure.step(f'Создать тестовую модель {model_name} в папке {test_folder_name} через API'):
         model = model_api.create_model_node(model_name, parent_uuid=models_test_folder_uuid)
         model_node_uuid = model.get('nodeUuid')
+
+    # включить шаги после исправления PKM-4899
     '''
     with allure.step(f'Добавить класс {src_class_name} в список на удаление в постусловиях'):
         parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, src_class_data.get('nodeUuid'), delete_anyway=True))
@@ -634,6 +636,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
     with allure.step(f'Добавить класс {dst_class_name} в список на удаление в постусловиях'):
         parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, dst_class_data.get('nodeUuid'), delete_anyway=True))
     '''
+
     with allure.step(f'Добавить модель {model_name} в список на удаление в постусловиях'):
         parametrized_login_admin_driver.test_data['to_delete'].append(ModelNodeCreator(parametrized_login_admin_driver, model_node_uuid, delete_anyway=True))
 
@@ -673,7 +676,8 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
     with allure.step(f'Проверить отображение коректных связей на странице объекта'):
         actual_relations = object_page.get_object_relations()
         expected_relations = [[src_class_name, relation_name, dst_class_name], object_relation]
-        #assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
+        # включить проверку после исправления PKM-4900
+        # assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
 
     with allure.step(f'Переименовать объект {object_1_name} на странице объекта'):
         object_1_name += '_ред'
@@ -693,5 +697,6 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         actual_relations = object_page.get_object_relations()
         object_relation[0] = object_1_name
         expected_relations = [[src_class_name, relation_name, dst_class_name], object_relation]
+        # включить проверку после исправления PKM-4900
         # assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
 
