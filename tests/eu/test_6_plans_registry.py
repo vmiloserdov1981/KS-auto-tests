@@ -70,7 +70,7 @@ def test_eu_plan_versions_control(parametrized_login_driver, parameters):
 
     with allure.step(f'Добавить новую версию плана'):
         version1 = plans_registry.add_version(k6_plan_copy_uuid)
-        parametrized_login_driver.test_data['to_delete'].append(DatasetCreator(parametrized_login_driver, version1[1]))
+        parametrized_login_driver.test_data['to_delete'].append(DatasetCreator(parametrized_login_driver, version1[1], delete_anyway=True))
 
     ui_versions.append(plans_registry.cut_version_date(version1[0]))
 
@@ -79,7 +79,7 @@ def test_eu_plan_versions_control(parametrized_login_driver, parameters):
 
     with allure.step(f'Добавить новую версию плана, созданную на основе версии "Проект плана"'):
         version2 = plans_registry.add_version(k6_plan_copy_uuid, based_on=versions[0])
-        parametrized_login_driver.test_data['to_delete'].append(DatasetCreator(parametrized_login_driver, version2[1]))
+        parametrized_login_driver.test_data['to_delete'].append(DatasetCreator(parametrized_login_driver, version2[1], delete_anyway=True))
 
     ui_versions.append(plans_registry.cut_version_date(version2[0]))
 

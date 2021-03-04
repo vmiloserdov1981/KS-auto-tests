@@ -66,7 +66,13 @@ class ClassNode(Product):
 def delete(creator: Creator):
     entity = creator.factory_method()
     if entity.delete_anyway:
-        entity.delete_entity()
+        try:
+            entity.delete_entity()
+        except AssertionError:
+            pass
     else:
         if not entity.driver.is_test_failed:
-            entity.delete_entity()
+            try:
+                entity.delete_entity()
+            except AssertionError:
+                pass
