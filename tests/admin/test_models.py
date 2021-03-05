@@ -587,7 +587,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
     dst_class_name = 'Тест объектов (приемник)'
     indicator_name = 'Показатель_1'
     relation_name = 'Связь для теста объектов'
-    object_1_name = 'Объект_1'
+    object_1_name = original_object_1_name = 'Объект_1'
     object_2_name = 'Объект_2'
 
     with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
@@ -700,3 +700,19 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         # включить проверку после исправления PKM-4900
         # assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
 
+    with allure.step(f'Удалить связь объектов {object_1_name} и {object_2_name}'):
+        object_page.delete_relation(object_1_name, f'{relation_name}:{original_object_1_name}_{object_2_name}', object_2_name)
+
+    with allure.step(f'Открыть объект {object_1_name} через дерево'):
+        object_page.tree.select_node(object_1_name)
+
+    with allure.step(f'Проверить отображение коректных связей на странице объекта'):
+        actual_relations = object_page.get_object_relations()
+        expected_relations = [[src_class_name, relation_name, dst_class_name]]
+        assert actual_relations == expected_relations, "Некорректный список связей"
+
+    with allure.step(f'Удалить объект {object_1_name}'):
+        object_page.tree.delete_node(object_1_name, 'Объект', parent_node_name=model_name)
+
+    with allure.step(f'Удалить объект {object_2_name}'):
+        object_page.tree.delete_node(object_2_name, 'Объект', parent_node_name=model_name)

@@ -96,3 +96,10 @@ class ObjectPage(EntityPage):
             objects_relation_value = objects_relation_value[::-1]
         return objects_relation_value
 
+    def delete_relation(self, src_name, relation_name, dst_name):
+        relation_locator = self.relation_row_locator_creator(src_name, relation_name, dst_name)
+        delete_button_locator = (By.XPATH, f"{relation_locator[1]}//fa-icon[@icon='trash']")
+        self.hover_over_element(relation_locator)
+        self.find_and_click(delete_button_locator)
+        self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON, time=10)
+        assert self.is_element_disappearing(relation_locator, time=15, wait_display=False), "связь не исчезает из списка"
