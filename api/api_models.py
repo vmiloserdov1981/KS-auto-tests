@@ -141,8 +141,32 @@ class ApiModels(BaseApi):
             names.append(model.get('name'))
         return names
 
+    def get_model_change_dates(self, model_uuid):
+        model_data = self.get_model_data(model_uuid)
+        api_created_at = model_data.get('createdAt')
+        api_created_date = api_created_at.split('T')[0].split('-')
+        api_created_date = api_created_date[::-1]
+        api_created_time = api_created_at.split('T')[1].split('.')[0].split(':')[:2]
+        api_created_date = f'{api_created_date[0]}.{api_created_date[1]}.{api_created_date[2]} {api_created_time[0]}:{api_created_time[1]}'
 
+        api_updated_at = model_data.get('updatedAt')
+        api_updated_date = api_created_at.split('T')[0].split('-')
+        api_updated_date = api_updated_date[::-1]
+        api_updated_time = api_updated_at.split('T')[1].split('.')[0].split(':')[:2]
+        api_updated_date = f'{api_updated_date[0]}.{api_updated_date[1]}.{api_updated_date[2]} {api_updated_time[0]}:{api_updated_time[1]}'
+        result = {
+            'created_at': api_created_date,
+            'updated_at': api_updated_date
+        }
+        return result
 
+    def get_models_list(self, term=None):
+        payload = {'term': term} if term else {}
+        resp = self.post(f'{Vars.PKM_API_URL}models/get-list', self.token, payload)
+        return resp.get('data')
 
-
-
+    def get_model_uuid_by_name(self, model_name):
+        models_list = self.get_models_list(term=model_name)
+        for model in models_list:
+            if model.get('name') == model_name:
+                return model.get('uuid')

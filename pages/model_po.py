@@ -5,7 +5,7 @@ from core import antistale
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
-import datetime
+# import datetime
 import allure
 import time
 
@@ -78,20 +78,22 @@ class ModelPage(EntityPage):
             self.find_and_click(self.tree.context_option_locator_creator('Создать модель'))
             self.tree.modal.enter_and_save(model_name)
         api = self.api_creator.get_api_models()
-        actual_date = f'{".".join(api.get_utc_date())}'
-        actual_time = api.get_utc_time()
+        # actual_date = f'{".".join(api.get_utc_date())}'
+        # actual_time = api.get_utc_time()
         with allure.step(f'Проверить отображение модели {model_name} в дереве моделей выбранной'):
             assert self.tree.get_selected_node_name() == model_name, f'В дереве не выбрана нода {model_name}'
         with allure.step(f'Проверить переход на страницу вновь соданной модели'):
             assert self.get_entity_page_title() == model_name.upper(), f'Некорректный заголовок на странице модели'
+        model_uuid = api.get_model_uuid_by_name(model_name)
+        api_change_dates = api.get_model_change_dates(model_uuid)
         with allure.step(f'Проверить заполнение созданной модели данными по умолчанию'):
             actual = self.get_model_page_data()
             expected = {
                 'model_name': model_name,
                 'changes': {
-                    'created_at': f'{actual_date} {actual_time}',
+                    'created_at': api_change_dates.get('created_at'),
                     'created_by': self.driver.current_user.name,
-                    'updated_at': f'{actual_date} {actual_time}',
+                    'updated_at': api_change_dates.get('updated_at'),
                     'updated_by': self.driver.current_user.name
                 },
                 'datasets': None,
@@ -102,21 +104,7 @@ class ModelPage(EntityPage):
                 'solver_values': None,
                 'tags': None
             }
-            try:
-                self.compare_dicts(actual, expected)
-            except AssertionError:
-                actual_datetime = datetime.datetime(int(actual_date.split('.')[2]), int(actual_date.split('.')[1]), int(actual_date.split('.')[0]), int(actual_time.split(':')[0]), int(actual_time.split(':')[1]))
-                interval = datetime.timedelta(minutes=1)
-                actual_datetime = str(actual_datetime + interval)
-                actual_date = '.'.join(actual_datetime.split(' ')[0].split('-')[::-1])
-                actual_time = actual_datetime.split(' ')[1][:-3]
-                expected['changes'] = {
-                    'created_at': f'{actual_date} {actual_time}',
-                    'created_by': self.driver.current_user.name,
-                    'updated_at': f'{actual_date} {actual_time}',
-                    'updated_by': self.driver.current_user.name
-                }
-                self.compare_dicts(actual, expected)
+            self.compare_dicts(actual, expected)
 
     def get_model_dimensions(self, sort_value=None, sort_order=None):
         if sort_value and sort_order:
