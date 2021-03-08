@@ -28,7 +28,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         BasePage.__init__(self, driver)
 
     def get_active_version_name(self):
-        current_version = self.get_element_text(self.LOCATOR_VERSION_INPUT_VALUE, time=15)
+        current_version = self.get_element_text(self.LOCATOR_VERSION_INPUT_VALUE, time=20)
         return current_version
 
     def set_version(self, version_name, force=False):
@@ -548,5 +548,5 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         return value
 
     def get_versions_names(self):
-        names = self.get_dropdown_values(self.LOCATOR_VERSION_INPUT)
+        names = self.get_dropdown_values(self.LOCATOR_VERSION_INPUT, time=20)
         return names

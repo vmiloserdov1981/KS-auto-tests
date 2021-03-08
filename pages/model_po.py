@@ -286,7 +286,7 @@ class ModelPage(EntityPage):
 
     def save_model_period(self):
         self.find_and_click(self.LOCATOR_MODEL_PERIOD_SAVE_BUTTON)
-        time.sleep(1)
+        time.sleep(7)
 
     def delete_model_period(self):
         self.find_and_click(self.LOCATOR_MODEL_PERIOD_DELETE_BUTTON)

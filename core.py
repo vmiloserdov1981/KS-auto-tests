@@ -238,9 +238,9 @@ class BasePage:
             return False
         return True
 
-    def get_dropdown_values(self, dropdown_locator):
-        self.find_and_click(dropdown_locator)
-        values = [value.text for value in self.elements_generator(self.LOCATOR_DROPDOWN_VALUE)]
+    def get_dropdown_values(self, dropdown_locator, time=5):
+        self.find_and_click(dropdown_locator, time=time)
+        values = [value.text for value in self.elements_generator(self.LOCATOR_DROPDOWN_VALUE, time=time)]
         self.find_and_click(dropdown_locator)
         return values
 
