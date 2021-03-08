@@ -574,7 +574,7 @@ def test_admin_model_tags_control(parametrized_login_admin_driver, parameters):
 @pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user',
-        'project': 'тест',
+        'project': Vars.PKM_PROJECT_NAME,
         'tree_type': 'Модели',
         'name': 'Управление объектами модели'
     })])
@@ -583,10 +583,10 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
     model_api = object_page.api_creator.get_api_models()
     classes_api = object_page.api_creator.get_api_classes()
     test_folder_name = Vars.PKM_TEST_FOLDER_NAME
-    src_class_name = 'Тест объектов (источник)'
-    dst_class_name = 'Тест объектов (приемник)'
+    src_class_name = 'Для связи объектов (источник)'
+    dst_class_name = 'Для связи объектов (приемник)'
     indicator_name = 'Показатель_1'
-    relation_name = 'Связь для теста объектов'
+    relation_name = 'Связь классов'
     object_1_name = original_object_1_name = 'Объект_1'
     object_2_name = 'Объект_2'
 
