@@ -284,9 +284,7 @@ def test_admin_dimensions_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Проверить корректное отображение измерений в списке'):
         expected = api_dimensions
         actual = model_page.get_model_dimensions()
-        assert model_page.compare_lists(actual, expected)
-        #Раскоментировать следующую строчку и удалить предыдущую после PKM-4693
-        #assert actual == expected, 'Актуальные измерения не совпадают с ожидаемыми'
+        assert actual == expected, 'Актуальные измерения не совпадают с ожидаемыми'
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -716,3 +714,10 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
 
     with allure.step(f'Удалить объект {object_2_name}'):
         object_page.tree.delete_node(object_2_name, 'Объект', parent_node_name=model_name)
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить отсутствие удаленных объектов модели {model_name} в дереве'):
+        actual_objects = object_page.tree.get_node_children_names(model_name)
+        assert actual_objects == []

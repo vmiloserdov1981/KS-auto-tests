@@ -323,7 +323,7 @@ class BaseApi:
         if response.status_code in range(200, 300):
             return json.loads(response.text)
         else:
-            raise AssertionError(f'Ошибка при получении ответа сервера: {response.status_code}, {response.text}')
+            raise AssertionError(f'Ошибка при получении ответа сервера:\n запрос: {url} \n payload: {payload} \n headers: {headers} \n Ответ: {response.status_code}, {response.text}')
 
     @staticmethod
     def get(url, params=None):

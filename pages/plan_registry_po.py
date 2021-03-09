@@ -121,7 +121,7 @@ class PlanRegistry(EuHeader, BasePage):
 
     def add_version(self, plan_uuid, based_on=None):
         expected_versions = self.get_versions_names(with_dates=True)
-        versions_html = self.find_element(self.LOCATOR_VERSIONS_BLOCK).get_attribute('innerHTML')
+        # versions_html = self.find_element(self.LOCATOR_VERSIONS_BLOCK).get_attribute('innerHTML')
         api = self.api_creator.get_api_eu()
         last_number = api.get_last_plan_version_number(plan_uuid)
         last_number += 1
@@ -133,9 +133,12 @@ class PlanRegistry(EuHeader, BasePage):
             self.find_and_click(self.LOCATOR_ADD_BASED_VERSION_BUTTON)
         else:
             self.find_and_click(self.LOCATOR_ADD_VERSION_BUTTON)
+        self.find_element((By.XPATH, f"//div[contains(@class, 'version-element') and ./div[.=' {expected_name} ']]"), time=60)
+        '''
         self.wait_element_changing(versions_html, self.LOCATOR_VERSIONS_BLOCK, time=60)
         actual_versions = self.get_versions_names(with_dates=True)
         assert self.compare_lists(expected_versions, actual_versions), f'Добавленная версия отображается некорректно \n Ожидаемые версии: "{expected_versions}", \n текущие версии: "{actual_versions}"'
+        '''
         elements = (expected_name, api.get_plan_version_uuid_by_name(plan_uuid, self.cut_version_date(expected_name)))
         return elements
 
@@ -162,6 +165,6 @@ class PlanRegistry(EuHeader, BasePage):
             self.select_version(name, with_dates=with_dates)
             star = self.find_element(self.LOCATOR_VERSION_STAR)
             self.find_and_click(self.LOCATOR_SELECT_VERSION_BUTTON)
-            self.wait_element_replacing(star, self.LOCATOR_VERSION_STAR)
+            self.wait_element_replacing(star, self.LOCATOR_VERSION_STAR, time=30)
             actual_default_version = self.get_default_version()
             assert actual_default_version == name
