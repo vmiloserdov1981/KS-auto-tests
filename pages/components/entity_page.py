@@ -11,6 +11,7 @@ class EntityPage(BasePage):
     LOCATOR_PAGE_TITLE_BLOCK = (By.XPATH, "//div[@class='page-title-container']//div[@class='title-value']")
     LOCATOR_TITLE_INPUT = (By.XPATH, "(//div[@class='page-title-container']//input)[1]")
     LOCATOR_TITLE_CHECK_ICON = (By.XPATH, "//div[@class='page-title-container']//fa-icon[@icon='check']")
+    LOCATOR_PAGE_CONTENT = (By.XPATH, "//div[@class='page-content']")
 
     @staticmethod
     def add_list_element_button_creator(list_name):
@@ -147,6 +148,8 @@ class EntityPage(BasePage):
             'tags': [self.get_model_tags]
         }
         '''
+
+        self.wait_stable_page()
         result = {}
 
         with ThreadPoolExecutor() as executor:
@@ -169,5 +172,8 @@ class EntityPage(BasePage):
             if field in result.keys():
                 sorted_result[field] = result.get(field)
         return sorted_result
+
+    def wait_stable_page(self, timeout=3):
+        self.wait_element_stable(self.LOCATOR_PAGE_CONTENT, timeout)
 
 

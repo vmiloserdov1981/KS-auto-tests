@@ -53,6 +53,18 @@ class BasePage:
         else:
             WebDriverWait(self.driver, time).until(ElementChanged(html, locator), message=f"Element hasn`t been changed")
 
+    def wait_element_stable(self, locator, timeout, retry_limit=10):
+        element_html = self.find_element(locator).get_attribute('innerHTML')
+        retry_count = 0
+        while retry_count <= retry_limit:
+            try:
+                self.wait_element_changing(element_html, locator, time=timeout)
+            except TimeoutException:
+                return
+            retry_count += 1
+            element_html = self.find_element(locator).get_attribute('innerHTML')
+        raise AssertionError('Превышено количество попыток ожидания стабильности')
+
     def is_element_disappearing(self, locator, time=10, wait_display=True):
         if wait_display:
             try:

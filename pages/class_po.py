@@ -93,6 +93,7 @@ class ClassPage(EntityPage):
         return actual_data
 
     def get_indicator_page_data(self) -> dict:
+        self.wait_stable_page()
         data = {
             'indicator_name': self.get_entity_page_title(return_raw=True),
             'indicator_data_type':  self.get_element_text(self.dropdown_locator_creator('dataType')),
@@ -141,6 +142,7 @@ class ClassPage(EntityPage):
         return actual_data
 
     def get_relation_page_data(self) -> dict:
+        self.wait_stable_page()
         data = {
             'relation_name': self.get_entity_page_title(return_raw=True),
             'source_class_name': self.get_input_value(self.async_dropdown_locator_creator('source')),
