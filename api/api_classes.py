@@ -83,11 +83,15 @@ class ApiClasses(BaseApi):
         elif test_folder_count > 1:
             raise AssertionError('Количество тестовых папок > 1')
 
-    def create_class_node(self, class_name, parent_uuid=None):
+    def create_class_node(self, class_name, parent_uuid=None, create_unique_name=False):
+        if create_unique_name:
+            class_name = self.create_unique_class_name(class_name)
+
         payload = {
             'name': class_name,
             'type': 'class'
         }
+
         if parent_uuid:
             payload['parentUuid'] = parent_uuid
         resp = self.post(f'{Vars.PKM_API_URL}classes/create-node', self.token, payload)
@@ -113,6 +117,7 @@ class ApiClasses(BaseApi):
             'type': "indicator"
         }
         resp = self.post(f'{Vars.PKM_API_URL}classes/create-class-node', self.token, payload)
+        assert not resp.get('error'), f'Ошибка при создании показателя: \n {resp}'
         return resp
 
     def delete_class_node(self, uuid: str):

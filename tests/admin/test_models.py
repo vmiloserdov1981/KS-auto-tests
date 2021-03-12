@@ -721,3 +721,32 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
     with allure.step(f'Проверить отсутствие удаленных объектов модели {model_name} в дереве'):
         actual_objects = object_page.tree.get_node_children_names(model_name)
         assert actual_objects == []
+
+
+@allure.feature('Интерфейс Администратора')
+@allure.story('Дерево моделей')
+@allure.title('Управление таблицами данных модели')
+@allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.red_label
+@pytest.mark.parametrize("parameters", [({
+        'login': 'eu_user',
+        'project': 'тест',
+        'tree_type': 'Модели',
+        'name': 'Управление таблицами данных модели'
+    })])
+def test_admin_model_tags_control(parametrized_login_admin_driver, parameters):
+    model_page = ModelPage(parametrized_login_admin_driver)
+    template_creator = model_page.api_creator.get_template_creator_api()
+    model_api = model_page.api_creator.get_api_models()
+    classes_api = model_page.api_creator.get_api_classes()
+    test_folder_name = Vars.PKM_TEST_FOLDER_NAME
+    table_name = 'Тестовая таблица'
+
+    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
+        models_test_folder_uuid = model_api.check_test_folder(test_folder_name)
+
+    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве классов через API'):
+        classes_test_folder_uuid = classes_api.check_test_folder(test_folder_name)
+
+    with allure.step(f'Создать шаблон для тестирования таблиц через API'):
+        template_data = template_creator.create_table_template(classes_folder_uuid=classes_test_folder_uuid, models_folder_uuid=models_test_folder_uuid)

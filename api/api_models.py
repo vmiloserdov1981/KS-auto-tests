@@ -46,8 +46,6 @@ class ApiModels(BaseApi):
         elif test_folder_count > 1:
             raise AssertionError('Количество тестовых папок > 1')
 
-        
-
     def create_unique_model_name(self, basename):
         models_list = self.get_tree_nodes().get('model')
         count = 0
@@ -61,6 +59,17 @@ class ApiModels(BaseApi):
         names = self.get_tree_nodes().get('model')
         return names
 
+    def create_dataset(self, dataset_name, model_uuid, is_default=False):
+        payload = {'name': dataset_name,
+                   'default': is_default,
+                   'description': '',
+                   'modelUuid': model_uuid
+                   }
+
+        resp = self.post(f'{Vars.PKM_API_URL}datasets/create', self.token, payload)
+        assert not resp.get('error'), f'Ошибка при создании набора данных: \n {resp}'
+        return resp
+
     def delete_dataset(self, uuid):
         payload = {'uuid': uuid}
         resp = self.post(f'{Vars.PKM_API_URL}datasets/delete', self.token, payload)
@@ -71,7 +80,9 @@ class ApiModels(BaseApi):
         resp = self.post(f'{Vars.PKM_API_URL}models/delete-node', self.token, payload)
         assert not resp.get('error'), f'Ошибка при удалении ноды модели'
 
-    def create_model_node(self, model_name, parent_uuid=None):
+    def create_model_node(self, model_name, parent_uuid=None, create_unique_name=False):
+        if create_unique_name:
+            model_name = self.create_unique_model_name(model_name)
         payload = {
             'name': model_name,
             'type': 'model'
@@ -79,6 +90,17 @@ class ApiModels(BaseApi):
         if parent_uuid:
             payload['parentUuid'] = parent_uuid
         resp = self.post(f'{Vars.PKM_API_URL}models/create-node', self.token, payload)
+        return resp
+
+    def create_object_node(self, object_name, class_uuid, model_uuid, parent_uuid):
+        payload = {
+            'name': object_name,
+            'type': 'object',
+            'parentUuid': parent_uuid,
+            'modelUuid': model_uuid,
+            'classUuid': class_uuid,
+        }
+        resp = self.post(f'{Vars.PKM_API_URL}models/create-model-node', self.token, payload)
         return resp
 
     def get_datasets_by_model(self, model_uuid):
