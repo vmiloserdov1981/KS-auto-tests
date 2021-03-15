@@ -16,7 +16,7 @@ class Creator(ABC):
 
 class DatasetCreator(Creator):
     def factory_method(self):
-        return DatasetProduct(self.driver, self.uuid, self.delete_anyway)
+        return DatasetEntity(self.driver, self.uuid, self.delete_anyway)
 
 
 class ClassNodeCreator(Creator):
@@ -29,11 +29,12 @@ class ModelNodeCreator(Creator):
         return ModelNode(self.driver, self.uuid, self.delete_anyway)
 
 
+class FormulaEntityCreator(Creator):
+    def factory_method(self):
+        return FormulaEntity(self.driver, self.uuid, self.delete_anyway)
+
+
 class Product(ABC):
-    """
-    Интерфейс Продукта объявляет операции, которые должны выполнять все
-    конкретные продукты.
-    """
 
     def __init__(self, driver, uuid, delete_anyway):
         self.driver = driver
@@ -45,10 +46,16 @@ class Product(ABC):
         pass
 
 
-class DatasetProduct(Product):
+class DatasetEntity(Product):
     def delete_entity(self):
         api = ApiModels(None, None, self.driver.project_uuid, token=self.driver.token)
         api.delete_dataset(self.uuid)
+
+
+class FormulaEntity(Product):
+    def delete_entity(self):
+        api = ApiClasses(None, None, self.driver.project_uuid, token=self.driver.token)
+        api.delete_formula(self.uuid)
 
 
 class ModelNode(Product):
@@ -68,11 +75,11 @@ def delete(creator: Creator):
     if entity.delete_anyway:
         try:
             entity.delete_entity()
-        except AssertionError:
+        except ZeroDivisionError:
             pass
     else:
         if not entity.driver.is_test_failed:
             try:
                 entity.delete_entity()
-            except AssertionError:
+            except ZeroDivisionError:
                 pass

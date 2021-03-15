@@ -33,6 +33,16 @@ class TemplateCreator:
             result['dataset_1_data'] = executor.submit(self.model_api.create_dataset, f"{names.get('dataset_name')}_1", model_data.get('referenceUuid')).result()
             result['dataset_2_data'] = executor.submit(self.model_api.create_dataset, f"{names.get('dataset_name')}_2", model_data.get('referenceUuid')).result()
 
+        formula_data = {
+            'class_uuid': class_data.get('referenceUuid'),
+            'indicator_uuid': result.get('indicator_3_data').get('referenceUuid'),
+            'formula_name': names.get('formula_name'),
+            'calc_indicator_1_uuid': result.get('indicator_1_data').get('referenceUuid'),
+            'calc_indicator_2_uuid': result.get('indicator_2_data').get('referenceUuid'),
+            'modifier_type': '-'
+        }
+        result['formula_data'] = self.classes_api.create_simple_formula(formula_data)
+
         with ThreadPoolExecutor() as executor:
             result['object_1_data'] = executor.submit(self.model_api.create_object_node, f"{names.get('object_name')}_1", class_data.get('referenceUuid'), model_data.get('referenceUuid'), model_data.get('nodeUuid')).result()
             result['object_2_data'] = executor.submit(self.model_api.create_object_node, f"{names.get('object_name')}_2", class_data.get('referenceUuid'), model_data.get('referenceUuid'), model_data.get('nodeUuid')).result()

@@ -3,7 +3,7 @@ import pytest
 from variables import PkmVars as Vars
 from pages.model_po import ModelPage
 from pages.object_po import ObjectPage
-from conditions.clean_factory import ModelNodeCreator, ClassNodeCreator
+from conditions.clean_factory import ModelNodeCreator, ClassNodeCreator, FormulaEntityCreator, DatasetCreator
 from pages.components.modals import TagModal
 
 
@@ -734,7 +734,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         'tree_type': 'Модели',
         'name': 'Управление таблицами данных модели'
     })])
-def test_admin_model_tags_control(parametrized_login_admin_driver, parameters):
+def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     model_page = ModelPage(parametrized_login_admin_driver)
     template_creator = model_page.api_creator.get_template_creator_api()
     model_api = model_page.api_creator.get_api_models()
@@ -750,3 +750,29 @@ def test_admin_model_tags_control(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Создать шаблон для тестирования таблиц через API'):
         template_data = template_creator.create_table_template(classes_folder_uuid=classes_test_folder_uuid, models_folder_uuid=models_test_folder_uuid)
+
+    class_name = template_data.get('class_data').get('data')[0].get('name')
+    class_node_uuid = template_data.get('class_data').get('nodeUuid')
+    model_name = template_data.get('model_data').get('data')[0].get('name')
+    model_node_uuid = template_data.get('model_data').get('nodeUuid')
+    dataset_1_name = template_data.get('dataset_1_data').get('name')
+    dataset_1_uuid = template_data.get('dataset_1_data').get('uuid')
+    dataset_2_name = template_data.get('dataset_2_data').get('name')
+    dataset_2_uuid = template_data.get('dataset_2_data').get('uuid')
+    formula_name = template_data.get('formula_data').get('name')
+    formula_uuid = template_data.get('formula_data').get('uuid')
+
+    with allure.step(f'Добавить набор данных {dataset_1_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(DatasetCreator(parametrized_login_admin_driver, dataset_1_uuid, delete_anyway=True))
+
+    with allure.step(f'Добавить набор данных {dataset_2_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(DatasetCreator(parametrized_login_admin_driver, dataset_2_uuid, delete_anyway=True))
+
+    with allure.step(f'Добавить модель {model_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ModelNodeCreator(parametrized_login_admin_driver, model_node_uuid, delete_anyway=True))
+
+    with allure.step(f'Добавить формулу {formula_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(FormulaEntityCreator(parametrized_login_admin_driver, formula_uuid, delete_anyway=True))
+
+    with allure.step(f'Добавить класс {class_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, class_node_uuid, delete_anyway=True))

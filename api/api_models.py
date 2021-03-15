@@ -78,7 +78,7 @@ class ApiModels(BaseApi):
     def delete_model_node(self, uuid):
         payload = {'uuid': uuid}
         resp = self.post(f'{Vars.PKM_API_URL}models/delete-node', self.token, payload)
-        assert not resp.get('error'), f'Ошибка при удалении ноды модели'
+        assert not resp.get('error'), f'Ошибка при удалении ноды модели \n {resp}'
 
     def create_model_node(self, model_name, parent_uuid=None, create_unique_name=False):
         if create_unique_name:

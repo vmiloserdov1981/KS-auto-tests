@@ -124,3 +124,54 @@ class ApiClasses(BaseApi):
         payload = {'uuid': uuid}
         resp = self.post(f'{Vars.PKM_API_URL}classes/delete-node', self.token, payload)
         assert not resp.get('error'), f'Ошибка при удалении ноды класса \n {resp}'
+
+    def delete_formula(self, uuid: str):
+        payload = {'uuid': uuid}
+        resp = self.post(f'{Vars.PKM_API_URL}formulas/delete', self.token, payload)
+        assert not resp.get('error'), f'Ошибка при удалении формулы \n {resp}'
+
+    def create_simple_formula(self, formula_data: dict):
+        """
+        formula_data = {
+            'class_uuid': '01eb8565-43a6-7dbd-a10a-00b15c0c4000',
+            'indicator_uuid': '01eb8588-44cf-00cb-a10a-00b15c0c4000',
+            'formula_name': 'test_formula',
+            'calc_indicator_1_uuid': '01eb8588-44cf-00cb-a10a-00b15c0c4000',
+            'calc_indicator_2_uuid': '01eb8588-44cf-00cb-a10a-00b15c0c4000',
+            'modifier_type': '-'
+        }
+        """
+
+        payload = {
+            'classUuid': formula_data.get('class_uuid'),
+            'description': '',
+            'indicatorUuid': formula_data.get('indicator_uuid'),
+            'name': formula_data.get('formula_name'),
+            'elements': [
+                {'elementNumber': 1, 'indicatorUuid': formula_data.get('calc_indicator_1_uuid')},
+                {'elementNumber': 3, 'indicatorUuid': formula_data.get('calc_indicator_2_uuid')}
+            ],
+            'resultElement': {
+                'consolidations': None,
+                'dimensionsElements': {},
+                'elementNumber': 0,
+                'forceMatchEqualElements': True,
+                'includeNewMeasurementsElements': 'ignore',
+                'indicatorUuid': formula_data.get('indicator_uuid'),
+                'measurementsAreSet': True,
+                'omitNonMatchingElements': False,
+                'parentPlaceholderId': None,
+                'relations': None,
+                'result': True,
+                'timePeriodsLag': 0
+            },
+            'tokens': [
+                {'value': "1", 'kind': "VARIABLE"},
+                {'value': formula_data.get('modifier_type'), 'kind': "MODIFIER"},
+                {'value': "3", 'kind': "VARIABLE"}
+            ]
+        }
+        resp = self.post(f'{Vars.PKM_API_URL}formulas/create', self.token, payload)
+        assert not resp.get('error'), f'Ошибка при создании формулы: \n {resp}'
+        result = {'uuid': resp.get('uuid'), 'name': formula_data.get('formula_name')}
+        return result
