@@ -33,8 +33,15 @@ class PreconditionsFront(BasePage, ApiEu):
         if project_modal.is_project_modal_displaying():
             with allure.step(f'Выбрать проект {project}'):
                 project_modal.select_project(project)
-        with allure.step('Проверить отображение блока профиля пользователя'):
-            main_page.find_element(main_page.LOCATOR_PKM_PROFILENAME_BLOCK)
+            with allure.step('Проверить отображение блока профиля пользователя'):
+                main_page.find_element(main_page.LOCATOR_PKM_PROFILENAME_BLOCK)
+
+        else:
+            with allure.step('Проверить отображение блока профиля пользователя'):
+                main_page.find_element(main_page.LOCATOR_PKM_PROFILENAME_BLOCK)
+            with allure.step('Проверить текущий выбранный проект'):
+                main_page.check_project(self.driver.project_name)
+
         with allure.step('Сохранить токен приложения в драйвере'):
             self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
 

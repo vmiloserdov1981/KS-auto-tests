@@ -11,7 +11,7 @@ import json
 from conditions.clean_factory import delete as delete_entity
 
 
-def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, token=None):
+def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, project_name=None, token=None):
     if name is None:
         name = 'autotest'
     if os.getenv('IS_LOCAL') == 'true':
@@ -38,6 +38,7 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, token=
     driver.is_test_failed = False
     driver.token = token
     driver.project_uuid = project_uuid
+    driver.project_name = project_name
     driver.implicitly_wait(impl_wait)
     driver.set_window_position(0, 0)
     if maximize:
@@ -94,7 +95,7 @@ def parametrized_login_driver(parameters):
     project_name = parameters.get('project')
     token = ApiPreconditions.api_get_token(user.admin.login, user.admin.password, Vars.PKM_API_URL)
     project_uuid = ApiPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
-    driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid, token=token)
+    driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid, project_name=project_name, token=token)
     preconditions_api = ApiPreconditions(None, None, project_uuid, token)
     preconditions = PreconditionsFront(driver, project_uuid, token=token)
     with AttachmentsCreator(driver):
@@ -141,7 +142,7 @@ def parametrized_login_admin_driver(parameters):
     project_name = parameters.get('project')
     token = ApiPreconditions.api_get_token(user.admin.login, user.admin.password, Vars.PKM_API_URL)
     project_uuid = ApiPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
-    driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid, token=token)
+    driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid, project_name=project_name, token=token)
     preconditions_api = ApiPreconditions(None, None, project_uuid, token)
     preconditions_ui = PreconditionsFront(driver, project_uuid, token=token)
     with AttachmentsCreator(driver):

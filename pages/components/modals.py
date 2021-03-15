@@ -436,8 +436,10 @@ class NewEventModal(Calendar, BasePage):
 
 class ProjectModal(BasePage):
     LOCATOR_SELECT_PROJECT_MODAL = (By.XPATH, "//div[@class='title-text' and text()='Выбор проекта']/ancestor:: div[@class='modal-window']")
+    LOCATOR_CLOSE_PROJECT_MODAL_ICON = (By.XPATH, f"{LOCATOR_SELECT_PROJECT_MODAL[1]}//div[contains(@class, 'close-icon')]")
     LOCATOR_ENTER_PROJECT_BUTTON = (By.XPATH, "//button[.=' Войти в проект ']")
     LOCATOR_REMEMBER_PROJECT = (By.XPATH, "//div[contains(@class, 'checkbox-wrapper') and .='Запомнить мой выбор']//div[@class='checkbox-container']")
+    LOCATOR_SELECTED_PROJECT_ROW = (By.XPATH, "//span[contains(@class, 'checked')]")
 
     def is_project_modal_displaying(self):
         try:
@@ -457,6 +459,14 @@ class ProjectModal(BasePage):
             if 'checkbox-selected' in checkbox.get_attribute('class'):
                 self.find_and_click(self.LOCATOR_REMEMBER_PROJECT)
         self.find_and_click(self.LOCATOR_ENTER_PROJECT_BUTTON)
+
+    def get_selected_project_name(self):
+        selected_project_name = self.get_element_text(self.LOCATOR_SELECTED_PROJECT_ROW, time=10, ignore_error=True)
+        return selected_project_name
+
+    def close_project_modal(self):
+        self.find_and_click(self.LOCATOR_CLOSE_PROJECT_MODAL_ICON)
+        assert self.is_element_disappearing(self.LOCATOR_SELECT_PROJECT_MODAL, wait_display=False)
 
 
 class PublicationsModal(BasePage):
