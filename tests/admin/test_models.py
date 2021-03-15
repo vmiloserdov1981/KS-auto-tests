@@ -777,4 +777,4 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Добавить класс {class_name} в список на удаление в постусловиях'):
         parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, class_node_uuid, delete_anyway=True))
-    time.sleep(30)
+    time.sleep(20)

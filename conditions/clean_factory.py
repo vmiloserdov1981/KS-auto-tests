@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from api.api_models import ApiModels
 from api.api_classes import ApiClasses
+import allure
 
 
 class Creator(ABC):
@@ -48,26 +49,30 @@ class Product(ABC):
 
 class DatasetEntity(Product):
     def delete_entity(self):
-        api = ApiModels(None, None, self.driver.project_uuid, token=self.driver.token)
-        api.delete_dataset(self.uuid)
+        with allure.step(f'Удалить набор данных'):
+            api = ApiModels(None, None, self.driver.project_uuid, token=self.driver.token)
+            api.delete_dataset(self.uuid)
 
 
 class FormulaEntity(Product):
     def delete_entity(self):
-        api = ApiClasses(None, None, self.driver.project_uuid, token=self.driver.token)
-        api.delete_formula(self.uuid)
+        with allure.step(f'Удалить формулу'):
+            api = ApiClasses(None, None, self.driver.project_uuid, token=self.driver.token)
+            api.delete_formula(self.uuid)
 
 
 class ModelNode(Product):
     def delete_entity(self):
-        api = ApiModels(None, None, self.driver.project_uuid, token=self.driver.token)
-        api.delete_model_node(self.uuid)
+        with allure.step(f'Удалить модель'):
+            api = ApiModels(None, None, self.driver.project_uuid, token=self.driver.token)
+            api.delete_model_node(self.uuid)
 
 
 class ClassNode(Product):
     def delete_entity(self):
-        api = ApiClasses(None, None, self.driver.project_uuid, token=self.driver.token)
-        api.delete_class_node(self.uuid)
+        with allure.step(f'Удалить класс'):
+            api = ApiClasses(None, None, self.driver.project_uuid, token=self.driver.token)
+            api.delete_class_node(self.uuid)
 
 
 def delete(creator: Creator):

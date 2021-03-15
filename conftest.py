@@ -9,6 +9,7 @@ import os
 from webdriver_manager.chrome import ChromeDriverManager
 import json
 from conditions.clean_factory import delete as delete_entity
+import time
 
 
 def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, project_name=None, token=None):
@@ -164,6 +165,7 @@ def parametrized_login_admin_driver(parameters):
             with allure.step(f'Удалить тестовые данные'):
                 for entity in driver.test_data.get('to_delete'):
                     delete_entity(entity)
+                    time.sleep(10)
 
     driver.quit()
 

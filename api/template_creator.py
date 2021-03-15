@@ -2,6 +2,7 @@ from variables import PkmVars as Vars
 from api.api_models import ApiModels
 from api.api_classes import ApiClasses
 from concurrent.futures import ThreadPoolExecutor
+import allure
 
 
 class TemplateCreator:
@@ -22,16 +23,24 @@ class TemplateCreator:
         result = {}
 
         with ThreadPoolExecutor() as executor:
-            class_data = result['class_data'] = executor.submit(self.classes_api.create_class_node, names.get('class_name'), parent_uuid=classes_folder_uuid, create_unique_name=True).result()
-            model_data = result['model_data'] = executor.submit(self.model_api.create_model_node, names.get('model_name'), parent_uuid=models_folder_uuid, create_unique_name=True).result()
+            with allure.step('Создать класс'):
+                class_data = result['class_data'] = executor.submit(self.classes_api.create_class_node, names.get('class_name'), parent_uuid=classes_folder_uuid, create_unique_name=True).result()
+            with allure.step('Создать модель'):
+                model_data = result['model_data'] = executor.submit(self.model_api.create_model_node, names.get('model_name'), parent_uuid=models_folder_uuid, create_unique_name=True).result()
 
         with ThreadPoolExecutor() as executor:
-            result['indicator_1_data'] = executor.submit(self.classes_api.create_indicator_node, f"{names.get('indicator_name')}_1", class_data.get('referenceUuid'), class_data.get('nodeUuid'), 'number').result()
-            result['indicator_2_data'] = executor.submit(self.classes_api.create_indicator_node, f"{names.get('indicator_name')}_2", class_data.get('referenceUuid'), class_data.get('nodeUuid'), 'number').result()
-            result['indicator_3_data'] = executor.submit(self.classes_api.create_indicator_node, f"{names.get('indicator_name')}_3", class_data.get('referenceUuid'), class_data.get('nodeUuid'), 'number').result()
-            result['indicator_4_data'] = executor.submit(self.classes_api.create_indicator_node, f"{names.get('indicator_name')}_4", class_data.get('referenceUuid'), class_data.get('nodeUuid'), 'string').result()
-            result['dataset_1_data'] = executor.submit(self.model_api.create_dataset, f"{names.get('dataset_name')}_1", model_data.get('referenceUuid')).result()
-            result['dataset_2_data'] = executor.submit(self.model_api.create_dataset, f"{names.get('dataset_name')}_2", model_data.get('referenceUuid')).result()
+            with allure.step('Создать показатель'):
+                result['indicator_1_data'] = executor.submit(self.classes_api.create_indicator_node, f"{names.get('indicator_name')}_1", class_data.get('referenceUuid'), class_data.get('nodeUuid'), 'number').result()
+            with allure.step('Создать показатель'):
+                result['indicator_2_data'] = executor.submit(self.classes_api.create_indicator_node, f"{names.get('indicator_name')}_2", class_data.get('referenceUuid'), class_data.get('nodeUuid'), 'number').result()
+            with allure.step('Создать показатель'):
+                result['indicator_3_data'] = executor.submit(self.classes_api.create_indicator_node, f"{names.get('indicator_name')}_3", class_data.get('referenceUuid'), class_data.get('nodeUuid'), 'number').result()
+            with allure.step('Создать показатель'):
+                result['indicator_4_data'] = executor.submit(self.classes_api.create_indicator_node, f"{names.get('indicator_name')}_4", class_data.get('referenceUuid'), class_data.get('nodeUuid'), 'string').result()
+            with allure.step('Создать набор данных'):
+                result['dataset_1_data'] = executor.submit(self.model_api.create_dataset, f"{names.get('dataset_name')}_1", model_data.get('referenceUuid')).result()
+            with allure.step('Создать набор данных'):
+                result['dataset_2_data'] = executor.submit(self.model_api.create_dataset, f"{names.get('dataset_name')}_2", model_data.get('referenceUuid')).result()
 
         formula_data = {
             'class_uuid': class_data.get('referenceUuid'),
@@ -41,10 +50,13 @@ class TemplateCreator:
             'calc_indicator_2_uuid': result.get('indicator_2_data').get('referenceUuid'),
             'modifier_type': '-'
         }
-        result['formula_data'] = self.classes_api.create_simple_formula(formula_data)
+        with allure.step('Создать формулу'):
+            result['formula_data'] = self.classes_api.create_simple_formula(formula_data)
 
         with ThreadPoolExecutor() as executor:
-            result['object_1_data'] = executor.submit(self.model_api.create_object_node, f"{names.get('object_name')}_1", class_data.get('referenceUuid'), model_data.get('referenceUuid'), model_data.get('nodeUuid')).result()
-            result['object_2_data'] = executor.submit(self.model_api.create_object_node, f"{names.get('object_name')}_2", class_data.get('referenceUuid'), model_data.get('referenceUuid'), model_data.get('nodeUuid')).result()
+            with allure.step('Создать объект'):
+                result['object_1_data'] = executor.submit(self.model_api.create_object_node, f"{names.get('object_name')}_1", class_data.get('referenceUuid'), model_data.get('referenceUuid'), model_data.get('nodeUuid')).result()
+            with allure.step('Создать объект'):
+                result['object_2_data'] = executor.submit(self.model_api.create_object_node, f"{names.get('object_name')}_2", class_data.get('referenceUuid'), model_data.get('referenceUuid'), model_data.get('nodeUuid')).result()
 
         return result
