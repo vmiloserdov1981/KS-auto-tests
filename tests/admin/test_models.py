@@ -590,7 +590,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
 
     with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
         models_test_folder_uuid = model_api.check_test_folder(test_folder_name)
-    # включить шаги после исправления PKM-4899
+    # включить шаги после исправления PKM-4835
     '''
     with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве классов через API'):
         classes_test_folder_uuid = classes_api.check_test_folder(test_folder_name)
@@ -626,7 +626,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         model = model_api.create_model_node(model_name, parent_uuid=models_test_folder_uuid)
         model_node_uuid = model.get('nodeUuid')
 
-    # включить шаги после исправления PKM-4899
+    # включить шаги после исправления PKM-4835
     '''
     with allure.step(f'Добавить класс {src_class_name} в список на удаление в постусловиях'):
         parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, src_class_data.get('nodeUuid'), delete_anyway=True))

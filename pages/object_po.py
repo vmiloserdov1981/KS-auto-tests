@@ -75,14 +75,10 @@ class ObjectPage(EntityPage):
         current_object_name = self.get_entity_page_title(return_raw=True)
         current_object_class = self.get_object_class()
         classes_relation_row_locator = self.relation_row_locator_creator(src_class_name, classes_relation_name, dst_class_name)
-        objects_relation_row_locator = self.relation_row_locator_creator(current_object_name, f'{current_object_name}_{relation_object_name}', relation_object_name)
-        # Заменить objects_relation_row_locator на закомментированные ниже строки после исправления PKM-4900
-        '''
         if current_object_class == dst_class_name:
             objects_relation_row_locator = self.relation_row_locator_creator(current_object_name, f'{classes_relation_name}:{relation_object_name}_{current_object_name}', relation_object_name)
         else:
             objects_relation_row_locator = self.relation_row_locator_creator(current_object_name, f'{classes_relation_name}:{current_object_name}_{relation_object_name}', relation_object_name)
-        '''
         add_icon_locator = (By.XPATH, classes_relation_row_locator[1]+"//fa-icon")
         dropdown_locator = (By.XPATH, f"(//div[@class='list' and .//div[@class='title' and .='Связи' ] ]//div[contains(@class, 'list-item ')])[.//div[@class='object-relation-column' and .=' {classes_relation_name} '] ]//pkm-dropdown")
         dropdown_value_locator = self.dropdown_value_locator_creator(relation_object_name)
