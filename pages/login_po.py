@@ -4,6 +4,7 @@ import users
 from variables import PkmVars as Vars
 from pages.components.modals import ProjectModal
 import allure
+import time
 
 
 class LoginPage(BasePage):
@@ -35,7 +36,8 @@ class LoginPage(BasePage):
         with allure.step('Кликнуть на кнопку входа'):
             self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
         with allure.step('Проверить наличие иконки меню'):
-            self.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
+            time.sleep(5)
+            # self.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
         with allure.step('Перейти в интерфейс администратора'):
             self.driver.get(f"{Vars.PKM_MAIN_URL}#/main")
 
