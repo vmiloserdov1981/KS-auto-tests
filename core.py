@@ -482,6 +482,19 @@ class BaseApi:
 
 def antistale(func):
     def wrap(*args, **kwargs):
+        count = 0
+        while count < 10:
+            try:
+                return func(*args, **kwargs)
+            except StaleElementReferenceException:
+                count += 1
+        return func(*args, **kwargs)
+    return wrap
+
+
+"""
+def antistale(func):
+    def wrap(*args, **kwargs):
         stale = True
         count = 0
         while stale:
@@ -493,3 +506,4 @@ def antistale(func):
                 stale = True
                 count += 1
     return wrap
+"""
