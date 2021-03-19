@@ -48,7 +48,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение обновленного имени класса на странице класса'):
-        assert class_page.get_entity_page_title() == new_class_name.upper()
+        class_page.wait_page_title(new_class_name.upper())
 
     with allure.step('Проверить отображение обновленного имени справочника в дереве'):
         assert class_page.tree.get_selected_node_name() == new_class_name
@@ -65,7 +65,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение обновленного имени класса на странице класса'):
-        assert class_page.get_entity_page_title() == class_name.upper()
+        class_page.wait_page_title(class_name.upper())
 
     with allure.step('Проверить отображение обновленного имени справочника в дереве'):
         assert class_page.tree.get_selected_node_name() == class_name
@@ -138,7 +138,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
     with allure.step(f'Проверить переименование связи на странице связи'):
         class_page.select_relation(relation_1['relation_name'])
-        assert class_page.get_entity_page_title(return_raw=True) == relation_1['relation_name'], 'Некорректное название связи'
+        class_page.wait_page_title(relation_1['relation_name'].upper())
 
     with allure.step(f'Переименовать связь на странице связи'):
         relation_1_name += '_2'
@@ -170,7 +170,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
     with allure.step(f'Проверить переименование показателя "{indicator_name}" на странице показателя'):
         class_page.find_and_click(class_page.list_element_creator(class_page.INDICATORS_LIST_NAME, indicator_1['indicator_name']))
-        assert class_page.get_entity_page_title() == indicator_1['indicator_name'].upper()
+        class_page.wait_page_title(indicator_1['indicator_name'].upper())
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()

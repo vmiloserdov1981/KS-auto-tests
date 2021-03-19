@@ -172,6 +172,8 @@ class Tree(BasePage):
     def select_node(self, node_name):
         self.find_and_click(self.node_locator_creator(node_name), time=20)
         self.wait_until_text_in_element(self.LOCATOR_SELECTED_NODE, node_name)
+        page_title_locator = (By.XPATH, "//div[contains(@class, 'title-value')]")
+        self.wait_until_text_in_element(page_title_locator, node_name.upper())
 
 
 '''

@@ -141,7 +141,7 @@ class BasePage:
         action_chains = ActionChains(self.driver)
         return action_chains.context_click(element).perform()
 
-    def find_and_enter(self, locator, text, time=5):
+    def find_and_enter(self, locator, text, time=10):
         element = self.find_element(locator, time)
         element.send_keys(text)
         return element

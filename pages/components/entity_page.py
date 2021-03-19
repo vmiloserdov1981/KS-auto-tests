@@ -107,6 +107,9 @@ class EntityPage(BasePage):
             title = self.get_element_text(self.LOCATOR_ENTITY_PAGE_TITLE, time=10)
         return title
 
+    def wait_page_title(self, page_title: str, timeout: int = 10):
+        self.wait_until_text_in_element(self.LOCATOR_ENTITY_PAGE_TITLE, page_title, time=timeout)
+
     def rename_title(self, title_name):
         self.find_and_click(self.LOCATOR_PAGE_TITLE_BLOCK)
         title_input = self.find_element(self.LOCATOR_TITLE_INPUT)

@@ -44,23 +44,22 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение обновленного имени модели на странице модели'):
-        assert model_page.get_entity_page_title() == new_model_name.upper()
+        model_page.wait_page_title(new_model_name.upper())
 
     with allure.step('Проверить отображение обновленного имени модели в дереве'):
         assert model_page.tree.get_selected_node_name() == new_model_name
 
     with allure.step(f'Переименовать модель "{new_model_name}" на "{model_name}" в дереве'):
-        title_html = model_page.find_element(model_page.LOCATOR_ENTITY_PAGE_TITLE).get_attribute('innerHTML')
         model_page.tree.rename_node(new_model_name, model_name)
 
     with allure.step(f'Проверить изменение названия модели на странице модели'):
-        assert model_page.get_entity_page_title(prev_title_html=title_html) == model_name.upper()
+        model_page.wait_page_title(model_name.upper())
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение обновленного имени модели на странице модели'):
-        assert model_page.get_entity_page_title() == model_name.upper()
+        model_page.wait_page_title(model_name.upper())
 
     with allure.step('Проверить отображение обновленного имени модели в дереве'):
         assert model_page.tree.get_selected_node_name() == model_name
@@ -675,8 +674,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
     with allure.step(f'Проверить отображение коректных связей на странице объекта'):
         actual_relations = object_page.get_object_relations()
         expected_relations = [[src_class_name, relation_name, dst_class_name], object_relation]
-        # включить проверку после исправления PKM-4900
-        # assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
+        assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
 
     with allure.step(f'Переименовать объект {object_1_name} на странице объекта'):
         object_1_name += '_ред'
@@ -696,8 +694,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         actual_relations = object_page.get_object_relations()
         object_relation[0] = object_1_name
         expected_relations = [[src_class_name, relation_name, dst_class_name], object_relation]
-        # включить проверку после исправления PKM-4900
-        # assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
+        assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
 
     with allure.step(f'Удалить связь объектов {object_1_name} и {object_2_name}'):
         object_page.delete_relation(object_1_name, f'{relation_name}:{original_object_1_name}_{object_2_name}', object_2_name)
