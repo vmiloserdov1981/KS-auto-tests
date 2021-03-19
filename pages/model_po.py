@@ -83,7 +83,7 @@ class ModelPage(EntityPage):
         with allure.step(f'Проверить отображение модели {model_name} в дереве моделей выбранной'):
             self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, model_name)
         with allure.step(f'Проверить переход на страницу вновь соданной модели'):
-            self.wait_page_title(model_name.upper()), f'Некорректный заголовок на странице модели'
+            self.wait_page_title(model_name.upper())
         model_uuid = api.get_model_uuid_by_name(model_name)
         api_change_dates = api.get_model_change_dates(model_uuid)
         with allure.step(f'Проверить заполнение созданной модели данными по умолчанию'):

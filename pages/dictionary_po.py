@@ -23,7 +23,7 @@ class DictionaryPage(EntityPage):
         with allure.step(f'Проверить отображение справочника {dict_name} в дереве справочников выбранным'):
             self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, dict_name)
         with allure.step(f'Проверить переход на страницу вновь соданного справочника'):
-            self.wait_page_title(dict_name.upper()), f'Некорректный заголовок на странице справочника'
+            self.wait_page_title(dict_name.upper())
         with allure.step(f'Проверить что справочник создан без элементов'):
             assert not self.get_dict_elements()
 
