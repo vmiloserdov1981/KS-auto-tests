@@ -3,7 +3,7 @@ from selenium import webdriver
 import allure
 from conditions.preconditions_ui import PreconditionsFront
 import users as user
-from conditions.preconditions_api import ApiPreconditions
+from conditions.preconditions_api import ApiEuPreconditions
 from variables import PkmVars as Vars
 import os
 from webdriver_manager.chrome import ChromeDriverManager
@@ -94,10 +94,10 @@ def parametrized_login_driver(parameters):
     }
     """
     project_name = parameters.get('project')
-    token = ApiPreconditions.api_get_token(user.admin.login, user.admin.password, Vars.PKM_API_URL)
-    project_uuid = ApiPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
+    token = ApiEuPreconditions.api_get_token(user.admin.login, user.admin.password, Vars.PKM_API_URL)
+    project_uuid = ApiEuPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
     driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid, project_name=project_name, token=token)
-    preconditions_api = ApiPreconditions(None, None, project_uuid, token)
+    preconditions_api = ApiEuPreconditions(None, None, project_uuid, token)
     preconditions = PreconditionsFront(driver, project_uuid, token=token)
     with AttachmentsCreator(driver):
         preconditions_api.api_check_user(parameters.get('login'))
@@ -141,10 +141,10 @@ def parametrized_login_admin_driver(parameters):
     }
     """
     project_name = parameters.get('project')
-    token = ApiPreconditions.api_get_token(user.admin.login, user.admin.password, Vars.PKM_API_URL)
-    project_uuid = ApiPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
+    token = ApiEuPreconditions.api_get_token(user.admin.login, user.admin.password, Vars.PKM_API_URL)
+    project_uuid = ApiEuPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
     driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid, project_name=project_name, token=token)
-    preconditions_api = ApiPreconditions(None, None, project_uuid, token)
+    preconditions_api = ApiEuPreconditions(None, None, project_uuid, token)
     preconditions_ui = PreconditionsFront(driver, project_uuid, token=token)
     with AttachmentsCreator(driver):
         if not parameters.get('use_admin'):

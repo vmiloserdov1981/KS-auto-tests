@@ -590,8 +590,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
 
     with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
         models_test_folder_uuid = model_api.check_test_folder(test_folder_name)
-    # включить шаги после исправления PKM-4835
-    '''
+
     with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве классов через API'):
         classes_test_folder_uuid = classes_api.check_test_folder(test_folder_name)
 
@@ -618,7 +617,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
 
     with allure.step(f'Создать связь классов {src_class_name} и {dst_class_name} через API'):
         classes_api.create_classes_relation_node(relation_name, src_class_data.get('nodeUuid'), src_class_data.get('referenceUuid'), dst_class_data.get('referenceUuid'))
-    '''
+
     with allure.step(f'Определить уникальное название модели'):
         model_name = model_api.create_unique_model_name(Vars.PKM_BASE_MODEL_NAME + '_объекты')
 
@@ -626,17 +625,14 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         model = model_api.create_model_node(model_name, parent_uuid=models_test_folder_uuid)
         model_node_uuid = model.get('nodeUuid')
 
-    # включить шаги после исправления PKM-4835
-    '''
+    with allure.step(f'Добавить модель {model_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ModelNodeCreator(parametrized_login_admin_driver, model_node_uuid, delete_anyway=True))
+
     with allure.step(f'Добавить класс {src_class_name} в список на удаление в постусловиях'):
         parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, src_class_data.get('nodeUuid'), delete_anyway=True))
 
     with allure.step(f'Добавить класс {dst_class_name} в список на удаление в постусловиях'):
         parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, dst_class_data.get('nodeUuid'), delete_anyway=True))
-    '''
-
-    with allure.step(f'Добавить модель {model_name} в список на удаление в постусловиях'):
-        parametrized_login_admin_driver.test_data['to_delete'].append(ModelNodeCreator(parametrized_login_admin_driver, model_node_uuid, delete_anyway=True))
 
     with allure.step(f'развернуть тестовую папку {test_folder_name}'):
         object_page.tree.expand_node(test_folder_name)
@@ -774,4 +770,4 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Добавить класс {class_name} в список на удаление в постусловиях'):
         parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, class_node_uuid, delete_anyway=True))
-    time.sleep(20)
+    time.sleep(10)
