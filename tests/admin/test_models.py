@@ -724,7 +724,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
 @pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user',
-        'project': 'тест',
+        'project': Vars.PKM_PROJECT_NAME,
         'tree_type': 'Модели',
         'name': 'Управление таблицами данных модели'
     })])

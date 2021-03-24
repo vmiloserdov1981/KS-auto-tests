@@ -95,6 +95,7 @@ class ApiClasses(BaseApi):
         if parent_uuid:
             payload['parentUuid'] = parent_uuid
         resp = self.post(f'{Vars.PKM_API_URL}classes/create-node', self.token, payload)
+        resp['data'][0]['name'] = class_name
         return resp
 
     def create_classes_relation_node(self, relation_name, parent_node_uuid, source_class_uuid, destination_class_uuid):
