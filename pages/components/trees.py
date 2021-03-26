@@ -175,6 +175,9 @@ class Tree(BasePage):
         page_title_locator = (By.XPATH, "//div[contains(@class, 'title-value')]")
         self.wait_until_text_in_element(page_title_locator, node_name.upper())
 
+    def wait_selected_node_name(self, name, timeout=10):
+        self.wait_until_text_in_element(self.LOCATOR_SELECTED_NODE, name, time=timeout)
+
 
 '''
 class TreeOld(ApiClasses, ApiModels, Modals, BasePage):

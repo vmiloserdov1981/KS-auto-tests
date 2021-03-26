@@ -37,11 +37,11 @@ class ApiClasses(BaseApi):
 
     def api_get_classes_tree(self):
         resp = self.post('{}classes/get-tree'.format(Vars.PKM_API_URL), self.token, {})
-        classes = resp.get('data')
+        classes = resp.get('data') or []
         return classes
 
     def create_unique_class_name(self, basename):
-        classes_list = self.get_tree_nodes().get('class')
+        classes_list = self.get_tree_nodes().get('class') or []
         count = 0
         newname = basename
         while newname in classes_list:
@@ -95,7 +95,7 @@ class ApiClasses(BaseApi):
         if parent_uuid:
             payload['parentUuid'] = parent_uuid
         resp = self.post(f'{Vars.PKM_API_URL}classes/create-node', self.token, payload)
-        resp['data'][0]['name'] = class_name
+        resp['name'] = class_name
         return resp
 
     def create_classes_relation_node(self, relation_name, parent_node_uuid, source_class_uuid, destination_class_uuid):
@@ -121,8 +121,10 @@ class ApiClasses(BaseApi):
         assert not resp.get('error'), f'Ошибка при создании показателя: \n {resp}'
         return resp
 
-    def delete_class_node(self, uuid: str):
+    def delete_class_node(self, uuid: str, force=None):
         payload = {'uuid': uuid}
+        if force:
+            payload['force'] = force
         resp = self.post(f'{Vars.PKM_API_URL}classes/delete-node', self.token, payload)
         assert not resp.get('error'), f'Ошибка при удалении ноды класса \n {resp}'
 

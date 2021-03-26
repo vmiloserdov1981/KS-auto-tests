@@ -2,10 +2,10 @@ import allure
 import pytest
 from variables import PkmVars as Vars
 from pages.model_po import ModelPage
+from pages.table_po import TablePage
 from pages.object_po import ObjectPage
 from conditions.clean_factory import ModelNodeCreator, ClassNodeCreator, FormulaEntityCreator, DatasetCreator
 from pages.components.modals import TagModal
-import time
 
 
 @allure.feature('Интерфейс Администратора')
@@ -729,10 +729,10 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         'name': 'Управление таблицами данных модели'
     })])
 def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
-    model_page = ModelPage(parametrized_login_admin_driver)
-    template_creator = model_page.api_creator.get_template_creator_api()
-    model_api = model_page.api_creator.get_api_models()
-    classes_api = model_page.api_creator.get_api_classes()
+    table_page = TablePage(parametrized_login_admin_driver)
+    template_creator = table_page.api_creator.get_template_creator_api()
+    model_api = table_page.api_creator.get_api_models()
+    classes_api = table_page.api_creator.get_api_classes()
     test_folder_name = Vars.PKM_TEST_FOLDER_NAME
     table_name = 'Тестовая таблица'
 
@@ -745,7 +745,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Создать шаблон для тестирования таблиц через API'):
         template_data = template_creator.create_table_template(classes_folder_uuid=classes_test_folder_uuid, models_folder_uuid=models_test_folder_uuid)
 
-    class_name = template_data.get('class_data').get('data')[0].get('name')
+    class_name = template_data.get('class_data').get('name')
     class_node_uuid = template_data.get('class_data').get('nodeUuid')
     model_name = template_data.get('model_data').get('data')[0].get('name')
     model_node_uuid = template_data.get('model_data').get('nodeUuid')
@@ -769,5 +769,16 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         parametrized_login_admin_driver.test_data['to_delete'].append(FormulaEntityCreator(parametrized_login_admin_driver, formula_uuid, delete_anyway=True))
 
     with allure.step(f'Добавить класс {class_name} в список на удаление в постусловиях'):
-        parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, class_node_uuid, delete_anyway=True))
-    time.sleep(10)
+        parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, class_node_uuid, delete_anyway=True, force=[16, 17]))
+
+    with allure.step(f'развернуть тестовую папку {test_folder_name}'):
+        table_page.tree.expand_node(test_folder_name)
+
+    with allure.step(f'Создать таблицу данных {table_name}'):
+        table_page.create_data_table(model_name, table_name)
+
+    with allure.step(f'Задать базовую структуру таблицы'):
+        table_page.set_base_structure()
+
+    with allure.step(f'Переключиться в режим просмотра таблицы'):
+        table_page.switch_table_page_type('Таблица')

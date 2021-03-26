@@ -5,10 +5,11 @@ import allure
 
 
 class Creator(ABC):
-    def __init__(self, driver, uuid, delete_anyway=False):
+    def __init__(self, driver, uuid, delete_anyway=False, force=None):
         self.driver = driver
         self.uuid = uuid
         self.delete_anyway = delete_anyway
+        self.force = force
 
     @abstractmethod
     def factory_method(self):
@@ -22,7 +23,7 @@ class DatasetCreator(Creator):
 
 class ClassNodeCreator(Creator):
     def factory_method(self):
-        return ClassNode(self.driver, self.uuid, self.delete_anyway)
+        return ClassNode(self.driver, self.uuid, self.delete_anyway, force=self.force)
 
 
 class ModelNodeCreator(Creator):
@@ -37,10 +38,11 @@ class FormulaEntityCreator(Creator):
 
 class Product(ABC):
 
-    def __init__(self, driver, uuid, delete_anyway):
+    def __init__(self, driver, uuid, delete_anyway, force=None):
         self.driver = driver
         self.uuid = uuid
         self.delete_anyway = delete_anyway
+        self.force = force
 
     @abstractmethod
     def delete_entity(self):
@@ -72,7 +74,7 @@ class ClassNode(Product):
     def delete_entity(self):
         with allure.step(f'Удалить класс'):
             api = ApiClasses(None, None, self.driver.project_uuid, token=self.driver.token)
-            api.delete_class_node(self.uuid)
+            api.delete_class_node(self.uuid, force=self.force)
 
 
 def delete(creator: Creator):

@@ -141,7 +141,8 @@ def parametrized_login_admin_driver(parameters):
     }
     """
     project_name = parameters.get('project')
-    token = ApiEuPreconditions.api_get_token(user.admin.login, user.admin.password, Vars.PKM_API_URL)
+    login = parameters.get('login')
+    token = ApiEuPreconditions.api_get_token(user.test_users[login].login, user.test_users[login].password, Vars.PKM_API_URL)
     project_uuid = ApiEuPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
     driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid, project_name=project_name, token=token)
     preconditions_api = ApiEuPreconditions(None, None, project_uuid, token)

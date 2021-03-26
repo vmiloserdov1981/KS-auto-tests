@@ -106,7 +106,7 @@ class BasePage:
         return WebDriverWait(self.driver, time).until(ec.text_to_be_present_in_element(locator, text),
                                                       message=f"No '{text}' text in element '{locator}'")
 
-    def wait_until_text_in_element_value(self, locator, text, time=5):
+    def wait_until_text_in_element_value(self, locator, text, time=10):
         WebDriverWait(self.driver, time).until(ec.text_to_be_present_in_element_value(locator, text),
                                                message=f"No '{text}' text in element_value '{locator}'")
 
@@ -125,7 +125,7 @@ class BasePage:
     def scroll_to_element(self, webelement):
         self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);", webelement)
 
-    def find_and_click(self, locator, time=5, scroll_to_element=True):
+    def find_and_click(self, locator, time=10, scroll_to_element=True):
         element = self.find_element(locator, time=time)
         if scroll_to_element:
             self.scroll_to_element(element)
@@ -136,7 +136,7 @@ class BasePage:
         action = ActionChains(self.driver)
         action.move_to_element(elem).move_by_offset(x, y).click().perform()
 
-    def find_and_context_click(self, locator, time=5):
+    def find_and_context_click(self, locator, time=10):
         element = self.find_element(locator, time)
         action_chains = ActionChains(self.driver)
         return action_chains.context_click(element).perform()
@@ -171,7 +171,9 @@ class BasePage:
         input_field.send_keys(Keys.DELETE)
         self.find_and_enter(locator, field_name)
 
-    def drag_and_drop(self, element_1, element_2):
+    def drag_and_drop(self, element_1_locator, element_2_locator):
+        element_1 = self.find_element(element_1_locator)
+        element_2 = self.find_element(element_2_locator)
         action = ActionChains(self.driver)
         action.drag_and_drop(element_1, element_2).perform()
 

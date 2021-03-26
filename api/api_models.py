@@ -6,7 +6,7 @@ class ApiModels(BaseApi):
 
     def api_get_models_tree(self):
         resp = self.post('{}models/get-tree'.format(Vars.PKM_API_URL), self.token, {})
-        return resp.get('data')
+        return resp.get('data') or []
 
     def get_tree_nodes(self, tree=None):
         nodes = {}
@@ -47,7 +47,7 @@ class ApiModels(BaseApi):
             raise AssertionError('Количество тестовых папок > 1')
 
     def create_unique_model_name(self, basename):
-        models_list = self.get_tree_nodes().get('model')
+        models_list = self.get_tree_nodes().get('model') or []
         count = 0
         new_name = basename
         while new_name in models_list:

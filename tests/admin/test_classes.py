@@ -114,14 +114,14 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
     with allure.step(f'Проверить успешный переход к созданному показателю через страницу класса'):
         class_page.tree.select_node(class_name)
         class_page.find_and_click(class_page.list_element_creator(class_page.INDICATORS_LIST_NAME, indicator_1['indicator_name']))
-        assert class_page.get_indicator_page_data() == indicator_1
-        assert class_page.tree.get_selected_node_name() == indicator_1['indicator_name']
+        class_page.tree.wait_selected_node_name(indicator_1['indicator_name'])
+        assert class_page.get_indicator_page_data() == indicator_1, 'данные на странице показателя не совпадают с ожидаемыми'
 
     with allure.step(f'Проверить успешный переход к созданной связи через страницу класса'):
         class_page.tree.select_node(class_name)
         class_page.select_relation(relation_1['relation_name'])
-        assert class_page.get_relation_page_data() == relation_1
-        assert class_page.tree.get_selected_node_name() == relation_1['relation_name']
+        assert class_page.get_relation_page_data() == relation_1, 'данные на странице связи не совпадают с ожидаемыми'
+        class_page.tree.wait_selected_node_name(relation_1['relation_name'])
 
     with allure.step(f'Перейти на страницу класса "{class_name}"'):
         class_page.find_and_click(class_page.tree.node_locator_creator(class_name))
@@ -146,7 +146,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
         relation_1['relation_name'] = relation_1_name
 
     with allure.step(f'Проверить переименование связи в дереве'):
-        assert class_page.tree.get_selected_node_name() == relation_1['relation_name'], 'Некорректное название связи в дереве'
+        class_page.tree.wait_selected_node_name(relation_1['relation_name'])
         expected_children = [indicator_1['indicator_name'], indicator_2['indicator_name'], relation_1['relation_name'], relation_2['relation_name']]
         actual_children = class_page.tree.get_node_children_names(class_name)
         assert expected_children == actual_children, f'Некорректный список дочерних элементов класса {class_name}'

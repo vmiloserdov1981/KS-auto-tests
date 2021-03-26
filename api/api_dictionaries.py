@@ -6,7 +6,7 @@ class ApiDictionaries(BaseApi):
 
     def api_get_dicts_tree(self):
         resp = self.post('{}dictionaries/get-tree'.format(Vars.PKM_API_URL), self.token, {})
-        return resp.get('data')
+        return resp.get('data') or []
 
     def create_folder(self, folder_name, parent_uuid=None):
         payload = {
