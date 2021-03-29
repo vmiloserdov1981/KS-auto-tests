@@ -735,6 +735,20 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     classes_api = table_page.api_creator.get_api_classes()
     test_folder_name = Vars.PKM_TEST_FOLDER_NAME
     table_name = 'Тестовая таблица'
+    cells_data = {
+        'cell_1': {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1', 'value': '200'},
+        'cell_2': {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2', 'value': '33'},
+        'cell_4': {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_4', 'value': 'Тестовое_значение'},
+        'cell_5': {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_1', 'value': '500'},
+        'cell_6': {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_2', 'value': '-150'},
+        'cell_8': {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_4', 'value': 'Тестовое_значение_2'},
+        'cell_9': {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1', 'value': '3000'},
+        'cell_10': {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2', 'value': '4500'},
+        'cell_12': {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_4', 'value': 'Привет'},
+        'cell_13': {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_1', 'value': '-300'},
+        'cell_14': {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_2', 'value': '-122'},
+        'cell_16': {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_4', 'value': 'Что-то'}
+    }
 
     with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
         models_test_folder_uuid = model_api.check_test_folder(test_folder_name)
@@ -780,5 +794,32 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Задать базовую структуру таблицы'):
         table_page.set_base_structure()
 
+    with allure.step(f'Задать сортировку всех сущностей таблицы по названию'):
+        table_page.sort_entities_by_name()
+
     with allure.step(f'Переключиться в режим просмотра таблицы'):
         table_page.switch_table_page_type('Таблица')
+
+    with allure.step(f'Проверить отображение всех объектов в качестве строк таблицы'):
+        actual_names = table_page.get_table_rows_titles(names_only=True)
+        expected_names = ['Объект_1', 'Объект_2']
+        assert actual_names == expected_names, 'Фактические объекты не совпадают с ожидаемыми'
+
+    with allure.step(f'Проверить отображение всех наборов данных и показателей в качестве столбцов таблицы'):
+        actual_names = table_page.get_table_cols_titles(names_only=True)
+        expected_names = ['Набор_1', 'Набор_2', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_4', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_4']
+        assert actual_names == expected_names, 'Фактические объекты не совпадают с ожидаемыми'
+
+    with allure.step(f'Проверить что в таблице заполнены только показатели объектов с формулами'):
+        actual_data = table_page.get_table_data()
+        expected_data = [
+            {'object': 'Объект_1', 'dataset': 'Набор_1', 'indicator': 'Показатель_3', 'value': '0'},
+            {'object': 'Объект_2', 'dataset': 'Набор_1', 'indicator': 'Показатель_3', 'value': '0'},
+            {'object': 'Объект_1', 'dataset': 'Набор_2', 'indicator': 'Показатель_3', 'value': '0'},
+            {'object': 'Объект_2', 'dataset': 'Набор_2', 'indicator': 'Показатель_3', 'value': '0'}
+        ]
+        assert actual_data == expected_data, 'Таблица заполнена некорректно'
+
+    with allure.step(f'Заполнить ячейки тестовыми данными'):
+        for i in cells_data:
+            table_page.fill_cell(cells_data[i], cells_data[i]['value'])
