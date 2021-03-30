@@ -108,10 +108,7 @@ class TablePage(EntityPage):
                 result[height_range] = row_title.text
         return result
 
-    def get_table_cols_titles(self, first_rows: bool = False, names_only: bool = False):
-        def take_first(data):
-            return data[0]
-
+    def get_table_cols_titles(self, level_only: int = None, names_only: bool = False):
         if names_only:
             result = []
             for col_title in self.elements_generator(self.LOCATOR_TABLE_COLUMN_TITLE):
@@ -126,20 +123,23 @@ class TablePage(EntityPage):
                 col_top = self.get_cell_style_value('top', col_title)
                 width_range = range(col_left, col_left + col_width)
                 result[(col_top, width_range)] = col_title.text
-
-            keys = list(result.keys())
-            keys.sort(key=take_first, reverse=True) if not first_rows else keys.sort(key=take_first)
-            target_top = keys[0][0]
-            copy = result.copy()
-            for i in result:
-                if i[0] != target_top:
-                    del copy[i]
-            return copy
+            if not level_only:
+                return result
+            else:
+                tops = list(set([i[0] for i in result]))
+                tops.sort()
+                assert level_only <= len(tops), 'Заданый уровень заголовков больше количества фактических уровней'
+                target_top = tops[level_only - 1]
+                copy = result.copy()
+                for i in result:
+                    if i[0] != target_top:
+                        del copy[i]
+                return copy
 
     def get_table_data(self):
         rows_titles = self.get_table_rows_titles()
-        cols_titles_datasets = self.get_table_cols_titles(first_rows=True)
-        cols_titles_indicators = self.get_table_cols_titles()
+        cols_titles_datasets = self.get_table_cols_titles(level_only=1)
+        cols_titles_indicators = self.get_table_cols_titles(level_only=2)
         data = []
         for cell in self.elements_generator(self.LOCATOR_TABLE_CELL):
 
@@ -174,7 +174,7 @@ class TablePage(EntityPage):
                 data.append(cell_data)
         return data
 
-    def cell_locator_creator(self, cell_data: dict):
+    def cell_locator_creator(self, cell_data: dict, table_fields_data: dict = None):
         """
         cell_data = {
             'object_name': 'dsd',
@@ -182,9 +182,9 @@ class TablePage(EntityPage):
             'indicator_name': 'dsa'
         }
         """
-        table_rows_titles = self.get_table_rows_titles()
-        cols_titles_datasets = self.get_table_cols_titles(first_rows=True)
-        cols_titles_indicators = self.get_table_cols_titles()
+        table_rows_titles = table_fields_data.get('objects') or self.get_table_rows_titles()
+        cols_titles_datasets = table_fields_data.get('datasets') or self.get_table_cols_titles(level_only=1)
+        cols_titles_indicators = table_fields_data.get('indicators') or self.get_table_cols_titles(level_only=2)
         expected_top = None
         expected_left = None
         target_dataset_range = None
@@ -212,8 +212,8 @@ class TablePage(EntityPage):
         locator = By.XPATH, f"//pkm-table-cell[contains(@style, 'top: {expected_top}px') and contains(@style, 'left: {expected_left}px')]"
         return locator
 
-    def fill_cell(self, cell_data, cell_value):
-        cell_locator = self.cell_locator_creator(cell_data)
+    def fill_cell(self, cell_data, cell_value, table_fields_data: dict = None):
+        cell_locator = self.cell_locator_creator(cell_data, table_fields_data=table_fields_data)
         editable_cell_locator = (By.XPATH, f"{cell_locator[1]}//div[@contenteditable='true']")
         cell = self.find_element(cell_locator)
         action_chains = ActionChains(self.driver)

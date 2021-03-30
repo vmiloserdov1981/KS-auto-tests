@@ -821,5 +821,10 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         assert actual_data == expected_data, 'Таблица заполнена некорректно'
 
     with allure.step(f'Заполнить ячейки тестовыми данными'):
+        fields_data = {
+            'objects': table_page.get_table_rows_titles(),
+            'datasets': table_page.get_table_cols_titles(level_only=1),
+            'indicators': table_page.get_table_cols_titles(level_only=2)
+        }
         for i in cells_data:
-            table_page.fill_cell(cells_data[i], cells_data[i]['value'])
+            table_page.fill_cell(cells_data[i], cells_data[i]['value'], table_fields_data=fields_data)
