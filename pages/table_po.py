@@ -212,18 +212,20 @@ class TablePage(EntityPage):
         locator = By.XPATH, f"//pkm-table-cell[contains(@style, 'top: {expected_top}px') and contains(@style, 'left: {expected_left}px')]"
         return locator
 
-    def fill_cell(self, cell_data, cell_value, table_fields_data: dict = None):
-        cell_locator = self.cell_locator_creator(cell_data, table_fields_data=table_fields_data)
-        editable_cell_locator = (By.XPATH, f"{cell_locator[1]}//div[@contenteditable='true']")
-        cell = self.find_element(cell_locator)
-        action_chains = ActionChains(self.driver)
-        action_chains.double_click(cell).perform()
-        self.find_and_enter(editable_cell_locator, cell_value)
-        self.find_element(editable_cell_locator).send_keys(Keys.ENTER)
+    def fill_cells(self, cells_data: list, table_fields_data: dict = None):
+        table_fields_data = table_fields_data or {'objects': self.get_table_rows_titles(), 'datasets': self.get_table_cols_titles(level_only=1), 'indicators': self.get_table_cols_titles(level_only=2)}
+        for cell_data in cells_data:
+            cell_locator = self.cell_locator_creator(cell_data, table_fields_data=table_fields_data)
+            editable_cell_locator = (By.XPATH, f"{cell_locator[1]}//div[@contenteditable='true']")
+            cell = self.find_element(cell_locator)
+            action_chains = ActionChains(self.driver)
+            action_chains.double_click(cell).perform()
+            self.find_and_enter(editable_cell_locator, cell_data.get('value'))
+            self.find_element(editable_cell_locator).send_keys(Keys.ENTER)
 
-    def wait_cell_value(self, cell_data, expected_value):
+    def wait_cell_value(self, cell_data):
         cell_locator = self.cell_locator_creator(cell_data)
-        self.wait_until_text_in_element(cell_locator, expected_value, time=20)
+        self.wait_until_text_in_element(cell_locator, cell_data.get('value'), time=20)
 
     def sort_entities_by_name(self):
         entities = [('Строки', 'Объекты'), ('Столбцы', 'Наборы данных'), ('Столбцы', 'Показатели')]
