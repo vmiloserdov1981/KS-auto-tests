@@ -52,14 +52,17 @@ class PreconditionsFront(BasePage, ApiEu):
         project_modal = ProjectModal(self.driver)
         publication_modal = PublicationsModal(self.driver)
         plan_registry = PlanRegistry(self.driver)
-        with allure.step('Перейти на сайт по адресу {}'.format(Vars.PKM_MAIN_URL)):
-            login_page.go_to_site()
+        with allure.step(f'Перейти на сайт по адресу {Vars.PKM_MAIN_URL}#/user/events-plan'):
+            self.driver.get(f'{Vars.PKM_MAIN_URL}#/user/events-plan')
         with allure.step('Ввести логин "{}"'.format(login)):
             login_page.enter_login(login)
         with allure.step('Ввести пароль "{}"'.format(password)):
             login_page.enter_pass(password)
         with allure.step('Войти в режим конечного пользователя'):
             login_page.login_as_eu()
+
+        plan_registry.close_modal()
+
         if project_modal.is_project_modal_displaying():
             with allure.step(f'Выбрать проект {project}'):
                 project_modal.select_project(project)

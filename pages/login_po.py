@@ -42,7 +42,7 @@ class LoginPage(BasePage):
             self.driver.get(f"{Vars.PKM_MAIN_URL}#/main")
 
     def login_as_eu(self):
-        return self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
+        self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
 
     def check_page(self):
         login_title = self.get_element_text(self.LOCATOR_PKM_LOGIN_TITLE, time=20)
