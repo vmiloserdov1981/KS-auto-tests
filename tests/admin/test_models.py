@@ -735,19 +735,25 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     classes_api = table_page.api_creator.get_api_classes()
     test_folder_name = Vars.PKM_TEST_FOLDER_NAME
     table_name = 'Тестовая таблица'
-    cells_data = [
+    cells_fill_data = [
         {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1', 'value': '200'},
         {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2', 'value': '33'},
-        {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_4', 'value': 'Тестовое_значение'},
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_текстовый', 'value': 'Тестовое_значение'},
         {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_1', 'value': '500'},
         {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_2', 'value': '-150'},
-        {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_4', 'value': 'Тестовое_значение_2'},
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_текстовый', 'value': 'Тестовое_значение_2'},
         {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1', 'value': '3000'},
         {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2', 'value': '4500'},
-        {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_4', 'value': 'Привет'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_текстовый', 'value': 'Привет'},
         {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_1', 'value': '-300'},
         {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_2', 'value': '-122'},
-        {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_4', 'value': 'Что-то'}
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_текстовый', 'value': 'Что-то'}
+    ]
+    cells_calc_data = [
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '167'},
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '650'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '-1500'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '-178'}
     ]
 
     with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
@@ -807,23 +813,26 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Проверить отображение всех наборов данных и показателей в качестве столбцов таблицы'):
         actual_names = table_page.get_table_cols_titles(names_only=True)
-        expected_names = ['Набор_1', 'Набор_2', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_4', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_4']
+        expected_names = ['Набор_1', 'Набор_2', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый']
         assert actual_names == expected_names, 'Фактические объекты не совпадают с ожидаемыми'
 
     with allure.step(f'Проверить что в таблице заполнены только показатели объектов с формулами'):
         actual_data = table_page.get_table_data()
         expected_data = [
-            {'object': 'Объект_1', 'dataset': 'Набор_1', 'indicator': 'Показатель_3', 'value': '0'},
-            {'object': 'Объект_2', 'dataset': 'Набор_1', 'indicator': 'Показатель_3', 'value': '0'},
-            {'object': 'Объект_1', 'dataset': 'Набор_2', 'indicator': 'Показатель_3', 'value': '0'},
-            {'object': 'Объект_2', 'dataset': 'Набор_2', 'indicator': 'Показатель_3', 'value': '0'}
+            {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0'},
+            {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0'},
+            {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0'},
+            {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0'}
         ]
         assert actual_data == expected_data, 'Таблица заполнена некорректно'
 
     with allure.step(f'Заполнить ячейки тестовыми данными'):
-        fields_data = {
-            'objects': table_page.get_table_rows_titles(),
-            'datasets': table_page.get_table_cols_titles(level_only=1),
-            'indicators': table_page.get_table_cols_titles(level_only=2)
-        }
-        table_page.fill_cells(cells_data, table_fields_data=fields_data)
+        table_page.fill_cells(cells_fill_data)
+
+    with allure.step(f'Проверить расчет всех ячеек с показателями по формуле'):
+        table_page.wait_cells_value(cells_calc_data)
+
+    with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице'):
+        expected_cells_data = cells_fill_data + cells_calc_data
+        actual_cells_data = table_page.get_table_data()
+        table_page.compare_dicts_lists(actual_cells_data, expected_cells_data)

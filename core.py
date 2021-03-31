@@ -189,10 +189,18 @@ class BasePage:
             return value if value != '' else None
 
     @staticmethod
-    def compare_lists(list_a: list, list_b: list):
+    def compare_lists(list_a: list, list_b: list) -> bool:
         return collections.Counter(list_a) == collections.Counter(list_b)
 
-    def compare_dicts(self, dict_a, dict_b):
+    @staticmethod
+    def compare_dicts_lists(list_a: list, list_b: list) -> None:
+        if len(list_a) != len(list_b):
+            raise AssertionError(f'Количество справочников в списках не совпадает: список 1 - {len(list_a)} шт, список 2 - {len(list_b)} шт')
+        for list_dictionary in list_a:
+            if list_dictionary not in list_b:
+                raise AssertionError(f'Словарь из списка 1 отсутствует в списке 2: \n {list_dictionary}')
+
+    def compare_dicts(self, dict_a, dict_b) -> None:
         assert self.compare_lists(dict_a.keys(), dict_b.keys())
         for key in dict_a:
             if type(dict_a.get(key)) is list:
@@ -259,8 +267,8 @@ class BasePage:
         return values
 
     def is_input_checked(self, input_locator: tuple):
-        input = self.find_element(input_locator)
-        is_checked = self.driver.execute_script("return arguments[0].checked;", input)
+        input_element = self.find_element(input_locator)
+        is_checked = self.driver.execute_script("return arguments[0].checked;", input_element)
         return is_checked
 
 
@@ -383,9 +391,9 @@ class BaseApi:
 
     @staticmethod
     def get_feature_month(start: list, offset: int):
-        '''
+        """
         start = ['01', '2012']
-        '''
+        """
         start_month = int(start[0])
         start_year = int(start[1])
         end_month = start_month + offset

@@ -3,6 +3,7 @@ from pages.components.trees import Tree
 from pages.components.modals import Modals
 from selenium.webdriver.common.by import By
 from selenium.webdriver import ActionChains
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 import allure
@@ -62,7 +63,7 @@ class TablePage(EntityPage):
         with allure.step(f'Проверить отображение таблицы {table_name} в режиме конструктора'):
             self.wait_table_page_type('Конструктор')
         with allure.step(f'Проверить отображение таблицы {table_name} в дереве моделей выбранной'):
-            self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, table_name, time=20)
+            self.tree.wait_selected_node_name(table_name, timeout=20)
 
     def wait_table_page_type(self, page_type):
         self.wait_until_text_in_element(self.LOCATOR_TABLE_PAGE_TYPE_VALUE, page_type, time=5)
@@ -165,16 +166,16 @@ class TablePage(EntityPage):
                         break
 
                 cell_data = {
-                    'object': cell_object,
-                    'dataset': cell_dataset,
-                    'indicator': cell_indicator,
+                    'object_name': cell_object,
+                    'dataset_name': cell_dataset,
+                    'indicator_name': cell_indicator,
                     'value': cell_value
                 }
 
                 data.append(cell_data)
         return data
 
-    def cell_locator_creator(self, cell_data: dict, table_fields_data: dict = None):
+    def cell_locator_creator(self, cell_data: dict, table_fields_data=None):
         """
         cell_data = {
             'object_name': 'dsd',
@@ -182,6 +183,8 @@ class TablePage(EntityPage):
             'indicator_name': 'dsa'
         }
         """
+        if table_fields_data is None:
+            table_fields_data = {}
         table_rows_titles = table_fields_data.get('objects') or self.get_table_rows_titles()
         cols_titles_datasets = table_fields_data.get('datasets') or self.get_table_cols_titles(level_only=1)
         cols_titles_indicators = table_fields_data.get('indicators') or self.get_table_cols_titles(level_only=2)
@@ -222,10 +225,20 @@ class TablePage(EntityPage):
             action_chains.double_click(cell).perform()
             self.find_and_enter(editable_cell_locator, cell_data.get('value'))
             self.find_element(editable_cell_locator).send_keys(Keys.ENTER)
+            time.sleep(2)
 
     def wait_cell_value(self, cell_data):
         cell_locator = self.cell_locator_creator(cell_data)
         self.wait_until_text_in_element(cell_locator, cell_data.get('value'), time=20)
+
+    def wait_cells_value(self, cells_calc_data: list, timeout=30):
+        table_fields_data = {'objects': self.get_table_rows_titles(), 'datasets': self.get_table_cols_titles(level_only=1), 'indicators': self.get_table_cols_titles(level_only=2)}
+        for cell_data in cells_calc_data:
+            cell_locator = self.cell_locator_creator(cell_data, table_fields_data=table_fields_data)
+            try:
+                self.wait_until_text_in_element(cell_locator, cell_data.get('value'), time=timeout)
+            except TimeoutException:
+                raise AssertionError(f'Значение ячейки не соответствует ожидаемому. Ожидаемые данные: \n {cell_data}')
 
     def sort_entities_by_name(self):
         entities = [('Строки', 'Объекты'), ('Столбцы', 'Наборы данных'), ('Столбцы', 'Показатели')]

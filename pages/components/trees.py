@@ -177,6 +177,7 @@ class Tree(BasePage):
 
     def wait_selected_node_name(self, name, timeout=10):
         self.wait_until_text_in_element(self.LOCATOR_SELECTED_NODE, name, time=timeout)
+        self.scroll_to_element(self.find_element(self.LOCATOR_SELECTED_NODE))
 
 
 '''
