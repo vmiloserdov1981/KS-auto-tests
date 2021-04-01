@@ -10,7 +10,7 @@ from pages.dictionary_po import DictionaryPage
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
-        'login': 'eu_user',
+        'login': 'eu_user2',
         'project': Vars.PKM_PROJECT_NAME,
         'tree_type': 'Справочники',
         'name': 'Управление сущностями дерева справочников'
