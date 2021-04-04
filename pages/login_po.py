@@ -6,6 +6,7 @@ from pages.components.modals import ProjectModal
 import allure
 import time
 from random import randint
+from datetime import datetime
 
 
 class LoginPage(BasePage):
@@ -37,7 +38,8 @@ class LoginPage(BasePage):
         with allure.step('Кликнуть на кнопку входа'):
             # добавлена рандомная задержка для предотвращения одновременного логина при выполнении тестов параллельно
             time.sleep(randint(2, 11))
-            self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
+            with allure.step(f'Клик на кнопку логина в {datetime.now()}'):
+                self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
         with allure.step('Проверить наличие иконки меню'):
             time.sleep(5)
             # self.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
@@ -47,7 +49,8 @@ class LoginPage(BasePage):
     def login_as_eu(self):
         # добавлена рандомная задержка для предотвращения одновременного логина при выполнении тестов параллельно
         time.sleep(randint(2, 11))
-        self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
+        with allure.step(f'Клик на кнопку логина в {datetime.now()}'):
+            self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
 
     def check_page(self):
         login_title = self.get_element_text(self.LOCATOR_PKM_LOGIN_TITLE, time=20)

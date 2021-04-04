@@ -15,6 +15,18 @@ import collections
 import os
 
 
+def antistale(func):
+    def wrap(*args, **kwargs):
+        count = 0
+        while count < 10:
+            try:
+                return func(*args, **kwargs)
+            except StaleElementReferenceException:
+                count += 1
+        return func(*args, **kwargs)
+    return wrap
+
+
 class BasePage:
     LOCATOR_DROPDOWN_VALUE = (By.XPATH, "//pkm-dropdown-item")
 
@@ -125,6 +137,7 @@ class BasePage:
     def scroll_to_element(self, webelement):
         self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);", webelement)
 
+    @antistale
     def find_and_click(self, locator, time=10, scroll_to_element=True):
         element = self.find_element(locator, time=time)
         if scroll_to_element:
@@ -488,18 +501,6 @@ class BaseApi:
                 else:
                     dictionary[i] = [item]
         return dictionary
-
-
-def antistale(func):
-    def wrap(*args, **kwargs):
-        count = 0
-        while count < 10:
-            try:
-                return func(*args, **kwargs)
-            except StaleElementReferenceException:
-                count += 1
-        return func(*args, **kwargs)
-    return wrap
 
 
 """
