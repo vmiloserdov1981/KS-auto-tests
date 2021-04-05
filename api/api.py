@@ -751,8 +751,8 @@ class ApiEu(BaseApi):
             tasks[i.get('object').get('uuid')] = {
                 'name': i.get('object').get('name'),
                 'start': i.get('start'),
-                'end': i.get('end'),
-                'duration': i.get('duration')
+                'end': i.get('end')
+                # 'duration': i.get('duration')
             }
         return tasks
 
