@@ -10,7 +10,7 @@ from selenium.common.exceptions import TimeoutException
 class Modals(BasePage):
     LOCATOR_NAME_INPUT = (By.XPATH, "//pkm-modal-window//input[@placeholder='Введите имя']")
     LOCATOR_CLASS_INPUT = (By.XPATH, "//input[@placeholder='Выберите класс']")
-    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Сохранить ']")
+    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()='Сохранить' or text()=' Сохранить ']")
     LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Создать ']")
     LOCATOR_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class,'notification-type-error') and text()='Ошибка сервера']")
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]//div[@class='title-text']")
@@ -514,3 +514,26 @@ class TagModal(BasePage):
     def get_linked_models(self):
         models = [element.text for element in self.elements_generator(self.LOCATOR_LINKED_MODEL, time=10)]
         return models
+
+
+class TableObjectsSetModal(Modals):
+    LOCATOR_TYPE_DROPDOWN_VALUE = (By.XPATH, "//pkm-dropdown[@ng-reflect-name='type']//div[contains(@class, 'display-value-text')]")
+    LOCATOR_OBJECTS_DROPDOWN = (By.XPATH, "(//pkm-multi-select[@ng-reflect-name='objects']//div)[1]")
+    LOCATOR_CHECK_ALL_CHECKBOX = (By.XPATH, "//div[contains(@class, 'check-all__item') and .=' Выбрать все ']//pkm-checkbox")
+    LOCATOR_CHECK_ALL_OPTION = (By.XPATH, "//div[contains(@class, 'multi-select__item') and contains(@class, 'check-all')]")
+
+    def set_all_objects(self, object_type: str):
+        type_dropdown_value = self.get_element_text(self.LOCATOR_TYPE_DROPDOWN_VALUE)
+        if type_dropdown_value != object_type:
+            raise AssertionError
+        self.find_and_click(self.LOCATOR_OBJECTS_DROPDOWN)
+        if self.find_element(self.LOCATOR_CHECK_ALL_CHECKBOX).get_attribute('ng-reflect-value') == 'false':
+            self.find_and_click(self.LOCATOR_CHECK_ALL_OPTION)
+        self.find_and_click((By.XPATH, "//div[@class='multi-select__arrow']"))
+        self.find_and_click(self.LOCATOR_SAVE_BUTTON)
+        time.sleep(2)
+
+
+
+
+

@@ -723,8 +723,8 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
-        'login': 'eu_user3',
-        'project': Vars.PKM_PROJECT_NAME,
+        'login': 'eu_user',
+        'project': 'тест2',
         'tree_type': 'Модели',
         'name': 'Управление таблицами данных модели'
     })])

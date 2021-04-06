@@ -1,6 +1,6 @@
 from pages.components.entity_page import EntityPage
 from pages.components.trees import Tree
-from pages.components.modals import Modals
+from pages.components.modals import Modals, TableObjectsSetModal
 from selenium.webdriver.common.by import By
 from selenium.webdriver import ActionChains
 from selenium.common.exceptions import TimeoutException
@@ -21,6 +21,7 @@ class TablePage(EntityPage):
         super().__init__(driver)
         self.tree = Tree(driver)
         self.modal = Modals(driver)
+        self.objects_modal = TableObjectsSetModal(driver)
 
     @staticmethod
     def table_entity_locator_creator(entity_name):
@@ -79,10 +80,11 @@ class TablePage(EntityPage):
     def set_base_structure(self):
         rows_drag_zone_locator = self.entity_type_drag_zone_locator_creator('Строки')
         cols_drag_zone_locator = self.entity_type_drag_zone_locator_creator('Столбцы')
-        objects_entity_locator = self.table_entity_locator_creator('Объекты')
+        objects_entity_locator = self.table_entity_locator_creator('Настройка объекта')
         datasets_entity_locator = self.table_entity_locator_creator('Наборы данных')
         indicators_entity_locator = self.table_entity_locator_creator('Показатели')
         self.drag_and_drop(objects_entity_locator, rows_drag_zone_locator)
+        self.objects_modal.set_all_objects('Объекты')
         self.drag_and_drop(datasets_entity_locator, cols_drag_zone_locator)
         datasets_entity_locator = self.entity_drag_zone_locator_creator('Столбцы', 'Наборы данных')
         self.drag_and_drop(indicators_entity_locator, datasets_entity_locator)
@@ -217,13 +219,13 @@ class TablePage(EntityPage):
 
     def fill_cells(self, cells_data: list, table_fields_data: dict = None):
         table_fields_data = table_fields_data or {'objects': self.get_table_rows_titles(), 'datasets': self.get_table_cols_titles(level_only=1), 'indicators': self.get_table_cols_titles(level_only=2)}
+
         for cell_data in cells_data:
             cell_locator = self.cell_locator_creator(cell_data, table_fields_data=table_fields_data)
             editable_cell_locator = (By.XPATH, f"{cell_locator[1]}//div[@contenteditable='true']")
-            cell = self.find_element(cell_locator)
+            self.find_and_click(cell_locator)
             action_chains = ActionChains(self.driver)
-            action_chains.double_click(cell).perform()
-            self.find_and_enter(editable_cell_locator, cell_data.get('value'))
+            action_chains.send_keys(cell_data.get('value')).perform()
             self.find_element(editable_cell_locator).send_keys(Keys.ENTER)
             time.sleep(2)
 
