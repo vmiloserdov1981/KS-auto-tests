@@ -30,7 +30,7 @@ class TablePage(EntityPage):
 
     @staticmethod
     def entity_block_locator_creator(entity_type, entity_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'constructor-list') and .//div[@class='list-header' and .='{entity_type}']]//div[@class='structure-list' and .//span[.='{entity_name}']]")
+        locator = (By.XPATH, f"//div[contains(@class, 'constructor-list') and .//div[@class='list-header' and .='{entity_type}']]//div[@class='structure-list' and .//div[.='{entity_name}']]")
         return locator
 
     @staticmethod
