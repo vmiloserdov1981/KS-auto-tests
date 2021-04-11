@@ -800,9 +800,6 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Задать базовую структуру таблицы'):
         table_page.set_base_structure()
 
-    with allure.step(f'Задать сортировку всех сущностей таблицы по названию'):
-        table_page.sort_entities_by_name()
-
     with allure.step(f'Переключиться в режим просмотра таблицы'):
         table_page.switch_table_page_type('Таблица')
 

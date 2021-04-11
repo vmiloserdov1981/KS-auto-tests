@@ -30,7 +30,7 @@ class TablePage(EntityPage):
 
     @staticmethod
     def entity_block_locator_creator(entity_type, entity_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'constructor-list') and .//div[@class='list-header' and .='{entity_type}']]//div[@class='structure-list' and .//div[.='{entity_name}']]")
+        locator = (By.XPATH, f"//div[contains(@class, 'constructor-list') and .//div[@class='list-header' and .='{entity_type}']]//div[@class='structure-list'][.//label[.='{entity_name}'] or .//div[.='{entity_name}']]")
         return locator
 
     @staticmethod
@@ -77,7 +77,7 @@ class TablePage(EntityPage):
         self.wait_stable_page()
         self.wait_table_page_type(page_type)
 
-    def set_base_structure(self):
+    def set_base_structure_old(self):
         rows_drag_zone_locator = self.entity_type_drag_zone_locator_creator('Строки')
         cols_drag_zone_locator = self.entity_type_drag_zone_locator_creator('Столбцы')
         objects_entity_locator = self.table_entity_locator_creator('Настройка объекта')
@@ -89,6 +89,107 @@ class TablePage(EntityPage):
         datasets_entity_locator = self.entity_drag_zone_locator_creator('Столбцы', 'Наборы данных')
         self.drag_and_drop(indicators_entity_locator, datasets_entity_locator)
         time.sleep(3)
+
+    def set_entity(self, entity_data):
+        """
+        entity_data = {
+            'name': 'some_name',
+            'entity_type': 'Строки',
+            'parent_entity_name': None,
+            'additional_action': ('func', 'args', 'kwargs'),
+            'children': [
+                {'name': 'yo', 'entity_type': 'Строки', 'children': None, 'additional_action': None}
+            ]
+        }
+        """
+
+        entity_name = entity_data.get('name')
+        entity_type = entity_data.get('entity_type')
+        parent_entity_name = entity_data.get('parent_entity_name')
+        additional_action = entity_data.get('additional_action')
+        children = entity_data.get('children')
+
+        assert entity_name, 'Не указано название сущности'
+        assert entity_type, 'Не указан тип сущности'
+
+        drag_zone_locator = self.entity_type_drag_zone_locator_creator(
+            entity_type) if not parent_entity_name else self.entity_drag_zone_locator_creator(entity_type,
+                                                                                              parent_entity_name)
+        entity_locator = self.table_entity_locator_creator(entity_name)
+        self.drag_and_drop(entity_locator, drag_zone_locator)
+        if additional_action:
+            function = additional_action[0]
+            try:
+                args = additional_action[1]
+            except IndexError:
+                args = ()
+            try:
+                kwargs = additional_action[2]
+            except IndexError:
+                kwargs = {}
+            function(*args, **kwargs)
+            time.sleep(1)
+
+        if children:
+            for children_data in children:
+                children_data['parent_entity_name'] = entity_name
+                self.set_entity(children_data)
+
+    def set_base_structure(self):
+        with allure.step('Задать структуру таблицы'):
+            rows = {
+                'name': 'Настройка объекта',
+                'entity_type': 'Строки',
+                'additional_action': (self.objects_modal.set_all_objects, (), {}),
+            }
+            columns = {
+                'name': 'Наборы данных',
+                'entity_type': 'Столбцы',
+                'children': [
+                    {'name': 'Показатели', 'entity_type': 'Столбцы'}
+                ]
+            }
+            self.set_entity(rows)
+            self.set_entity(columns)
+            time.sleep(3)
+
+        with allure.step('Задать сортировку по имени (А-Я)'):
+            entities = [('Строки', 'Объекты'), ('Столбцы', 'Наборы данных'), ('Столбцы', 'Показатели')]
+            for i in entities:
+                sort_button_locator = self.entity_sort_button_creator(i[0], i[1])
+                sort_by_name_locator = (
+                By.XPATH, "//div[@class='overlay']//div[contains(@class, 'overlay-item') and .=' По названию, А - Я ']")
+                self.find_and_click(sort_button_locator)
+                self.find_and_click(sort_by_name_locator)
+                time.sleep(2)
+
+    def set_class_objects_structure(self, class_name):
+        with allure.step('Задать структуру таблицы'):
+            rows = {
+                'name': 'Настройка объекта',
+                'entity_type': 'Строки',
+                'additional_action': (self.objects_modal.set_class_objects, [class_name]),
+            }
+            columns = {
+                'name': 'Наборы данных',
+                'entity_type': 'Столбцы',
+                'children': [
+                    {'name': 'Показатели', 'entity_type': 'Столбцы'}
+                ]
+            }
+            self.set_entity(rows)
+            self.set_entity(columns)
+            time.sleep(3)
+
+        with allure.step('Задать сортировку по имени (А-Я)'):
+            entities = [('Строки', 'Объекты класса'), ('Столбцы', 'Наборы данных'), ('Столбцы', 'Показатели')]
+            for i in entities:
+                sort_button_locator = self.entity_sort_button_creator(i[0], i[1])
+                sort_by_name_locator = (
+                By.XPATH, "//div[@class='overlay']//div[contains(@class, 'overlay-item') and .=' По названию, А - Я ']")
+                self.find_and_click(sort_button_locator)
+                self.find_and_click(sort_by_name_locator)
+                time.sleep(2)
 
     @staticmethod
     def get_cell_style_value(style_name: str, cell: WebElement):
@@ -227,7 +328,7 @@ class TablePage(EntityPage):
             action_chains = ActionChains(self.driver)
             action_chains.send_keys(cell_data.get('value')).perform()
             self.find_element(editable_cell_locator).send_keys(Keys.ENTER)
-            time.sleep(2)
+            time.sleep(3)
 
     def wait_cell_value(self, cell_data):
         cell_locator = self.cell_locator_creator(cell_data)
