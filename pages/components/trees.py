@@ -179,6 +179,14 @@ class Tree(BasePage):
         self.wait_until_text_in_element(self.LOCATOR_SELECTED_NODE, name, time=timeout)
         self.scroll_to_element(self.find_element(self.LOCATOR_SELECTED_NODE))
 
+    def wait_child_node(self, parent_node_name: str, child_node_name: str, timeout=30) -> bool:
+        locator = self.children_node_locator_creator(parent_node_name, child_node_name)
+        try:
+            self.find_element(locator, time=timeout)
+            return True
+        except TimeoutException:
+            return False
+
 
 '''
 class TreeOld(ApiClasses, ApiModels, Modals, BasePage):

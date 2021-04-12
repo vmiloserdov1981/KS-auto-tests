@@ -833,3 +833,110 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         expected_cells_data = cells_fill_data + cells_calc_data
         actual_cells_data = table_page.get_table_data()
         table_page.compare_dicts_lists(actual_cells_data, expected_cells_data)
+
+    """
+    new_table_name = table_name + '_переименованная'
+    
+    with allure.step(f'Переименовать таблицу "{table_name}" на "{new_table_name}" на странице таблицы'):
+        table_page.rename_title(new_table_name)
+
+    with allure.step(f'Проверить изменение названия таблицы в дереве'):
+        table_page.wait_until_text_in_element(table_page.tree.LOCATOR_SELECTED_NODE, new_table_name, time=20)
+    """
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице'):
+        actual_cells_data = table_page.get_table_data()
+        table_page.compare_dicts_lists(actual_cells_data, expected_cells_data)
+
+    with allure.step(f'Переключиться в режим конструктора таблицы'):
+        table_page.switch_table_page_type('Конструктор')
+
+    with allure.step(f'Очистить структуру таблицы'):
+        table_page.clear_structure()
+
+    with allure.step(f'Задать структуру таблицы c объектами класса "{class_name}"'):
+        table_page.set_class_objects_structure(class_name)
+
+    with allure.step(f'Разрешить добавление объектов'):
+        table_page.enable_objects_adding()
+
+    with allure.step(f'Переключиться в режим просмотра таблицы'):
+        table_page.switch_table_page_type('Таблица')
+
+    table_object_1_name = 'Из таблицы 1'
+    table_object_2_name = 'Из таблицы 2'
+
+    with allure.step(f'Добавить объект "{table_object_1_name}" в таблицу'):
+        table_page.add_table_object(table_object_1_name)
+
+    with allure.step(f'Проверить отображение объекта "{table_object_1_name}" в дереве'):
+        assert table_page.tree.wait_child_node(model_name, table_object_1_name), f'Объект {table_object_1_name} не отображается в дереве'
+
+    with allure.step(f'Добавить объект "{table_object_2_name}" в таблицу'):
+        table_page.add_table_object(table_object_2_name)
+
+    with allure.step(f'Проверить отображение объекта "{table_object_1_name}" в дереве'):
+        assert table_page.tree.wait_child_node(model_name, table_object_2_name), f'Объект {table_object_2_name} не отображается в дереве'
+
+    new_objects_data = [
+            {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0'},
+            {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0'},
+            {'object_name': table_object_1_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0'},
+            {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0'}
+        ]
+    with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице (включая вновь созданные объекты)'):
+        new_expected_cells_data = expected_cells_data + new_objects_data
+        actual_cells_data = table_page.get_table_data()
+        table_page.compare_dicts_lists(actual_cells_data, new_expected_cells_data)
+
+    incorrect_data = [
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1',
+         'value': 'abd'},
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2',
+         'value': 'def'}
+    ]
+
+    new_cells_fill_data = [
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_текстовый',
+         'value': '100500'},
+        {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_1', 'value': '777'},
+        {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_2', 'value': '666'},
+        {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_текстовый',
+         'value': 'Что-то'}
+    ]
+    new_cells_calc_data = [
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0'},
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0'},
+        {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0'},
+        {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '111'}
+    ]
+    with allure.step(f'Заполнить ячейки вновь созданных объектов тестовыми данными'):
+        table_page.fill_cells(new_cells_fill_data)
+
+    with allure.step(f'Заполнить ячейки вновь созданных объектов некорректными тестовыми данными'):
+        table_page.fill_cells(incorrect_data)
+
+    with allure.step(f'Проверить расчет всех ячеек с показателями по формуле'):
+        table_page.wait_cells_value(new_cells_calc_data)
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице'):
+        actual_cells_data = table_page.get_table_data()
+        expected_cells_data = expected_cells_data + new_cells_fill_data + new_cells_calc_data
+        table_page.compare_dicts_lists(actual_cells_data, expected_cells_data)
+
+    with allure.step(f'Удалить таблицу {table_name}'):
+        table_page.tree.delete_node(table_name, 'Таблица', parent_node_name=model_name)
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'развернуть тестовую папку {test_folder_name}'):
+        table_page.tree.expand_node(test_folder_name)
+
+    with allure.step(f'Проверить отсутствие удаленной таблицы {table_name} в дереве'):
+        assert table_name not in table_page.tree.get_node_children_names(model_name)

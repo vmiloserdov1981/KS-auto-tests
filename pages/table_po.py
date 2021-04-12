@@ -6,6 +6,7 @@ from selenium.webdriver import ActionChains
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
+from core import antistale
 import allure
 import time
 
@@ -16,6 +17,8 @@ class TablePage(EntityPage):
     LOCATOR_TABLE_COLUMN_TITLE = (By.XPATH, "//pkm-table-header-top//pkm-table-header-cell")
     LOCATOR_TABLE_ROW_TITLE = (By.XPATH, "//pkm-table-header-left//pkm-table-header-cell")
     LOCATOR_TABLE_CELL = (By.XPATH, "//pkm-table-cell")
+    LOCATOR_DELETE_TABLE_ENTITY_ICON = (By.XPATH, "//div[contains(@class, 'list-element-buttons')]//fa-icon[@icon='times']")
+    LOCATOR_ADD_OBJECT_ICON = (By.XPATH, "//div[contains(@class, 'table-buttons')]//fa-icon[@ng-reflect-icon='plus']")
 
     def __init__(self, driver):
         super().__init__(driver)
@@ -48,6 +51,11 @@ class TablePage(EntityPage):
     @staticmethod
     def entity_type_drag_zone_locator_creator(entity_type):
         locator = (By.XPATH, f"//div[@class='list-header' and .='{entity_type}']")
+        return locator
+
+    @staticmethod
+    def displaying_option_checkbox_locator_creator(option_name: str):
+        locator = (By.XPATH, f"//pkm-constructor-settings//pkm-checkbox[.='{option_name}']//div[contains(@class, 'checkbox-container')]")
         return locator
 
     def create_data_table(self, model_name, table_name):
@@ -241,6 +249,7 @@ class TablePage(EntityPage):
                 return copy
 
     def get_table_data(self):
+        self.wait_stable_page()
         rows_titles = self.get_table_rows_titles()
         cols_titles_datasets = self.get_table_cols_titles(level_only=1)
         cols_titles_indicators = self.get_table_cols_titles(level_only=2)
@@ -328,7 +337,7 @@ class TablePage(EntityPage):
             action_chains = ActionChains(self.driver)
             action_chains.send_keys(cell_data.get('value')).perform()
             self.find_element(editable_cell_locator).send_keys(Keys.ENTER)
-            time.sleep(3)
+            time.sleep(5)
 
     def wait_cell_value(self, cell_data):
         cell_locator = self.cell_locator_creator(cell_data)
@@ -351,3 +360,43 @@ class TablePage(EntityPage):
             self.find_and_click(sort_button_locator)
             self.find_and_click(sort_by_name_locator)
             time.sleep(2)
+
+    def clear_structure(self):
+        while True:
+            try:
+                self.find_and_click(self.LOCATOR_DELETE_TABLE_ENTITY_ICON, time=5)
+                time.sleep(2)
+            except TimeoutException:
+                break
+
+    @antistale
+    def check_displaying_option(self, option_name: str):
+        checkbox_locator = self.displaying_option_checkbox_locator_creator(option_name)
+        checkbox = self.find_element(checkbox_locator)
+        if "checkbox-selected" not in checkbox.get_attribute('class'):
+            self.find_and_click(checkbox_locator)
+
+    @antistale
+    def uncheck_displaying_option(self, option_name: str):
+        checkbox_locator = self.displaying_option_checkbox_locator_creator(option_name)
+        checkbox = self.find_element(checkbox_locator)
+        if "checkbox-selected" in checkbox.get_attribute('class'):
+            self.find_and_click(checkbox_locator)
+
+    def enable_objects_adding(self):
+        self.check_displaying_option('Разрешить добавление объектов')
+        time.sleep(3)
+
+    def add_table_object(self, object_name: str):
+        self.find_and_click(self.LOCATOR_ADD_OBJECT_ICON)
+        self.modal.enter_and_save(object_name)
+        self.wait_row_title(object_name)
+
+    def wait_row_title(self, object_name, timeout=20) -> bool:
+        expected_row_locator = (By.XPATH, f"({self.LOCATOR_TABLE_ROW_TITLE[1]})[.=' {object_name} ']")
+        try:
+            self.find_element(expected_row_locator, time=timeout)
+            return True
+        except TimeoutException:
+            return False
+
