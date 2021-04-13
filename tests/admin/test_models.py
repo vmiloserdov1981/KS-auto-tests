@@ -750,10 +750,10 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_текстовый', 'value': 'Что-то'}
     ]
     cells_calc_data = [
-        {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '167'},
-        {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '650'},
-        {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '-1500'},
-        {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '-178'}
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '167.00'},
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '650.00'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '-1 500.00'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '-178.00'}
     ]
 
     with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
@@ -813,14 +813,18 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         expected_names = ['Набор_1', 'Набор_2', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый']
         assert actual_names == expected_names, 'Фактические объекты не совпадают с ожидаемыми'
 
+    expected_data = [
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'}
+    ]
+
+    with allure.step(f'Проверить расчет показателей созданных объектов по формуле'):
+        table_page.wait_cells_value(expected_data)
+
     with allure.step(f'Проверить что в таблице заполнены только показатели объектов с формулами'):
         actual_data = table_page.get_table_data()
-        expected_data = [
-            {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0'},
-            {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0'},
-            {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0'},
-            {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0'}
-        ]
         assert actual_data == expected_data, 'Таблица заполнена некорректно'
 
     with allure.step(f'Заполнить ячейки тестовыми данными'):
@@ -834,6 +838,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         actual_cells_data = table_page.get_table_data()
         table_page.compare_dicts_lists(actual_cells_data, expected_cells_data)
 
+    # Включить шаги по переименованию + добавить шаги по переименованию через дерево после исправления PKM-5503
     """
     new_table_name = table_name + '_переименованная'
     
@@ -881,11 +886,14 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         assert table_page.tree.wait_child_node(model_name, table_object_2_name), f'Объект {table_object_2_name} не отображается в дереве'
 
     new_objects_data = [
-            {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0'},
-            {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0'},
-            {'object_name': table_object_1_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0'},
-            {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0'}
+            {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+            {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+            {'object_name': table_object_1_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+            {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'}
         ]
+    with allure.step(f'Проверить расчет показателей новых объектов по формуле'):
+        table_page.wait_cells_value(new_objects_data)
+
     with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице (включая вновь созданные объекты)'):
         new_expected_cells_data = expected_cells_data + new_objects_data
         actual_cells_data = table_page.get_table_data()
@@ -907,10 +915,10 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
          'value': 'Что-то'}
     ]
     new_cells_calc_data = [
-        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0'},
-        {'object_name': table_object_1_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0'},
-        {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0'},
-        {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '111'}
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+        {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+        {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '111.00'}
     ]
     with allure.step(f'Заполнить ячейки вновь созданных объектов тестовыми данными'):
         table_page.fill_cells(new_cells_fill_data)

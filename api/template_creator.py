@@ -34,7 +34,7 @@ class TemplateCreator:
             with allure.step('Создать показатель'):
                 result['indicator_2_data'] = executor.submit(self.classes_api.create_indicator_node, f"{names.get('indicator_name')}_2", class_data.get('referenceUuid'), class_data.get('nodeUuid'), 'number').result()
             with allure.step('Создать показатель'):
-                result['indicator_3_data'] = executor.submit(self.classes_api.create_indicator_node, f"{names.get('indicator_name')}_3", class_data.get('referenceUuid'), class_data.get('nodeUuid'), 'number').result()
+                result['indicator_3_data'] = executor.submit(self.classes_api.create_indicator_node, f"{names.get('indicator_name')}_3", class_data.get('referenceUuid'), class_data.get('nodeUuid'), 'number', data_format='0,000.00').result()
             with allure.step('Создать показатель'):
                 result['indicator_4_data'] = executor.submit(self.classes_api.create_indicator_node, f"{names.get('indicator_name')}_текстовый", class_data.get('referenceUuid'), class_data.get('nodeUuid'), 'string').result()
             with allure.step('Создать набор данных'):

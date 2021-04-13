@@ -109,7 +109,7 @@ class ApiClasses(BaseApi):
         resp = self.post(f'{Vars.PKM_API_URL}classes/create-node', self.token, payload)
         return resp
 
-    def create_indicator_node(self, name, class_uuid, parent_node_uuid, indicator_type):
+    def create_indicator_node(self, name, class_uuid, parent_node_uuid, indicator_type, data_format=None):
         payload = {
             'classUuid': class_uuid,
             'dataType': indicator_type,
@@ -117,6 +117,9 @@ class ApiClasses(BaseApi):
             'parentUuid': parent_node_uuid,
             'type': "indicator"
         }
+        if format:
+            payload['dataFormat'] = data_format
+
         resp = self.post(f'{Vars.PKM_API_URL}classes/create-class-node', self.token, payload)
         assert not resp.get('error'), f'Ошибка при создании показателя: \n {resp}'
         return resp
