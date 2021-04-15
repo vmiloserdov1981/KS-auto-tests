@@ -2,6 +2,7 @@ from core import BasePage
 from core import antistale
 from pages.components.eu_filter import EuFilter
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
 from pages.components.modals import NewEventModal
 from pages.components.modals import Modals
@@ -53,7 +54,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         return names
 
     @antistale
-    def is_event_exists(self, event_name):
+    def is_event_exists_old(self, event_name):
         try:
             self.find_element(self.LOCATOR_EVENT_NAME)
         except TimeoutException:
@@ -62,6 +63,15 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             if event_name == event:
                 return True
         return False
+
+    @antistale
+    def is_event_exists(self, event_name):
+        try:
+            event = self.get_event(event_name)
+            if event:
+                return True
+        except AssertionError:
+            return False
 
     def create_unique_event_name(self, base_name):
         events_list = self.get_event_names()
@@ -291,6 +301,42 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                         yield last_row
                 break
 
+    def get_event(self, event_name, wait_timeout=1) -> WebElement:
+        event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
+        try:
+            target = self.find_element(event_locator, time=wait_timeout)
+            self.scroll_to_element(target)
+            time.sleep(1)
+            return self.find_element(event_locator, time=wait_timeout)
+        except TimeoutException:
+            # Проверка наличия скролла
+            try:
+                scrollbar = self.find_element((By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]"), time=2)
+            except TimeoutException:
+                scrollbar = None
+
+        if scrollbar:
+            # скролл в начало диаграммы
+            self.scroll_to_gantt_top()
+            time.sleep(5)
+
+            # Поэкранный перебор
+            total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
+            screen_height = self.driver.execute_script("return arguments[0].clientHeight", scrollbar)
+            actual_height = screen_height
+
+            while actual_height - screen_height <= total_height:
+                try:
+                    target = self.find_element(event_locator, time=wait_timeout)
+                    self.scroll_to_element(target)
+                    time.sleep(1)
+                    return self.find_element(event_locator, time=wait_timeout)
+                except TimeoutException:
+                    self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, screen_height)
+                    actual_height += screen_height
+
+        raise AssertionError(f'Мероприятие {event_name} не найдено на диаграмме')
+
     def check_event(self, name, start_date, end_date):
         for event in self.events_generator():
             if event.text.split('\n')[1] == name:
@@ -305,7 +351,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         raise AssertionError(f'Мероприятие "{name}" не найдено')
 
     @antistale
-    def select_event(self, name):
+    def select_event_old(self, name):
         for event in self.events_generator(names_only=True):
             try:
                 if event == name:
@@ -317,6 +363,13 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             except IndexError:
                 pass
         raise AssertionError(f'Мероприятие "{name}" не найдено')
+
+    @antistale
+    def select_event(self, name):
+        event = self.get_event(name)
+        event.click()
+        time.sleep(1)
+        return True
 
     def delete_event(self, name):
         with allure.step(f'Удалить мероприятие'):
@@ -377,7 +430,8 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
     '''
 
     @antistale
-    def open_event(self, event_name, start_date=None, end_date=None, from_top=False):
+    def open_event_old(self, event_name, start_date=None, end_date=None, from_top=False):
+        # Ранее работающая стабильная версия
         event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
         try:
             time.sleep(Vars.PKM_USER_WAIT_TIME)
@@ -400,6 +454,18 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             return True
         else:
             raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
+
+    @antistale
+    def open_event(self, event_name, **kwargs):
+        # Экспериментальная версия
+        event = self.get_event(event_name)
+        action = ActionChains(self.driver)
+        event.click()
+        time.sleep(2)
+        action.double_click(event).perform()
+        title = self.get_title()
+        assert title == event_name
+        return True
 
     @antistale
     def scroll_to_gantt_top(self):

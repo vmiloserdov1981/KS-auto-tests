@@ -190,7 +190,7 @@ class NewEventModal(Calendar, BasePage):
 
     def check_option(self, option_name):
         checkbox_locator = (By.XPATH, f"//div[contains(@class, 'checkbox-label ') and text()='{option_name}']//preceding-sibling::div")
-        checkbox = self.find_element(checkbox_locator)
+        checkbox = self.find_element(checkbox_locator, time=20)
         if 'checkbox-selected' in checkbox.get_attribute('class'):
             pass
         else:
