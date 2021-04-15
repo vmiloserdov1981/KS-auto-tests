@@ -44,7 +44,7 @@ class LoginPage(BasePage):
             time.sleep(5)
             # self.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
         with allure.step('Перейти в интерфейс администратора'):
-            self.driver.get(f"{Vars.PKM_MAIN_URL}#/main")
+            self.driver.get(f"{Vars.PKM_MAIN_URL}#/admin")
 
     def login_as_eu(self):
         # добавлена рандомная задержка для предотвращения одновременного логина при выполнении тестов параллельно
