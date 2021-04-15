@@ -6,7 +6,7 @@
     <envs>
       <env name="SELENOID_IP" value="10.10.20.39" />
       <env name="TIMEOUT" value="300s" />
-      <env name="IS_LOCAL" value="true" />
+      <env name="IS_LOCAL" value="trues" />
       <env name="ENABLE_VIDEO" value="true" />
     </envs>
     <option name="SDK_HOME" value="" />
@@ -16,9 +16,9 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <option name="_new_keywords" value="&quot;&quot;" />
     <option name="_new_parameters" value="&quot;&quot;" />
-    <option name="_new_additionalArguments" value="&quot;-n\u003d3 --no-cov --alluredir\u003dreports&quot;" />
-    <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/admin/test_models.py&quot;" />
-    <option name="_new_targetType" value="&quot;PATH&quot;" />
+    <option name="_new_additionalArguments" value="&quot;-n\u003d5 --no-cov --alluredir\u003dreports&quot;" />
+    <option name="_new_target" value="&quot;tests.eu&quot;" />
+    <option name="_new_targetType" value="&quot;PYTHON&quot;" />
     <method v="2" />
   </configuration>
 </component>
