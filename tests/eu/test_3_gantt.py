@@ -92,8 +92,7 @@ def test_eu_create_gantt_event(parametrized_login_driver, parameters):
         eu_filter.switch_off_empty_events()
 
     with allure.step(f'Проверить, что мероприятие "{event_name}" не отображается на Ганте'):
-        gantt_events = events_plan.get_event_names()
-        assert event_name not in gantt_events, f"текущие мероприятия \n {gantt_events}"
+        assert not events_plan.is_event_exists(event_name)
 
     with allure.step('Включить в фильтре отображение незаполненных мероприятий'):
         eu_filter.switch_on_empty_events()
