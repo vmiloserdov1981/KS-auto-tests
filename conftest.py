@@ -166,7 +166,7 @@ def parametrized_login_admin_driver(parameters):
             with allure.step(f'Удалить тестовые данные'):
                 for entity in driver.test_data.get('to_delete'):
                     delete_entity(entity)
-                    time.sleep(10)
+                    time.sleep(20)
 
     driver.quit()
 
