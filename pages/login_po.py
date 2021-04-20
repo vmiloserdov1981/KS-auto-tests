@@ -12,7 +12,7 @@ from datetime import datetime
 class LoginPage(BasePage):
     LOCATOR_PKM_LOGIN_FIELD = (By.XPATH, "//ks-input[@formcontrolname='login']//input")
     LOCATOR_PKM_PASS_FIELD = (By.XPATH, "//ks-input[@formcontrolname='password']//input")
-    LOCATOR_PKM_LOGIN_EU_BUTTON = (By.XPATH, "//ks-button[@ng-reflect-title='Вход']")
+    LOCATOR_PKM_LOGIN_EU_BUTTON = (By.XPATH, "//ks-button[@title='Вход']")
     LOCATOR_PKM_LOGIN_TITLE = (By.XPATH, "//h1[.='Knowledge Space']")
 
     def __init__(self, driver, url=None):
