@@ -611,6 +611,9 @@ def test_eu_group_gantt_events(parametrized_login_driver, parameters):
     with allure.step(f'Залогиниться в системе как {parameters.get("login")}'):
         login_page.eu_login(parameters.get('login'))
 
+    with allure.step(f'Перейти по ссылке {Vars.PKM_MAIN_URL + "#/user/plans-registry"}'):
+        parametrized_login_driver.get(Vars.PKM_MAIN_URL + "#/user/plans-registry")
+
     with allure.step('Перейти на страницу "План мероприятий"'):
         header.navigate_to_page('План мероприятий (Главная)')
 

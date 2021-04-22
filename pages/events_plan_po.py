@@ -515,6 +515,8 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
 
             summary = None
             for event in self.events_generator():
+                if not event:
+                    return events
                 if 'summary-bar' in event.get_attribute('class'):
                     summary = event.text.split('\n')[1]
                 else:
