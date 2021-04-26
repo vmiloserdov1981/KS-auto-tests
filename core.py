@@ -355,7 +355,7 @@ class BaseApi:
         if project_uuid and not without_project:
             headers['x-project-uuid'] = project_uuid
         response = requests.post(url, data=json.dumps(payload), headers=headers)
-        if response.status_code in range(200, 300):
+        if response.status_code in range(200, 300) and response.text is not None:
             return json.loads(response.text)
         else:
             raise AssertionError(f'Ошибка при получении ответа сервера:\n запрос: {url} \n payload: {payload} \n headers: {headers} \n Ответ: {response.status_code}, {response.text}')

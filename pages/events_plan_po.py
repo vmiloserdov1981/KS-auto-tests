@@ -304,7 +304,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
     def get_event(self, event_name, wait_timeout=1) -> WebElement:
         event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
         try:
-            target = self.find_element(event_locator, time=wait_timeout)
+            target = self.find_element(event_locator, time=5)
             self.scroll_to_element(target)
             time.sleep(1)
             return self.find_element(event_locator, time=wait_timeout)
