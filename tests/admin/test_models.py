@@ -2,7 +2,9 @@ import allure
 import pytest
 from variables import PkmVars as Vars
 from pages.model_po import ModelPage
-from conditions.clean_factory import ModelNodeCreator
+from pages.table_po import TablePage
+from pages.object_po import ObjectPage
+from conditions.clean_factory import ModelNodeCreator, ClassNodeCreator, FormulaEntityCreator, DatasetCreator
 from pages.components.modals import TagModal
 
 
@@ -12,7 +14,7 @@ from pages.components.modals import TagModal
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
-        'login': 'eu_user',
+        'login': 'eu_user3',
         'project': Vars.PKM_PROJECT_NAME,
         'tree_type': 'Модели',
         'name': 'Управление моделями'
@@ -36,30 +38,28 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
         model_page.rename_title(new_model_name)
 
     with allure.step(f'Проверить изменение названия модели в дереве'):
-        #model_page.wait_until_text_in_element(model_page.tree.LOCATOR_SELECTED_NODE, new_model_name)
-        pass
+        model_page.wait_until_text_in_element(model_page.tree.LOCATOR_SELECTED_NODE, new_model_name)
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение обновленного имени модели на странице модели'):
-        assert model_page.get_entity_page_title() == new_model_name.upper()
+        model_page.wait_page_title(new_model_name.upper())
 
     with allure.step('Проверить отображение обновленного имени модели в дереве'):
         assert model_page.tree.get_selected_node_name() == new_model_name
 
     with allure.step(f'Переименовать модель "{new_model_name}" на "{model_name}" в дереве'):
-        title_html = model_page.find_element(model_page.LOCATOR_ENTITY_PAGE_TITLE).get_attribute('innerHTML')
         model_page.tree.rename_node(new_model_name, model_name)
 
     with allure.step(f'Проверить изменение названия модели на странице модели'):
-        assert model_page.get_entity_page_title(prev_title_html=title_html) == model_name.upper()
+        model_page.wait_page_title(model_name.upper())
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение обновленного имени модели на странице модели'):
-        assert model_page.get_entity_page_title() == model_name.upper()
+        model_page.wait_page_title(model_name.upper())
 
     with allure.step('Проверить отображение обновленного имени модели в дереве'):
         assert model_page.tree.get_selected_node_name() == model_name
@@ -198,7 +198,7 @@ def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
-        'login': 'eu_user',
+        'login': 'eu_user2',
         'project': Vars.PKM_PROJECT_NAME,
         'tree_type': 'Модели',
         'name': 'Управление измерениями модели'
@@ -284,9 +284,7 @@ def test_admin_dimensions_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Проверить корректное отображение измерений в списке'):
         expected = api_dimensions
         actual = model_page.get_model_dimensions()
-        assert model_page.compare_lists(actual, expected)
-        #Раскоментировать следующую строчку и удалить предыдущую после PKM-4693
-        #assert actual == expected, 'Актуальные измерения не совпадают с ожидаемыми'
+        assert actual == expected, 'Актуальные измерения не совпадают с ожидаемыми'
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -303,7 +301,7 @@ def test_admin_dimensions_control(parametrized_login_admin_driver, parameters):
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
-        'login': 'eu_user',
+        'login': 'eu_user3',
         'project': Vars.PKM_PROJECT_NAME,
         'tree_type': 'Модели',
         'name': 'Управление временными интервалами модели'
@@ -565,3 +563,388 @@ def test_admin_model_tags_control(parametrized_login_admin_driver, parameters):
 
     with allure.step('Проверить отображение пустого списка тегов модели'):
         assert model_page.get_model_tags() is None, 'Некорректный список тегов'
+
+
+@allure.feature('Интерфейс Администратора')
+@allure.story('Дерево моделей')
+@allure.title('Управление объектами модели')
+@allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.red_label
+@pytest.mark.parametrize("parameters", [({
+        'login': 'eu_user2',
+        'project': Vars.PKM_PROJECT_NAME,
+        'tree_type': 'Модели',
+        'name': 'Управление объектами модели'
+    })])
+def test_admin_model_objects_control(parametrized_login_admin_driver, parameters):
+    object_page = ObjectPage(parametrized_login_admin_driver)
+    model_api = object_page.api_creator.get_api_models()
+    classes_api = object_page.api_creator.get_api_classes()
+    test_folder_name = Vars.PKM_TEST_FOLDER_NAME
+    src_class_name = 'Для связи объектов (источник)'
+    dst_class_name = 'Для связи объектов (приемник)'
+    indicator_name = 'Показатель_1'
+    relation_name = 'Связь классов'
+    object_1_name = original_object_1_name = 'Объект_1'
+    object_2_name = 'Объект_2'
+
+    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
+        models_test_folder_uuid = model_api.check_test_folder(test_folder_name)
+
+    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве классов через API'):
+        classes_test_folder_uuid = classes_api.check_test_folder(test_folder_name)
+
+    with allure.step(f'Определить уникальное название класса_источника'):
+        src_class_name = classes_api.create_unique_class_name(src_class_name)
+
+    with allure.step(f'Создать класс источник через API'):
+        src_class_data = classes_api.create_class_node(src_class_name, parent_uuid=classes_test_folder_uuid)
+
+    with allure.step(f'Создать показатель класса источника через API'):
+        classes_api.create_indicator_node(indicator_name, src_class_data.get('referenceUuid'), src_class_data.get('nodeUuid'), 'number')
+
+    with allure.step(f'Определить уникальное название класса_приемника'):
+        dst_class_name = classes_api.create_unique_class_name(dst_class_name)
+
+    with allure.step(f'Создать класс приемник через API'):
+        dst_class_data = classes_api.create_class_node(dst_class_name, parent_uuid=classes_test_folder_uuid)
+
+    with allure.step(f'Создать показатель класса приемника через API'):
+        classes_api.create_indicator_node(indicator_name, dst_class_data.get('referenceUuid'), dst_class_data.get('nodeUuid'), 'number')
+
+    with allure.step(f'Определить уникальное название связи классов'):
+        relation_name = classes_api.create_unique_class_name(relation_name)
+
+    with allure.step(f'Создать связь классов {src_class_name} и {dst_class_name} через API'):
+        classes_api.create_classes_relation_node(relation_name, src_class_data.get('nodeUuid'), src_class_data.get('referenceUuid'), dst_class_data.get('referenceUuid'))
+
+    with allure.step(f'Определить уникальное название модели'):
+        model_name = model_api.create_unique_model_name(Vars.PKM_BASE_MODEL_NAME + '_объекты')
+
+    with allure.step(f'Создать тестовую модель {model_name} в папке {test_folder_name} через API'):
+        model = model_api.create_model_node(model_name, parent_uuid=models_test_folder_uuid)
+        model_node_uuid = model.get('nodeUuid')
+
+    with allure.step(f'Добавить модель {model_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ModelNodeCreator(parametrized_login_admin_driver, model_node_uuid, delete_anyway=True))
+
+    with allure.step(f'Добавить класс {src_class_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, src_class_data.get('nodeUuid'), delete_anyway=True))
+
+    with allure.step(f'Добавить класс {dst_class_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, dst_class_data.get('nodeUuid'), delete_anyway=True))
+
+    with allure.step(f'развернуть тестовую папку {test_folder_name}'):
+        object_page.tree.expand_node(test_folder_name)
+
+    with allure.step(f'Создать объект {object_1_name} класса {src_class_name} в модели {model_name}'):
+        object_1_data = object_page.create_object(object_1_name, model_name, src_class_name)
+
+    with allure.step(f'Проверить заполнение созданного объекта данными по умолчанию'):
+        expected_data = {
+            'object_name': object_1_name,
+            'description': None,
+            'object_class': src_class_name,
+            'relations': [[src_class_name, relation_name, dst_class_name]]
+        }
+        assert object_1_data == expected_data, 'Объект заполнен некорректными данными'
+
+    with allure.step(f'Создать объект {object_2_name} класса {dst_class_name} в модели {model_name}'):
+        object_2_data = object_page.create_object(object_2_name, model_name, dst_class_name)
+
+    with allure.step(f'Проверить заполнение созданного объекта данными по умолчанию'):
+        expected_data = {
+            'object_name': object_2_name,
+            'description': None,
+            'object_class': dst_class_name,
+            'relations': [[src_class_name, relation_name, dst_class_name]]
+        }
+        assert object_2_data == expected_data, 'Объект заполнен некорректными данными'
+
+    with allure.step(f'Создать связь объектов {object_1_name} и {object_2_name}'):
+        object_relation = object_page.create_object_relation(src_class_name, relation_name, dst_class_name, object_1_name)
+
+    with allure.step(f'Открыть объект {object_1_name} через дерево'):
+        object_page.tree.select_node(object_1_name)
+
+    with allure.step(f'Проверить отображение коректных связей на странице объекта'):
+        actual_relations = object_page.get_object_relations()
+        expected_relations = [[src_class_name, relation_name, dst_class_name], object_relation]
+        assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
+
+    with allure.step(f'Переименовать объект {object_1_name} на странице объекта'):
+        object_1_name += '_ред'
+        object_page.rename_title(object_1_name)
+
+    with allure.step(f'Проверить изменение названия объекта в дереве'):
+        object_page.wait_until_text_in_element(object_page.tree.LOCATOR_SELECTED_NODE, object_1_name)
+
+    with allure.step(f'Переименовать объект {object_1_name} в дереве'):
+        object_page.tree.rename_node(object_1_name, f'{object_1_name}_2')
+        object_1_name += '_2'
+
+    with allure.step(f'Открыть объект {object_2_name} через дерево'):
+        object_page.tree.select_node(object_2_name)
+
+    with allure.step(f'Проверить отображение коректных связей на странице объекта'):
+        actual_relations = object_page.get_object_relations()
+        object_relation[0] = object_1_name
+        expected_relations = [[src_class_name, relation_name, dst_class_name], object_relation]
+        assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
+
+    with allure.step(f'Удалить связь объектов {object_1_name} и {object_2_name}'):
+        object_page.delete_relation(object_1_name, f'{relation_name}:{original_object_1_name}_{object_2_name}', object_2_name)
+
+    with allure.step(f'Открыть объект {object_1_name} через дерево'):
+        object_page.tree.select_node(object_1_name)
+
+    with allure.step(f'Проверить отображение коректных связей на странице объекта'):
+        actual_relations = object_page.get_object_relations()
+        expected_relations = [[src_class_name, relation_name, dst_class_name]]
+        assert actual_relations == expected_relations, "Некорректный список связей"
+
+    with allure.step(f'Удалить объект {object_1_name}'):
+        object_page.tree.delete_node(object_1_name, 'Объект', parent_node_name=model_name)
+
+    with allure.step(f'Удалить объект {object_2_name}'):
+        object_page.tree.delete_node(object_2_name, 'Объект', parent_node_name=model_name)
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить отсутствие удаленных объектов модели {model_name} в дереве'):
+        actual_objects = object_page.tree.get_node_children_names(model_name)
+        assert actual_objects == []
+
+
+@allure.feature('Интерфейс Администратора')
+@allure.story('Дерево моделей')
+@allure.title('Управление таблицами данных модели')
+@allure.severity(allure.severity_level.CRITICAL)
+@pytest.mark.red_label
+@pytest.mark.parametrize("parameters", [({
+        'login': 'eu_user',
+        'project': 'тест2',
+        'tree_type': 'Модели',
+        'name': 'Управление таблицами данных модели'
+    })])
+def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
+    table_page = TablePage(parametrized_login_admin_driver)
+    template_creator = table_page.api_creator.get_template_creator_api()
+    model_api = table_page.api_creator.get_api_models()
+    classes_api = table_page.api_creator.get_api_classes()
+    test_folder_name = Vars.PKM_TEST_FOLDER_NAME
+    table_name = 'Тестовая таблица'
+    cells_fill_data = [
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1', 'value': '200'},
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2', 'value': '33'},
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_текстовый', 'value': 'Тестовое_значение'},
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_1', 'value': '500'},
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_2', 'value': '-150'},
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_текстовый', 'value': 'Тестовое_значение_2'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1', 'value': '3000'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2', 'value': '4500'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_текстовый', 'value': 'Привет'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_1', 'value': '-300'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_2', 'value': '-122'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_текстовый', 'value': 'Что-то'}
+    ]
+    cells_calc_data = [
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '167.00'},
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '650.00'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '-1 500.00'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '-178.00'}
+    ]
+
+    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
+        models_test_folder_uuid = model_api.check_test_folder(test_folder_name)
+
+    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве классов через API'):
+        classes_test_folder_uuid = classes_api.check_test_folder(test_folder_name)
+
+    with allure.step(f'Создать шаблон для тестирования таблиц через API'):
+        template_data = template_creator.create_table_template(classes_folder_uuid=classes_test_folder_uuid, models_folder_uuid=models_test_folder_uuid)
+
+    class_name = template_data.get('class_data').get('name')
+    class_node_uuid = template_data.get('class_data').get('nodeUuid')
+    model_name = template_data.get('model_data').get('data')[0].get('name')
+    model_node_uuid = template_data.get('model_data').get('nodeUuid')
+    dataset_1_name = template_data.get('dataset_1_data').get('name')
+    dataset_1_uuid = template_data.get('dataset_1_data').get('uuid')
+    dataset_2_name = template_data.get('dataset_2_data').get('name')
+    dataset_2_uuid = template_data.get('dataset_2_data').get('uuid')
+    formula_name = template_data.get('formula_data').get('name')
+    formula_uuid = template_data.get('formula_data').get('uuid')
+
+    with allure.step(f'Добавить набор данных {dataset_1_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(DatasetCreator(parametrized_login_admin_driver, dataset_1_uuid, delete_anyway=True))
+
+    with allure.step(f'Добавить набор данных {dataset_2_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(DatasetCreator(parametrized_login_admin_driver, dataset_2_uuid, delete_anyway=True))
+
+    with allure.step(f'Добавить модель {model_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ModelNodeCreator(parametrized_login_admin_driver, model_node_uuid, delete_anyway=True))
+
+    with allure.step(f'Добавить формулу {formula_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(FormulaEntityCreator(parametrized_login_admin_driver, formula_uuid, delete_anyway=True))
+
+    with allure.step(f'Добавить класс {class_name} в список на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, class_node_uuid, delete_anyway=True, force=[16, 17]))
+
+    with allure.step(f'развернуть тестовую папку {test_folder_name}'):
+        table_page.tree.expand_node(test_folder_name)
+
+    with allure.step(f'Создать таблицу данных {table_name}'):
+        table_page.create_data_table(model_name, table_name)
+
+    with allure.step(f'Задать базовую структуру таблицы'):
+        table_page.set_base_structure()
+
+    with allure.step(f'Переключиться в режим просмотра таблицы'):
+        table_page.switch_table_page_type('Таблица')
+
+    with allure.step(f'Проверить отображение всех объектов в качестве строк таблицы'):
+        actual_names = table_page.get_table_rows_titles(names_only=True)
+        expected_names = ['Объект_1', 'Объект_2']
+        assert actual_names == expected_names, 'Фактические объекты не совпадают с ожидаемыми'
+
+    with allure.step(f'Проверить отображение всех наборов данных и показателей в качестве столбцов таблицы'):
+        actual_names = table_page.get_table_cols_titles(names_only=True)
+        expected_names = ['Набор_1', 'Набор_2', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый']
+        assert actual_names == expected_names, 'Фактические объекты не совпадают с ожидаемыми'
+
+    expected_data = [
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'}
+    ]
+
+    with allure.step(f'Проверить расчет показателей созданных объектов по формуле'):
+        table_page.wait_cells_value(expected_data)
+
+    with allure.step(f'Проверить что в таблице заполнены только показатели объектов с формулами'):
+        actual_data = table_page.get_table_data()
+        assert actual_data == expected_data, 'Таблица заполнена некорректно'
+
+    with allure.step(f'Заполнить ячейки тестовыми данными'):
+        table_page.fill_cells(cells_fill_data)
+
+    with allure.step(f'Проверить расчет всех ячеек с показателями по формуле'):
+        table_page.wait_cells_value(cells_calc_data)
+
+    with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице'):
+        expected_cells_data = cells_fill_data + cells_calc_data
+        actual_cells_data = table_page.get_table_data()
+        table_page.compare_dicts_lists(actual_cells_data, expected_cells_data)
+
+    # Включить шаги по переименованию + добавить шаги по переименованию через дерево после исправления PKM-5503
+    """
+    new_table_name = table_name + '_переименованная'
+    
+    with allure.step(f'Переименовать таблицу "{table_name}" на "{new_table_name}" на странице таблицы'):
+        table_page.rename_title(new_table_name)
+
+    with allure.step(f'Проверить изменение названия таблицы в дереве'):
+        table_page.wait_until_text_in_element(table_page.tree.LOCATOR_SELECTED_NODE, new_table_name, time=20)
+    """
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице'):
+        actual_cells_data = table_page.get_table_data()
+        table_page.compare_dicts_lists(actual_cells_data, expected_cells_data)
+
+    with allure.step(f'Переключиться в режим конструктора таблицы'):
+        table_page.switch_table_page_type('Конструктор')
+
+    with allure.step(f'Очистить структуру таблицы'):
+        table_page.clear_structure()
+
+    with allure.step(f'Задать структуру таблицы c объектами класса "{class_name}"'):
+        table_page.set_class_objects_structure(class_name)
+
+    with allure.step(f'Разрешить добавление объектов'):
+        table_page.enable_objects_adding()
+
+    with allure.step(f'Переключиться в режим просмотра таблицы'):
+        table_page.switch_table_page_type('Таблица')
+
+    table_object_1_name = 'Из таблицы 1'
+    table_object_2_name = 'Из таблицы 2'
+
+    with allure.step(f'Добавить объект "{table_object_1_name}" в таблицу'):
+        table_page.add_table_object(table_object_1_name)
+
+    with allure.step(f'Проверить отображение объекта "{table_object_1_name}" в дереве'):
+        assert table_page.tree.wait_child_node(model_name, table_object_1_name), f'Объект {table_object_1_name} не отображается в дереве'
+
+    with allure.step(f'Добавить объект "{table_object_2_name}" в таблицу'):
+        table_page.add_table_object(table_object_2_name)
+
+    with allure.step(f'Проверить отображение объекта "{table_object_1_name}" в дереве'):
+        assert table_page.tree.wait_child_node(model_name, table_object_2_name), f'Объект {table_object_2_name} не отображается в дереве'
+
+    new_objects_data = [
+            {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+            {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+            {'object_name': table_object_1_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+            {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'}
+        ]
+    with allure.step(f'Проверить расчет показателей новых объектов по формуле'):
+        table_page.wait_cells_value(new_objects_data)
+
+    with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице (включая вновь созданные объекты)'):
+        new_expected_cells_data = expected_cells_data + new_objects_data
+        actual_cells_data = table_page.get_table_data()
+        table_page.compare_dicts_lists(actual_cells_data, new_expected_cells_data)
+
+    incorrect_data = [
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1',
+         'value': 'abd'},
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2',
+         'value': 'def'}
+    ]
+
+    new_cells_fill_data = [
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_текстовый',
+         'value': '100500'},
+        {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_1', 'value': '2777.88'},
+        {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_2', 'value': '1666.55'},
+        {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_текстовый',
+         'value': 'Что-то'}
+    ]
+    new_cells_calc_data = [
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+        {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
+        {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '1 111.33'}
+    ]
+    with allure.step(f'Заполнить ячейки вновь созданных объектов тестовыми данными'):
+        table_page.fill_cells(new_cells_fill_data)
+
+    with allure.step(f'Заполнить ячейки вновь созданных объектов некорректными тестовыми данными'):
+        table_page.fill_cells(incorrect_data)
+
+    with allure.step(f'Проверить расчет всех ячеек с показателями по формуле'):
+        table_page.wait_cells_value(new_cells_calc_data)
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице'):
+        actual_cells_data = table_page.get_table_data()
+        expected_cells_data = expected_cells_data + new_cells_fill_data + new_cells_calc_data
+        table_page.compare_dicts_lists(actual_cells_data, expected_cells_data)
+
+    with allure.step(f'Удалить таблицу {table_name}'):
+        table_page.tree.delete_node(table_name, 'Таблица', parent_node_name=model_name)
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'развернуть тестовую папку {test_folder_name}'):
+        table_page.tree.expand_node(test_folder_name)
+
+    with allure.step(f'Проверить отсутствие удаленной таблицы {table_name} в дереве'):
+        assert table_name not in table_page.tree.get_node_children_names(model_name)

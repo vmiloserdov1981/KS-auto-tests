@@ -10,7 +10,7 @@ from selenium.common.exceptions import TimeoutException
 class Modals(BasePage):
     LOCATOR_NAME_INPUT = (By.XPATH, "//pkm-modal-window//input[@placeholder='Введите имя']")
     LOCATOR_CLASS_INPUT = (By.XPATH, "//input[@placeholder='Выберите класс']")
-    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Сохранить ']")
+    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()='Сохранить' or text()=' Сохранить ']")
     LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Создать ']")
     LOCATOR_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class,'notification-type-error') and text()='Ошибка сервера']")
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]//div[@class='title-text']")
@@ -190,7 +190,7 @@ class NewEventModal(Calendar, BasePage):
 
     def check_option(self, option_name):
         checkbox_locator = (By.XPATH, f"//div[contains(@class, 'checkbox-label ') and text()='{option_name}']//preceding-sibling::div")
-        checkbox = self.find_element(checkbox_locator)
+        checkbox = self.find_element(checkbox_locator, time=20)
         if 'checkbox-selected' in checkbox.get_attribute('class'):
             pass
         else:
@@ -436,8 +436,10 @@ class NewEventModal(Calendar, BasePage):
 
 class ProjectModal(BasePage):
     LOCATOR_SELECT_PROJECT_MODAL = (By.XPATH, "//div[@class='title-text' and text()='Выбор проекта']/ancestor:: div[@class='modal-window']")
+    LOCATOR_CLOSE_PROJECT_MODAL_ICON = (By.XPATH, f"{LOCATOR_SELECT_PROJECT_MODAL[1]}//div[contains(@class, 'close-icon')]")
     LOCATOR_ENTER_PROJECT_BUTTON = (By.XPATH, "//button[.=' Войти в проект ']")
     LOCATOR_REMEMBER_PROJECT = (By.XPATH, "//div[contains(@class, 'checkbox-wrapper') and .='Запомнить мой выбор']//div[@class='checkbox-container']")
+    LOCATOR_SELECTED_PROJECT_ROW = (By.XPATH, "//span[contains(@class, 'checked')]")
 
     def is_project_modal_displaying(self):
         try:
@@ -447,7 +449,7 @@ class ProjectModal(BasePage):
             return False
 
     def select_project(self, project_name, remember_choice=False):
-        choice_locator = (By.XPATH, f"//div[contains(@class, 'choice-project') and .='{project_name}']")
+        choice_locator = (By.XPATH, f"//div[contains(@class, 'choice-project__item') and .='{project_name}']")
         self.find_and_click(choice_locator)
         checkbox = self.find_element(self.LOCATOR_REMEMBER_PROJECT)
         if remember_choice:
@@ -457,6 +459,14 @@ class ProjectModal(BasePage):
             if 'checkbox-selected' in checkbox.get_attribute('class'):
                 self.find_and_click(self.LOCATOR_REMEMBER_PROJECT)
         self.find_and_click(self.LOCATOR_ENTER_PROJECT_BUTTON)
+
+    def get_selected_project_name(self):
+        selected_project_name = self.get_element_text(self.LOCATOR_SELECTED_PROJECT_ROW, time=10, ignore_error=True)
+        return selected_project_name
+
+    def close_project_modal(self):
+        self.find_and_click(self.LOCATOR_CLOSE_PROJECT_MODAL_ICON)
+        assert self.is_element_disappearing(self.LOCATOR_SELECT_PROJECT_MODAL, wait_display=False)
 
 
 class PublicationsModal(BasePage):
@@ -504,3 +514,40 @@ class TagModal(BasePage):
     def get_linked_models(self):
         models = [element.text for element in self.elements_generator(self.LOCATOR_LINKED_MODEL, time=10)]
         return models
+
+
+class TableObjectsSetModal(Modals):
+    LOCATOR_TYPE_DROPDOWN = (By.XPATH, "//pkm-dropdown[@ng-reflect-name='type']//div[contains(@class, 'dropdown')]")
+    # LOCATOR_TYPE_DROPDOWN_VALUE = (By.XPATH, "//pkm-dropdown[@ng-reflect-name='type']//div[contains(@class, 'display-value-text')]")
+    LOCATOR_OBJECTS_DROPDOWN = (By.XPATH, "(//pkm-multi-select[@ng-reflect-name='objects']//div)[1]")
+    LOCATOR_CHECK_ALL_CHECKBOX = (By.XPATH, "//div[contains(@class, 'check-all__item') and .=' Выбрать все ']//pkm-checkbox")
+    LOCATOR_CHECK_ALL_OPTION = (By.XPATH, "//div[contains(@class, 'multi-select__item') and contains(@class, 'check-all')]")
+
+    def select_type(self, object_type: str):
+        type_dropdown_value = self.get_element_text(self.LOCATOR_TYPE_DROPDOWN)
+        if type_dropdown_value != object_type:
+            self.find_and_click(self.LOCATOR_TYPE_DROPDOWN)
+            option_locator = (By.XPATH, f"//div[contains(@class, 'dropdown-item') and .='{object_type}']")
+            self.find_and_click(option_locator)
+
+    def set_all_objects(self):
+        type_dropdown_value = self.get_element_text(self.LOCATOR_TYPE_DROPDOWN)
+        if type_dropdown_value != 'Объекты':
+            self.select_type('Объекты')
+        self.find_and_click(self.LOCATOR_OBJECTS_DROPDOWN)
+        if self.find_element(self.LOCATOR_CHECK_ALL_CHECKBOX).get_attribute('ng-reflect-value') == 'false':
+            self.find_and_click(self.LOCATOR_CHECK_ALL_OPTION)
+        self.find_and_click((By.XPATH, "//div[@class='multi-select__arrow']"))
+        self.find_and_click(self.LOCATOR_SAVE_BUTTON)
+        time.sleep(2)
+
+    def set_class_objects(self, class_name):
+        type_dropdown_value = self.get_element_text(self.LOCATOR_TYPE_DROPDOWN)
+        if type_dropdown_value != 'По классу':
+            self.select_type('По классу')
+        class_input_locator = (By.XPATH, "//async-dropdown-search[contains(@ng-reflect-name, 'class')]//input")
+        value_locator = (By.XPATH, f"//div[contains(@class,'dropdown-item')][ .=' {class_name} ' or  .='{class_name}' ]")
+        self.find_and_enter(class_input_locator, class_name)
+        self.find_and_click(value_locator)
+        time.sleep(1)
+        self.find_and_click(self.LOCATOR_SAVE_BUTTON)

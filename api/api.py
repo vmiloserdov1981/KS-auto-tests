@@ -6,6 +6,7 @@ import copy
 from api.api_dictionaries import ApiDictionaries
 from api.api_classes import ApiClasses
 from api.api_models import ApiModels
+from api.template_creator import TemplateCreator
 
 
 class ApiEu(BaseApi):
@@ -750,8 +751,8 @@ class ApiEu(BaseApi):
             tasks[i.get('object').get('uuid')] = {
                 'name': i.get('object').get('name'),
                 'start': i.get('start'),
-                'end': i.get('end'),
-                'duration': i.get('duration')
+                'end': i.get('end')
+                # 'duration': i.get('duration')
             }
         return tasks
 
@@ -921,6 +922,9 @@ class ApiEu(BaseApi):
 class ApiCreator(BaseApi):
     def get_api_eu(self):
         return ApiEu(self.login, self.password, self.project_uuid, token=self.token)
+
+    def get_template_creator_api(self):
+        return TemplateCreator(self.project_uuid, login=self.login, password=self.password, token=self.token)
 
     def get_api_classes(self):
         return ApiClasses(self.login, self.password, self.project_uuid, token=self.token)

@@ -15,6 +15,18 @@ import collections
 import os
 
 
+def antistale(func):
+    def wrap(*args, **kwargs):
+        count = 0
+        while count < 10:
+            try:
+                return func(*args, **kwargs)
+            except StaleElementReferenceException:
+                count += 1
+        return func(*args, **kwargs)
+    return wrap
+
+
 class BasePage:
     LOCATOR_DROPDOWN_VALUE = (By.XPATH, "//pkm-dropdown-item")
 
@@ -52,6 +64,18 @@ class BasePage:
                 return
         else:
             WebDriverWait(self.driver, time).until(ElementChanged(html, locator), message=f"Element hasn`t been changed")
+
+    def wait_element_stable(self, locator, timeout, retry_limit=10):
+        element_html = self.find_element(locator).get_attribute('innerHTML')
+        retry_count = 0
+        while retry_count <= retry_limit:
+            try:
+                self.wait_element_changing(element_html, locator, time=timeout)
+            except TimeoutException:
+                return
+            retry_count += 1
+            element_html = self.find_element(locator).get_attribute('innerHTML')
+        raise AssertionError('Превышено количество попыток ожидания стабильности')
 
     def is_element_disappearing(self, locator, time=10, wait_display=True):
         if wait_display:
@@ -94,7 +118,7 @@ class BasePage:
         return WebDriverWait(self.driver, time).until(ec.text_to_be_present_in_element(locator, text),
                                                       message=f"No '{text}' text in element '{locator}'")
 
-    def wait_until_text_in_element_value(self, locator, text, time=5):
+    def wait_until_text_in_element_value(self, locator, text, time=10):
         WebDriverWait(self.driver, time).until(ec.text_to_be_present_in_element_value(locator, text),
                                                message=f"No '{text}' text in element_value '{locator}'")
 
@@ -113,7 +137,8 @@ class BasePage:
     def scroll_to_element(self, webelement):
         self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);", webelement)
 
-    def find_and_click(self, locator, time=5, scroll_to_element=True):
+    @antistale
+    def find_and_click(self, locator, time=10, scroll_to_element=True):
         element = self.find_element(locator, time=time)
         if scroll_to_element:
             self.scroll_to_element(element)
@@ -124,12 +149,12 @@ class BasePage:
         action = ActionChains(self.driver)
         action.move_to_element(elem).move_by_offset(x, y).click().perform()
 
-    def find_and_context_click(self, locator, time=5):
+    def find_and_context_click(self, locator, time=10):
         element = self.find_element(locator, time)
         action_chains = ActionChains(self.driver)
         return action_chains.context_click(element).perform()
 
-    def find_and_enter(self, locator, text, time=5):
+    def find_and_enter(self, locator, text, time=10):
         element = self.find_element(locator, time)
         element.send_keys(text)
         return element
@@ -159,7 +184,9 @@ class BasePage:
         input_field.send_keys(Keys.DELETE)
         self.find_and_enter(locator, field_name)
 
-    def drag_and_drop(self, element_1, element_2):
+    def drag_and_drop(self, element_1_locator, element_2_locator):
+        element_1 = self.find_element(element_1_locator)
+        element_2 = self.find_element(element_2_locator)
         action = ActionChains(self.driver)
         action.drag_and_drop(element_1, element_2).perform()
 
@@ -175,10 +202,18 @@ class BasePage:
             return value if value != '' else None
 
     @staticmethod
-    def compare_lists(list_a: list, list_b: list):
+    def compare_lists(list_a: list, list_b: list) -> bool:
         return collections.Counter(list_a) == collections.Counter(list_b)
 
-    def compare_dicts(self, dict_a, dict_b):
+    @staticmethod
+    def compare_dicts_lists(list_a: list, list_b: list) -> None:
+        if len(list_a) != len(list_b):
+            raise AssertionError(f'Количество справочников в списках не совпадает: список 1 - {len(list_a)} шт, список 2 - {len(list_b)} шт')
+        for list_dictionary in list_a:
+            if list_dictionary not in list_b:
+                raise AssertionError(f'Словарь из списка 1 отсутствует в списке 2: \n {list_dictionary}')
+
+    def compare_dicts(self, dict_a, dict_b) -> None:
         assert self.compare_lists(dict_a.keys(), dict_b.keys())
         for key in dict_a:
             if type(dict_a.get(key)) is list:
@@ -238,15 +273,15 @@ class BasePage:
             return False
         return True
 
-    def get_dropdown_values(self, dropdown_locator):
-        self.find_and_click(dropdown_locator)
-        values = [value.text for value in self.elements_generator(self.LOCATOR_DROPDOWN_VALUE)]
+    def get_dropdown_values(self, dropdown_locator, time=5):
+        self.find_and_click(dropdown_locator, time=time)
+        values = [value.text for value in self.elements_generator(self.LOCATOR_DROPDOWN_VALUE, time=time)]
         self.find_and_click(dropdown_locator)
         return values
 
     def is_input_checked(self, input_locator: tuple):
-        input = self.find_element(input_locator)
-        is_checked = self.driver.execute_script("return arguments[0].checked;", input)
+        input_element = self.find_element(input_locator)
+        is_checked = self.driver.execute_script("return arguments[0].checked;", input_element)
         return is_checked
 
 
@@ -320,10 +355,10 @@ class BaseApi:
         if project_uuid and not without_project:
             headers['x-project-uuid'] = project_uuid
         response = requests.post(url, data=json.dumps(payload), headers=headers)
-        if response.status_code in range(200, 300):
+        if response.status_code in range(200, 300) and response.text is not None:
             return json.loads(response.text)
         else:
-            raise AssertionError(f'Ошибка при получении ответа сервера: {response.status_code}, {response.text}')
+            raise AssertionError(f'Ошибка при получении ответа сервера:\n запрос: {url} \n payload: {payload} \n headers: {headers} \n Ответ: {response.status_code}, {response.text}')
 
     @staticmethod
     def get(url, params=None):
@@ -369,9 +404,9 @@ class BaseApi:
 
     @staticmethod
     def get_feature_month(start: list, offset: int):
-        '''
+        """
         start = ['01', '2012']
-        '''
+        """
         start_month = int(start[0])
         start_year = int(start[1])
         end_month = start_month + offset
@@ -468,16 +503,18 @@ class BaseApi:
         return dictionary
 
 
+"""
 def antistale(func):
     def wrap(*args, **kwargs):
         stale = True
         count = 0
         while stale:
-            if count > 3:
-                break
+            if count > 10:
+                raise AssertionError('Превышено количество повторных перезапусков метода')
             try:
                 return func(*args, **kwargs)
             except StaleElementReferenceException:
                 stale = True
                 count += 1
     return wrap
+"""

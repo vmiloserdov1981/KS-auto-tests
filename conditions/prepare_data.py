@@ -1,8 +1,8 @@
 import users
-from conditions.preconditions_api import ApiPreconditions
+from conditions.preconditions_api import ApiEuPreconditions
 
 
-preconditions = ApiPreconditions(users.admin.login, users.admin.password)
+preconditions = ApiEuPreconditions(users.admin.login, users.admin.password)
 k6_plan = preconditions.api_get_last_k6_plan()
 k6_plan_comment = k6_plan.get('settings').get('plan').get('comment')
 k6_plan_uuid = k6_plan.get('uuid')

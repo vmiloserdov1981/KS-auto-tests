@@ -6,7 +6,7 @@ class ApiModels(BaseApi):
 
     def api_get_models_tree(self):
         resp = self.post('{}models/get-tree'.format(Vars.PKM_API_URL), self.token, {})
-        return resp.get('data')
+        return resp.get('data') or []
 
     def get_tree_nodes(self, tree=None):
         nodes = {}
@@ -27,11 +27,14 @@ class ApiModels(BaseApi):
         node_uuid = resp.get('nodeUuid')
         return node_uuid
 
-
     def check_test_folder(self, folder_name: str) -> str:
         models_tree = self.api_get_models_tree()
         nodes = self.get_tree_nodes(tree=models_tree)
-        test_folder_count = nodes.get('folder').count(folder_name)
+        folders = nodes.get('folder')
+        if folders:
+            test_folder_count = folders.count(folder_name)
+        else:
+            test_folder_count = 0
         if test_folder_count == 0:
             uuid = self.create_folder(folder_name)
             return uuid
@@ -43,10 +46,8 @@ class ApiModels(BaseApi):
         elif test_folder_count > 1:
             raise AssertionError('Количество тестовых папок > 1')
 
-        
-
     def create_unique_model_name(self, basename):
-        models_list = self.get_tree_nodes().get('model')
+        models_list = self.get_tree_nodes().get('model') or []
         count = 0
         new_name = basename
         while new_name in models_list:
@@ -58,6 +59,17 @@ class ApiModels(BaseApi):
         names = self.get_tree_nodes().get('model')
         return names
 
+    def create_dataset(self, dataset_name, model_uuid, is_default=False):
+        payload = {'name': dataset_name,
+                   'default': is_default,
+                   'description': '',
+                   'modelUuid': model_uuid
+                   }
+
+        resp = self.post(f'{Vars.PKM_API_URL}datasets/create', self.token, payload)
+        assert not resp.get('error'), f'Ошибка при создании набора данных: \n {resp}'
+        return resp
+
     def delete_dataset(self, uuid):
         payload = {'uuid': uuid}
         resp = self.post(f'{Vars.PKM_API_URL}datasets/delete', self.token, payload)
@@ -66,9 +78,11 @@ class ApiModels(BaseApi):
     def delete_model_node(self, uuid):
         payload = {'uuid': uuid}
         resp = self.post(f'{Vars.PKM_API_URL}models/delete-node', self.token, payload)
-        assert not resp.get('error'), f'Ошибка при удалении ноды модели'
+        assert not resp.get('error'), f'Ошибка при удалении ноды модели \n {resp}'
 
-    def create_model_node(self, model_name, parent_uuid=None):
+    def create_model_node(self, model_name, parent_uuid=None, create_unique_name=False):
+        if create_unique_name:
+            model_name = self.create_unique_model_name(model_name)
         payload = {
             'name': model_name,
             'type': 'model'
@@ -76,6 +90,17 @@ class ApiModels(BaseApi):
         if parent_uuid:
             payload['parentUuid'] = parent_uuid
         resp = self.post(f'{Vars.PKM_API_URL}models/create-node', self.token, payload)
+        return resp
+
+    def create_object_node(self, object_name, class_uuid, model_uuid, parent_uuid):
+        payload = {
+            'name': object_name,
+            'type': 'object',
+            'parentUuid': parent_uuid,
+            'modelUuid': model_uuid,
+            'classUuid': class_uuid,
+        }
+        resp = self.post(f'{Vars.PKM_API_URL}models/create-model-node', self.token, payload)
         return resp
 
     def get_datasets_by_model(self, model_uuid):
@@ -138,8 +163,32 @@ class ApiModels(BaseApi):
             names.append(model.get('name'))
         return names
 
+    def get_model_change_dates(self, model_uuid):
+        model_data = self.get_model_data(model_uuid)
+        api_created_at = model_data.get('createdAt')
+        api_created_date = api_created_at.split('T')[0].split('-')
+        api_created_date = api_created_date[::-1]
+        api_created_time = api_created_at.split('T')[1].split('.')[0].split(':')[:2]
+        api_created_date = f'{api_created_date[0]}.{api_created_date[1]}.{api_created_date[2]} {api_created_time[0]}:{api_created_time[1]}'
 
+        api_updated_at = model_data.get('updatedAt')
+        api_updated_date = api_created_at.split('T')[0].split('-')
+        api_updated_date = api_updated_date[::-1]
+        api_updated_time = api_updated_at.split('T')[1].split('.')[0].split(':')[:2]
+        api_updated_date = f'{api_updated_date[0]}.{api_updated_date[1]}.{api_updated_date[2]} {api_updated_time[0]}:{api_updated_time[1]}'
+        result = {
+            'created_at': api_created_date,
+            'updated_at': api_updated_date
+        }
+        return result
 
+    def get_models_list(self, term=None):
+        payload = {'term': term} if term else {}
+        resp = self.post(f'{Vars.PKM_API_URL}models/get-list', self.token, payload)
+        return resp.get('data')
 
-
-
+    def get_model_uuid_by_name(self, model_name):
+        models_list = self.get_models_list(term=model_name)
+        for model in models_list:
+            if model.get('name') == model_name:
+                return model.get('uuid')

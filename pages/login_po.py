@@ -3,15 +3,17 @@ from core import BasePage
 import users
 from variables import PkmVars as Vars
 from pages.components.modals import ProjectModal
+import allure
+import time
+from random import randint
+from datetime import datetime
 
 
 class LoginPage(BasePage):
-    LOCATOR_PKM_LOGIN_FIELD = (By.NAME, "login")
-    LOCATOR_PKM_PASS_FIELD = (By.NAME, "password")
-    LOCATOR_PKM_LOGIN_ADMIN_BUTTON = (By.XPATH, "//button [@class='user-button user-view-clear user-form-default "
-                                                "user-size-s']")
-    LOCATOR_PKM_LOGIN_EU_BUTTON = (By.XPATH, "//button [@class='user-button user-view-primary user-form-default user-size-s']")
-    LOCATOR_PKM_LOGIN_TITLE = (By.XPATH, "//div[@class='login-container']//div[contains(@class, 'login-title')]")
+    LOCATOR_PKM_LOGIN_FIELD = (By.XPATH, "//ks-input[@formcontrolname='login']//input")
+    LOCATOR_PKM_PASS_FIELD = (By.XPATH, "//ks-input[@formcontrolname='password']//input")
+    LOCATOR_PKM_LOGIN_EU_BUTTON = (By.XPATH, "//ks-button[@title='Вход']")
+    LOCATOR_PKM_LOGIN_TITLE = (By.XPATH, "//h1[.='Knowledge Space']")
 
     def __init__(self, driver, url=None):
         super().__init__(driver, url)
@@ -19,7 +21,6 @@ class LoginPage(BasePage):
 
     def go_to_site(self):
         self.driver.get(self.base_url)
-        self.check_page()
 
     def enter_login(self, login):
         login_input = self.find_element(self.LOCATOR_PKM_LOGIN_FIELD)
@@ -34,10 +35,22 @@ class LoginPage(BasePage):
         return self.find_and_enter(self.LOCATOR_PKM_PASS_FIELD, password)
 
     def login_as_admin(self):
-        return self.find_and_click(self.LOCATOR_PKM_LOGIN_ADMIN_BUTTON)
+        with allure.step('Кликнуть на кнопку входа'):
+            # добавлена рандомная задержка для предотвращения одновременного логина при выполнении тестов параллельно
+            time.sleep(randint(2, 11))
+            with allure.step(f'Клик на кнопку логина в {datetime.now()}'):
+                self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
+        with allure.step('Проверить наличие иконки меню'):
+            time.sleep(5)
+            # self.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
+        with allure.step('Перейти в интерфейс администратора'):
+            self.driver.get(f"{Vars.PKM_MAIN_URL}#/admin")
 
     def login_as_eu(self):
-        return self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
+        # добавлена рандомная задержка для предотвращения одновременного логина при выполнении тестов параллельно
+        time.sleep(randint(2, 11))
+        with allure.step(f'Клик на кнопку логина в {datetime.now()}'):
+            self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
 
     def check_page(self):
         login_title = self.get_element_text(self.LOCATOR_PKM_LOGIN_TITLE, time=20)

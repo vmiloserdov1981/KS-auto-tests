@@ -13,7 +13,7 @@ import pytest
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
-        'login': 'eu_user',
+        'login': 'eu_user3',
         'get_last_k6_plan': True,
         'select_last_k6_plan': False,
         'select_last_k6_plan_copy': True,

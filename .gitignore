@@ -3,4 +3,7 @@
 /idea/
 /chromedriver/
 /chromedriver.exe
+/.run
+.run/pytest_run_all.run.xml
 /.run/
+

@@ -7,7 +7,7 @@ from selenium.common.exceptions import TimeoutException
 
 
 class PlanRegistry(EuHeader, BasePage):
-    LOCATOR_VIEW_PLAN_BUTTON = (By.XPATH, "//button[contains(@class, 'user-button') and text()=' Посмотреть ']")
+    LOCATOR_VIEW_PLAN_BUTTON = (By.XPATH, "//pkm-button[.//button[contains(@class, 'user-button') and text()=' Посмотреть ']]")
     LOCATOR_SELECTED_PLAN_ROW = (By.XPATH, "//div[@class='plans-table-container']//fa-icon[@icon='star']/../..")
     LOCATOR_STAR = (By.XPATH, "//div[@class='plans-table-container']//fa-icon[@icon='star']")
     LOCATOR_VERSIONS_NAMES = (By.XPATH, "//div[contains(@class, 'version-element')]/div[2]")
@@ -29,7 +29,10 @@ class PlanRegistry(EuHeader, BasePage):
         target = (By.XPATH, f"(//tr[contains(@class, 'plan-row')]//td)[last() and text()='{comment}']")
         self.find_and_click(target)
         self.find_and_click(self.LOCATOR_VIEW_PLAN_BUTTON)
-        self.wait_until_text_in_element(self.LOCATOR_EU_PAGE_TITLE, 'ПЛАН МЕРОПРИЯТИЙ (ГЛАВНАЯ)')
+        try:
+            self.wait_until_text_in_element(self.LOCATOR_EU_PAGE_TITLE, 'ПЛАН МЕРОПРИЯТИЙ (ГЛАВНАЯ)')
+        except TimeoutException:
+            self.find_and_click(self.LOCATOR_VIEW_PLAN_BUTTON)
 
     def get_selected_plan(self):
         selected_row = self.find_element(self.LOCATOR_SELECTED_PLAN_ROW)
@@ -72,7 +75,7 @@ class PlanRegistry(EuHeader, BasePage):
     def get_versions_names(self, with_dates=True):
         element = self.find_element(self.LOCATOR_VERSIONS_NAMES)
         try:
-            self.wait_element_replacing(element, self.LOCATOR_VERSIONS_NAMES, time=10)
+            self.wait_element_replacing(element, self.LOCATOR_VERSIONS_NAMES, time=5)
         except TimeoutException:
             pass
         if with_dates:
@@ -118,6 +121,7 @@ class PlanRegistry(EuHeader, BasePage):
 
     def add_version(self, plan_uuid, based_on=None):
         expected_versions = self.get_versions_names(with_dates=True)
+        # versions_html = self.find_element(self.LOCATOR_VERSIONS_BLOCK).get_attribute('innerHTML')
         api = self.api_creator.get_api_eu()
         last_number = api.get_last_plan_version_number(plan_uuid)
         last_number += 1
@@ -129,8 +133,12 @@ class PlanRegistry(EuHeader, BasePage):
             self.find_and_click(self.LOCATOR_ADD_BASED_VERSION_BUTTON)
         else:
             self.find_and_click(self.LOCATOR_ADD_VERSION_BUTTON)
+        self.find_element((By.XPATH, f"//div[contains(@class, 'version-element') and ./div[.=' {expected_name} ']]"), time=60)
+        '''
+        self.wait_element_changing(versions_html, self.LOCATOR_VERSIONS_BLOCK, time=60)
         actual_versions = self.get_versions_names(with_dates=True)
         assert self.compare_lists(expected_versions, actual_versions), f'Добавленная версия отображается некорректно \n Ожидаемые версии: "{expected_versions}", \n текущие версии: "{actual_versions}"'
+        '''
         elements = (expected_name, api.get_plan_version_uuid_by_name(plan_uuid, self.cut_version_date(expected_name)))
         return elements
 
@@ -157,6 +165,6 @@ class PlanRegistry(EuHeader, BasePage):
             self.select_version(name, with_dates=with_dates)
             star = self.find_element(self.LOCATOR_VERSION_STAR)
             self.find_and_click(self.LOCATOR_SELECT_VERSION_BUTTON)
-            self.wait_element_replacing(star, self.LOCATOR_VERSION_STAR)
+            self.wait_element_replacing(star, self.LOCATOR_VERSION_STAR, time=30)
             actual_default_version = self.get_default_version()
             assert actual_default_version == name
