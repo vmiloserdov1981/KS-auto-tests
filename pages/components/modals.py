@@ -517,10 +517,10 @@ class TagModal(BasePage):
 
 
 class TableObjectsSetModal(Modals):
-    LOCATOR_TYPE_DROPDOWN = (By.XPATH, "//pkm-dropdown[@ng-reflect-name='type']//div[contains(@class, 'dropdown')]")
+    LOCATOR_TYPE_DROPDOWN = (By.XPATH, "//ks-dropdown[@ng-reflect-name='type']//div[contains(@class, 'dropdown')]")
     # LOCATOR_TYPE_DROPDOWN_VALUE = (By.XPATH, "//pkm-dropdown[@ng-reflect-name='type']//div[contains(@class, 'display-value-text')]")
-    LOCATOR_OBJECTS_DROPDOWN = (By.XPATH, "(//pkm-multi-select[@ng-reflect-name='objects']//div)[1]")
-    LOCATOR_CHECK_ALL_CHECKBOX = (By.XPATH, "//div[contains(@class, 'check-all__item') and .=' Выбрать все ']//pkm-checkbox")
+    LOCATOR_OBJECTS_DROPDOWN = (By.XPATH, "(//ks-dropdown[@ng-reflect-name='objects']//div)[1]")
+    LOCATOR_CHECK_ALL_CHECKBOX = (By.XPATH, "//ks-checkbox[@label='Выбрать все']//div[contains(@class, 'checkbox-container')]")
     LOCATOR_CHECK_ALL_OPTION = (By.XPATH, "//div[contains(@class, 'multi-select__item') and contains(@class, 'check-all')]")
 
     def select_type(self, object_type: str):
@@ -535,9 +535,9 @@ class TableObjectsSetModal(Modals):
         if type_dropdown_value != 'Объекты':
             self.select_type('Объекты')
         self.find_and_click(self.LOCATOR_OBJECTS_DROPDOWN)
-        if self.find_element(self.LOCATOR_CHECK_ALL_CHECKBOX).get_attribute('ng-reflect-value') == 'false':
-            self.find_and_click(self.LOCATOR_CHECK_ALL_OPTION)
-        self.find_and_click((By.XPATH, "//div[@class='multi-select__arrow']"))
+        if 'checkbox-selected' not in self.find_element(self.LOCATOR_CHECK_ALL_CHECKBOX).get_attribute('class'):
+            self.find_and_click(self.LOCATOR_CHECK_ALL_CHECKBOX)
+        self.find_and_click((By.XPATH, "//div[contains(@class, 'ks-dropdown-open')]//div[contains(@class, 'arrow-wrapper')]"))
         self.find_and_click(self.LOCATOR_SAVE_BUTTON)
         time.sleep(2)
 

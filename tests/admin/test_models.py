@@ -838,18 +838,22 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         actual_cells_data = table_page.get_table_data()
         table_page.compare_dicts_lists(actual_cells_data, expected_cells_data)
 
-    # Включить шаги по переименованию + добавить шаги по переименованию через дерево после исправления PKM-5503
-    """
     new_table_name = table_name + '_переименованная'
     
     with allure.step(f'Переименовать таблицу "{table_name}" на "{new_table_name}" на странице таблицы'):
         table_page.rename_title(new_table_name)
 
     with allure.step(f'Проверить изменение названия таблицы в дереве'):
-        table_page.wait_until_text_in_element(table_page.tree.LOCATOR_SELECTED_NODE, new_table_name, time=20)
-    """
+        table_page.tree.wait_selected_node_name(new_table_name, timeout=20)
+
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить отображение измененного названия таблицы в дереве'):
+        table_page.tree.wait_selected_node_name(new_table_name, timeout=20)
+
+    with allure.step(f'Проверить отображение измененного названия таблицы на странице таблицы'):
+        table_page.wait_page_title(new_table_name, timeout=20)
 
     with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице'):
         actual_cells_data = table_page.get_table_data()
