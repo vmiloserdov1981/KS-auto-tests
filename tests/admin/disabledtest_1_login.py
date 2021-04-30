@@ -1,5 +1,5 @@
 from pages.login_po import LoginPage
-from pages.main_po import MainPage
+from pages.admin_po import AdminPage
 from pages.components.trees import UserBlock
 from variables import PkmVars as Vars
 from pages.components.modals import Modals
@@ -18,7 +18,7 @@ import pytest
     })])
 def test_pkm_login_valid(driver, parameters):
     login_page = LoginPage(driver, Vars.PKM_MAIN_URL)
-    main_page = MainPage(driver, "{}#/main".format(Vars.PKM_MAIN_URL))
+    main_page = AdminPage(driver, "{}#/main".format(Vars.PKM_MAIN_URL))
     user_block = UserBlock(driver)
 
     with allure.step('Перейти на сайт'):
