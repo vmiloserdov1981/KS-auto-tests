@@ -45,6 +45,8 @@ class DictionaryPage(EntityPage):
             self.find_and_click(self.add_list_element_button_creator(self.ELEMENTS_LIST_NAME))
             self.modal.enter_and_save(element_name)
             prev_elements.append(element_name)
+            new_element_locator = (By.XPATH, f"{self.LOCATOR_DICTIONARY_ELEMENTS[1]}[.='{element_name}']")
+            self.find_element(new_element_locator)
             actual_elements = self.get_dict_elements()
         with allure.step(f'Проверить отображене элемента "{element_name}" внутри списка элементов справочника'):
             assert actual_elements == prev_elements, 'Некорректный список элементов справочника'
