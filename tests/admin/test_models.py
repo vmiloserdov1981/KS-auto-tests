@@ -853,7 +853,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         table_page.tree.wait_selected_node_name(new_table_name, timeout=20)
 
     with allure.step(f'Проверить отображение измененного названия таблицы на странице таблицы'):
-        table_page.wait_page_title(new_table_name, timeout=20)
+        table_page.wait_page_title(new_table_name.upper(), timeout=20)
 
     with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице'):
         actual_cells_data = table_page.get_table_data()
@@ -941,8 +941,8 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         expected_cells_data = expected_cells_data + new_cells_fill_data + new_cells_calc_data
         table_page.compare_dicts_lists(actual_cells_data, expected_cells_data)
 
-    with allure.step(f'Удалить таблицу {table_name}'):
-        table_page.tree.delete_node(table_name, 'Таблица', parent_node_name=model_name)
+    with allure.step(f'Удалить таблицу {new_table_name}'):
+        table_page.tree.delete_node(new_table_name, 'Таблица', parent_node_name=model_name)
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -950,5 +950,5 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'развернуть тестовую папку {test_folder_name}'):
         table_page.tree.expand_node(test_folder_name)
 
-    with allure.step(f'Проверить отсутствие удаленной таблицы {table_name} в дереве'):
-        assert table_name not in table_page.tree.get_node_children_names(model_name)
+    with allure.step(f'Проверить отсутствие удаленной таблицы {new_table_name} в дереве'):
+        assert new_table_name not in table_page.tree.get_node_children_names(model_name)
