@@ -527,7 +527,7 @@ class TableObjectsSetModal(Modals):
         type_dropdown_value = self.get_element_text(self.LOCATOR_TYPE_DROPDOWN)
         if type_dropdown_value != object_type:
             self.find_and_click(self.LOCATOR_TYPE_DROPDOWN)
-            option_locator = (By.XPATH, f"//div[contains(@class, 'dropdown-item') and .='{object_type}']")
+            option_locator = (By.XPATH, f"(//div[contains(@class, 'dropdown-item')])[.='{object_type}' or .=' {object_type} ']")
             self.find_and_click(option_locator)
 
     def set_all_objects(self):
