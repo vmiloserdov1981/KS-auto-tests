@@ -18,7 +18,7 @@ class MainPage(BasePage):
 
 class ProjectsPage(BasePage):
     LOCATOR_PROJECTS_PAGE = (By.XPATH, "//ks-projects")
-    LOCATOR_PROJECT_NAME_INPUT = (By.XPATH, "//ks-input[@ng-reflect-caption='Название проекта']//input")
+    LOCATOR_PROJECT_NAME_INPUT = (By.XPATH, "//div[contains(@class,'project-details__row') and ./div[.='Название проекта']]//input")
 
     def __init__(self, driver):
         super().__init__(driver)

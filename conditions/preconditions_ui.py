@@ -34,8 +34,9 @@ class PreconditionsFront(BasePage, ApiEu):
             main_page.switch_to_publication(project, self.ADMIN_PUBLICATION_NAME)
         with allure.step('Подождать отображение главной страницы'):
             admin_page.wait_admin_page()
-        with allure.step('Проверить корректность выбранного проекта'):
-            admin_page.check_project(project)
+        # Отключил т.к. поменялся порядок логина (через main страницу)
+        # with allure.step('Проверить корректность выбранного проекта'):
+            # admin_page.check_project(project)
         with allure.step('Сохранить токен приложения в драйвере'):
             self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
 
