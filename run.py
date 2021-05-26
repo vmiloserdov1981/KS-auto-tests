@@ -9,8 +9,13 @@ token = ApiEuPreconditions.api_get_token(users.admin.login, users.admin.password
 project_api = ApiProjects(None, None, None, token=token)
 os.environ["PROJECT_NAME"] = Vars.PKM_PROJECT_NAME = project_api.get_last_k6_project_name()
 project_uuid = ApiEuPreconditions.get_project_uuid_by_name_static(Vars.PKM_PROJECT_NAME, token)
-project_api.check_project_access([users.test_users[i].login for i in users.test_users], project_uuid)
 api_eu = ApiEuPreconditions(None, None, project_uuid, token=token)
+
+for user in users.test_users:
+    api_eu.api_check_user(users.test_users[user].login)
+
+project_api.check_project_access([users.test_users[i].login for i in users.test_users], project_uuid)
+
 api_admin = ApiAdminPreconditions(project_uuid, token=token)
 
 

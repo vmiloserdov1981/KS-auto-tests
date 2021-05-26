@@ -11,7 +11,7 @@ import time
 
 
 class ModelPage(EntityPage):
-    DIMENSIONS_LIST_NAME = ' Измерения '
+    DIMENSIONS_LIST_NAME = 'Измерения'
     DATASETS_LIST_NAME = 'Наборы данных'
     TIME_PERIOD_LIST_NAME = 'Временной интервал'
     SOLVERS_LIST_NAME = 'Поиск решения'
