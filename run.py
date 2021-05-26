@@ -3,9 +3,13 @@ from conditions.preconditions_api import ApiEuPreconditions, ApiAdminPreconditio
 import users
 import os
 from variables import PkmVars as Vars
+from api.api_projects import ApiProjects
 
 token = ApiEuPreconditions.api_get_token(users.admin.login, users.admin.password, Vars.PKM_API_URL)
+project_api = ApiProjects(None, None, None, token=token)
+os.environ["PROJECT_NAME"] = Vars.PKM_PROJECT_NAME = project_api.get_last_k6_project_name()
 project_uuid = ApiEuPreconditions.get_project_uuid_by_name_static(Vars.PKM_PROJECT_NAME, token)
+project_api.check_project_access([users.test_users[i].login for i in users.test_users], project_uuid)
 api_eu = ApiEuPreconditions(None, None, project_uuid, token=token)
 api_admin = ApiAdminPreconditions(project_uuid, token=token)
 

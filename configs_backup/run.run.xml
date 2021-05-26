@@ -10,6 +10,8 @@
       <env name="ENABLE_VIDEO" value="true" />
       <env name="CLEAR_VIDEOS" value="true" />
       <env name="QUANTITY" value="3" />
+      <env name="USE_PROD" value="true" />
+      <env name="ADMIN_CREDENTIALS" value="('admin', 'MegaUkulele23')" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />

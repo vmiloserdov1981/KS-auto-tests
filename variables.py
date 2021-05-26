@@ -1,8 +1,12 @@
+import os
+
+
 class PkmVars:
-    PKM_MAIN_URL = 'http://pkm.andersenlab.com/'
-    PKM_API_URL = 'http://pkm.andersenlab.com/api/'
+    PKM_MAIN_URL = 'https://pkm.andersenlab.com/' if not os.getenv('USE_PROD') else 'https://rc-test.ks.works/'
+    PKM_API_URL = f'{PKM_MAIN_URL}api/'
     PKM_TEST_FOLDER_NAME = 'auto-test'
-    PKM_PROJECT_NAME = 'Шельф. Приразломная'
+    DEFAULT_PROJECT_NAME = 'Шельф. Приразломная'
+    PKM_PROJECT_NAME = os.getenv('PROJECT_NAME', 'Шельф. Приразломная')
     PKM_PUBLICATION_NAME = 'Приразломная'
     PKM_BASE_DICTIONARY_NAME = 'Тестовый_справочник'
     PKM_BASE_CLASS_NAME = 'Тестовый_класс'

@@ -131,7 +131,7 @@ class Calendar(BasePage, BaseApi):
 
 
 class NewEventModal(Calendar, BasePage):
-    LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]//div[contains(@class, 'title-text')]")
+    LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]")
     LOCATOR_START_DATE_FIELD = (By.XPATH, "//*[contains (text(), 'Дата начала*')]//..//input")
     LOCATOR_EVENT_NAME_FIELD = (By.XPATH, "//input[@id='title']")
     LOCATOR_EVENT_START_DATE_FIELD = (By.XPATH, f"//*[contains(text(), 'Дата начала*')]//..//input[contains(@class,'datepicker-input')]")
@@ -517,9 +517,9 @@ class TagModal(BasePage):
 
 
 class TableObjectsSetModal(Modals):
-    LOCATOR_TYPE_DROPDOWN = (By.XPATH, "//ks-dropdown[@ng-reflect-name='type']//div[contains(@class, 'dropdown')]")
+    LOCATOR_TYPE_DROPDOWN = (By.XPATH, "(//ks-dropdown//div[contains(@class, 'dropdown')])[1]")
     # LOCATOR_TYPE_DROPDOWN_VALUE = (By.XPATH, "//pkm-dropdown[@ng-reflect-name='type']//div[contains(@class, 'display-value-text')]")
-    LOCATOR_OBJECTS_DROPDOWN = (By.XPATH, "(//ks-dropdown[@ng-reflect-name='objects']//div)[1]")
+    LOCATOR_OBJECTS_DROPDOWN = (By.XPATH, "(//ks-dropdown//div[contains(@class, 'dropdown')])[5]")
     LOCATOR_CHECK_ALL_CHECKBOX = (By.XPATH, "//ks-checkbox[@label='Выбрать все']//div[contains(@class, 'checkbox-container')]")
     LOCATOR_CHECK_ALL_OPTION = (By.XPATH, "//div[contains(@class, 'multi-select__item') and contains(@class, 'check-all')]")
 

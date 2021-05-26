@@ -83,7 +83,7 @@ class ClassPage(EntityPage):
                 'can_be_timed': False,
                 'is_common_for_datasets': False,
                 'unit_measurement': None,
-                'default_consolidation': 'Не выбрано',
+                'default_consolidation': 'Сумма',
                 'dimensions': None,
                 'formulas': None
             }

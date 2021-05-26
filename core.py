@@ -341,6 +341,8 @@ class BaseApi:
         if response.status_code in range(200, 300):
             result = json.loads(response.text)
             token = result.get('token')
+            if not token:
+                raise AssertionError(f'Не удалось получить токен \n {result}')
             return token
         else:
             raise AssertionError(f'Ошибка при получении ответа сервера: {response.status_code}, {response.text}')
