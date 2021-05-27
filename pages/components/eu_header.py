@@ -42,7 +42,7 @@ class EuHeader(BasePage):
     def logout(self):
         self.open_menu()
         self.find_and_click(self.LOCATOR_EU_LOGOUT_BUTTON)
-        self.login_page.find_element(self.login_page.LOCATOR_PKM_LOGIN_TITLE)
+        self.login_page.find_element(self.login_page.LOCATOR_PKM_LOGIN_EU_BUTTON)
 
     def get_plan_dropdown_placeholder(self):
         value = self.find_element(self.LOCATOR_EU_SELECTED_PLAN_TEXT)
