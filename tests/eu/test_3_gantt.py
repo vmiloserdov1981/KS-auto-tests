@@ -57,7 +57,7 @@ def test_eu_create_gantt_event(parametrized_login_driver, parameters):
         empty_data = {
             'event_name': event_name,
             'start_date': [''],
-            'duration': '',
+            'duration': '0',
             'end_date': [''],
             'event_type': 'Не заполнено',
             'works_type': 'Не заполнено',
@@ -299,7 +299,7 @@ def test_eu_modify_gantt_event(parametrized_login_driver, parameters):
     empty_data = {
         'event_name': event_name,
         'start_date': [''],
-        'duration': '',
+        'duration': '0',
         'end_date': [''],
         'event_type': 'Не заполнено',
         'works_type': 'Не заполнено',

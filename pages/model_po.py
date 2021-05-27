@@ -184,15 +184,15 @@ class ModelPage(EntityPage):
         sort_order_icon_locator = self.sort_order_icon_creator(sort_type)
 
         if sort_order == 'ASC':
-            if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-down':
+            if self.find_element(sort_order_icon_locator).get_attribute('data-icon') != 'arrow-down':
                 self.find_and_click(self.sort_type_button_creator(sort_type))
-                if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-down':
+                if self.find_element(sort_order_icon_locator).get_attribute('data-icon') != 'arrow-down':
                     raise AssertionError('Не удалось установить сортировку по возрастанию')
 
         elif sort_order == 'DESC':
-            if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-up':
+            if self.find_element(sort_order_icon_locator).get_attribute('data-icon') != 'arrow-up':
                 self.find_and_click(self.sort_type_button_creator(sort_type))
-                if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-up':
+                if self.find_element(sort_order_icon_locator).get_attribute('data-icon') != 'arrow-up':
                     raise AssertionError('Не удалось установить сортировку по убыванию')
 
         self.find_and_click(self.list_sort_button_creator(self.DATASETS_LIST_NAME))
@@ -203,15 +203,15 @@ class ModelPage(EntityPage):
         sort_order_icon_locator = self.sort_order_icon_creator(sort_type)
 
         if sort_order == 'ASC':
-            if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-down':
+            if self.find_element(sort_order_icon_locator).get_attribute('data-icon') != 'arrow-down':
                 self.find_and_click(self.sort_type_button_creator(sort_type))
-                if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-down':
+                if self.find_element(sort_order_icon_locator).get_attribute('data-icon') != 'arrow-down':
                     raise AssertionError('Не удалось установить сортировку по возрастанию')
 
         elif sort_order == 'DESC':
-            if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-up':
+            if self.find_element(sort_order_icon_locator).get_attribute('data-icon') != 'arrow-up':
                 self.find_and_click(self.sort_type_button_creator(sort_type))
-                if self.find_element(sort_order_icon_locator).get_attribute('ng-reflect-icon') != 'arrow-up':
+                if self.find_element(sort_order_icon_locator).get_attribute('data-icon') != 'arrow-up':
                     raise AssertionError('Не удалось установить сортировку по убыванию')
 
         self.find_and_click(self.list_sort_button_creator(self.DIMENSIONS_LIST_NAME))
@@ -292,6 +292,25 @@ class ModelPage(EntityPage):
         self.find_and_click(self.LOCATOR_MODEL_PERIOD_DELETE_BUTTON)
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
         assert self.is_element_disappearing(self.LOCATOR_MODEL_PERIOD_START_YEAR, wait_display=False)
+
+    @staticmethod
+    def convert_date(date: list):
+        month = {
+            '01': 'января',
+            '02': 'февраля',
+            '03': 'марта',
+            '04': 'апреля',
+            '05': 'мая',
+            '06': 'июня',
+            '07': 'июля',
+            '08': 'августа',
+            '09': 'сентября',
+            '10': 'октября',
+            '11': 'ноября',
+            '12': 'декабря'
+        }
+        converted_date = f'{date[0]} {month[date[1]]} {date[2]}'
+        return converted_date
 
     def add_tag(self, tag_name: str):
         self.find_and_enter(self.LOCATOR_MODEL_SEARCH_TAG_INPUT, tag_name)

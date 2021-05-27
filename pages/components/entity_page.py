@@ -31,7 +31,7 @@ class EntityPage(BasePage):
     @staticmethod
     def sort_order_icon_creator(sort_type):
         element_xpath = EntityPage.sort_type_button_creator(sort_type)[1]
-        locator = (By.XPATH, element_xpath + "//fa-icon[contains(@ng-reflect-icon, 'arrow-')]")
+        locator = (By.XPATH, element_xpath + "//*[local-name()='svg' and contains(@data-icon, 'arrow-')]")
         return locator
 
     @staticmethod

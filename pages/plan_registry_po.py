@@ -14,13 +14,13 @@ class PlanRegistry(EuHeader, BasePage):
     LOCATOR_VERSIONS_ROWS = (By.XPATH, "//div[contains(@class, 'version-element')]")
     LOCATOR_VERSION_FIRST_ROW = (By.XPATH, "//div[contains(@class, 'version-element')][1]")
     LOCATOR_VERSIONS_BLOCK = (By.XPATH, "//div[contains(@class, 'plan-settings-container')]//div[@class='versions']")
-    LOCATOR_PLAN_CONTROL_BUTTONS = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button")
-    LOCATOR_ADD_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@ng-reflect-tooltip='Добавить']")
-    LOCATOR_ADD_BASED_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@ng-reflect-tooltip='Создать на основе']")
-    LOCATOR_DELETE_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@ng-reflect-tooltip='Удалить']")
-    LOCATOR_SELECT_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@ng-reflect-tooltip='Выбрать']")
-    LOCATOR_DEFAULT_VERSION_ROW = (By.XPATH, "//div[@class='versions']//fa-icon[@ng-reflect-icon='star']/../..")
-    LOCATOR_VERSION_STAR = (By.XPATH, "//div[@class='versions']//fa-icon[@ng-reflect-icon='star']")
+    LOCATOR_PLAN_CONTROL_BUTTONS = (By.XPATH, "//div[contains(@class, 'version-buttons')]//pkm-button")
+    LOCATOR_ADD_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@tooltip='Добавить']")
+    LOCATOR_ADD_BASED_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@tooltip='Создать на основе']")
+    LOCATOR_DELETE_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@tooltip='Удалить']")
+    LOCATOR_SELECT_VERSION_BUTTON = (By.XPATH, "//div[contains(@class, 'version-buttons')]/pkm-button[@tooltip='Выбрать']")
+    LOCATOR_DEFAULT_VERSION_ROW = (By.XPATH, "//div[contains(@class, 'version-element') and .//fa-icon[@icon='star']]")
+    LOCATOR_VERSION_STAR = (By.XPATH, "//div[@class='versions']//fa-icon[@icon='star']")
 
     def __init__(self, driver):
         BasePage.__init__(self, driver)
@@ -94,10 +94,10 @@ class PlanRegistry(EuHeader, BasePage):
         buttons = []
         for button in self.elements_generator(self.LOCATOR_PLAN_CONTROL_BUTTONS):
             if enabled_only:
-                if not button.get_attribute('ng-reflect-disabled'):
+                if 'disabled' not in button.get_attribute('innerHTML'):
                     buttons.append(button.get_attribute('tooltip'))
             elif disabled_only:
-                if button.get_attribute('ng-reflect-disabled') == 'true':
+                if 'disabled' in button.get_attribute('innerHTML'):
                     buttons.append(button.get_attribute('tooltip'))
         return buttons
 
