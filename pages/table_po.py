@@ -169,7 +169,7 @@ class TablePage(EntityPage):
                 By.XPATH, "//div[@class='overlay']//div[contains(@class, 'overlay-item') and .=' По названию, А - Я ']")
                 self.find_and_click(sort_button_locator)
                 self.find_and_click(sort_by_name_locator)
-                time.sleep(2)
+                time.sleep(5)
 
     def set_class_objects_structure(self, class_name):
         with allure.step('Задать структуру таблицы'):
@@ -197,7 +197,7 @@ class TablePage(EntityPage):
                 By.XPATH, "//div[@class='overlay']//div[contains(@class, 'overlay-item') and .=' По названию, А - Я ']")
                 self.find_and_click(sort_button_locator)
                 self.find_and_click(sort_by_name_locator)
-                time.sleep(2)
+                time.sleep(5)
 
     @staticmethod
     def get_cell_style_value(style_name: str, cell: WebElement):
