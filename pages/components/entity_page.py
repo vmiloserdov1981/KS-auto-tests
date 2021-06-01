@@ -11,7 +11,7 @@ class EntityPage(BasePage):
     LOCATOR_PAGE_TITLE_BLOCK = (By.XPATH, "//div[@class='page-title-container']//div[@class='title-value']")
     LOCATOR_TITLE_INPUT = (By.XPATH, "(//div[@class='page-title-container']//input)[1]")
     LOCATOR_TITLE_CHECK_ICON = (By.XPATH, "//div[@class='page-title-container']//fa-icon[@icon='check']")
-    LOCATOR_PAGE_CONTENT = (By.XPATH, "//div[@class='page-content']")
+    LOCATOR_PAGE_CONTENT = (By.XPATH, "//div[contains(@class, 'router-outlet')]//div[contains(@class, 'page-container')]")
 
     @staticmethod
     def add_list_element_button_creator(list_name):

@@ -164,6 +164,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
         indicator_1['indicator_name'] = new_indicator_name
 
     with allure.step(f'Проверить переименование показателя "{indicator_name}" в дереве'):
+        class_page.find_element(class_page.tree.node_locator_creator(new_indicator_name), time=15)
         actual_children = class_page.tree.get_node_children_names(class_name)
         expected_children = [indicator_1['indicator_name'], indicator_2['indicator_name'], relation_1['relation_name'], relation_2['relation_name']]
         assert expected_children == actual_children, f'Некорректный список дочерних элементов класса {class_name}'

@@ -5,7 +5,7 @@ from pages.components.modals import ProjectModal
 
 
 class AdminPage(BasePage):
-    LOCATOR_PKM_PROFILENAME_BLOCK = (By.XPATH, "//div[@class='profile-name']")
+    LOCATOR_PKM_PROFILENAME_BLOCK = (By.XPATH, "//div[contains(@class, 'header__user-info')]")
     LOCATOR_SELECT_PROJECT_BUTTON = (By.XPATH, "//div[@class='title-content']//div[.='Выбрать проект']")
 
     def __init__(self, driver):

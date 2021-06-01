@@ -23,7 +23,7 @@ class Tree(BasePage):
     LOCATOR_TREE_ARROW = (By.CLASS_NAME, "arrow-wrapper")
     LOCATOR_TREE_OPEN_BUTTON = (By.XPATH, "//div[@class='menu-open-button ng-star-inserted']")
     LOCATOR_TREE_CLASS_BUTTON = (By.XPATH, "//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' Классы ']")
-    LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[@class='display-value ng-star-inserted']")
+    LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[contains(@class, 'admin-tree__title')]")
     LOCATOR_TREE_ROOT_NODE = (By.XPATH, "(//div[@class='tree-item-title'])[1]")
     LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item-title') and contains(@class, 'selected')]")
     DICTIONARIES_TREE_NAME = 'Справочники'
@@ -76,15 +76,9 @@ class Tree(BasePage):
     def switch_to_tree(self, tree_name):
         tree_value = self.get_element_text(self.LOCATOR_TREE_TYPE_BLOCK)
         if tree_value != tree_name:
-            tree_button_locator = (By.XPATH, f"//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' {tree_name} ']")
-            try:
-                self.find_and_click(self.LOCATOR_TREE_ARROW)
-            except TimeoutException:
-                self.open_tree()
-                self.find_and_click(self.LOCATOR_TREE_ARROW)
-            self.find_and_click(tree_button_locator)
-            tree_value = self.get_element_text(self.LOCATOR_TREE_TYPE_BLOCK)
-            assert tree_value == tree_name, 'Неправильное название в переключателе типа дерева'
+            tree_type_button_locator = (By.XPATH, f"(//div[contains(@class, 'admin-sidebar') and .=' {tree_name} '])[1]")
+            self.find_and_click(tree_type_button_locator)
+            self.wait_until_text_in_element(self.LOCATOR_TREE_TYPE_BLOCK, tree_name)
 
     def is_folder_exists(self, folder_name, time=5):
         folder_locator = self.folder_locator_creator(folder_name)

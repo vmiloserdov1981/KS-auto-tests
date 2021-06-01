@@ -2,7 +2,7 @@ import os
 
 
 class PkmVars:
-    PKM_MAIN_URL = 'https://pkm.andersenlab.com/' if os.getenv('USE_PROD') != 'true' else 'https://rc-test.ks.works/'
+    PKM_MAIN_URL = 'https://pkm.andersenlab.com/' if os.getenv('USE_STAGE') != 'true' else 'https://rc-test.ks.works/'
     PKM_API_URL = f'{PKM_MAIN_URL}api/'
     PKM_TEST_FOLDER_NAME = 'auto-test'
     DEFAULT_PROJECT_NAME = 'Шельф. Приразломная'
