@@ -38,7 +38,8 @@ class PreconditionsFront(BasePage, ApiEu):
         # with allure.step('Проверить корректность выбранного проекта'):
             # admin_page.check_project(project)
         with allure.step('Сохранить токен приложения в драйвере'):
-            self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
+            # self.driver.token = self.driver.execute_script("return document.cookie;").split('token=')[1].split(';')[0]
+            self.driver.token = self.api_get_token(login, password, Vars.PKM_API_URL)
 
     @allure.title('Перейти к интерфейсу конечного пользователя')
     def login_as_eu(self, login, password, project):
@@ -56,7 +57,8 @@ class PreconditionsFront(BasePage, ApiEu):
         with allure.step('Проверить наличие иконки меню'):
             main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
         with allure.step('Сохранить токен приложения в драйвере'):
-            self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
+            # self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
+            self.driver.token = self.api_get_token(login, password, Vars.PKM_API_URL)
 
     @allure.title('Посмотреть последний созданный через k6 план мероприятий')
     def view_last_k6_plan(self):
