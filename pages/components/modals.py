@@ -13,7 +13,7 @@ class Modals(BasePage):
     LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()='Сохранить' or text()=' Сохранить ']")
     LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Создать ']")
     LOCATOR_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class,'notification-type-error') and text()='Ошибка сервера']")
-    LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]//div[@class='title-text']")
+    LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]")
     LOCATOR_ACCEPT_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Принять ']")
     LOCATOR_DELETION_CONFIRM_TEXT = (By.XPATH, "//div[contains(@class, 'deletion-notifications-container')]")
     LOCATOR_CLOSE_MODAL_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[.=' Закрыть ']")
@@ -131,12 +131,12 @@ class Calendar(BasePage, BaseApi):
 
 
 class NewEventModal(Calendar, BasePage):
-    LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]//div[contains(@class, 'title-text')]")
+    LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]")
     LOCATOR_START_DATE_FIELD = (By.XPATH, "//*[contains (text(), 'Дата начала*')]//..//input")
     LOCATOR_EVENT_NAME_FIELD = (By.XPATH, "//input[@id='title']")
     LOCATOR_EVENT_START_DATE_FIELD = (By.XPATH, f"//*[contains(text(), 'Дата начала*')]//..//input[contains(@class,'datepicker-input')]")
     LOCATOR_EVENT_END_DATE_FIELD = (By.XPATH, f"//*[contains(text(), 'Дата окончания')]//..//input[contains(@id,'end-date')]")
-    LOCATOR_EVENT_DURATION_FIELD = (By.XPATH, f"//*[contains(text(), 'Длительность*')]//..//input[contains(@id,'duration-period')]")
+    LOCATOR_EVENT_DURATION_FIELD = (By.XPATH, f"//pkm-gant-diagram-task-duration//input[@formcontrolname='days']")
     LOCATOR_NEXT_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Дальше ']")
     LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Сохранить ']")
     LOCATOR_CANCEL_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Отмена ']")
@@ -244,7 +244,8 @@ class NewEventModal(Calendar, BasePage):
         start_date = self.get_start_date()
         field = self.find_element(self.LOCATOR_EVENT_DURATION_FIELD)
         if field.get_attribute('value') != '':
-            field.clear()
+            field.send_keys(Keys.CONTROL + "a")
+            field.send_keys(Keys.DELETE)
         else:
             pass
         field.send_keys(duration)
@@ -517,9 +518,9 @@ class TagModal(BasePage):
 
 
 class TableObjectsSetModal(Modals):
-    LOCATOR_TYPE_DROPDOWN = (By.XPATH, "//ks-dropdown[@ng-reflect-name='type']//div[contains(@class, 'dropdown')]")
+    LOCATOR_TYPE_DROPDOWN = (By.XPATH, "(//ks-dropdown//div[contains(@class, 'dropdown')])[1]")
     # LOCATOR_TYPE_DROPDOWN_VALUE = (By.XPATH, "//pkm-dropdown[@ng-reflect-name='type']//div[contains(@class, 'display-value-text')]")
-    LOCATOR_OBJECTS_DROPDOWN = (By.XPATH, "(//ks-dropdown[@ng-reflect-name='objects']//div)[1]")
+    LOCATOR_OBJECTS_DROPDOWN = (By.XPATH, "(//ks-dropdown//div[contains(@class, 'dropdown')])[5]")
     LOCATOR_CHECK_ALL_CHECKBOX = (By.XPATH, "//ks-checkbox[@label='Выбрать все']//div[contains(@class, 'checkbox-container')]")
     LOCATOR_CHECK_ALL_OPTION = (By.XPATH, "//div[contains(@class, 'multi-select__item') and contains(@class, 'check-all')]")
 
@@ -545,7 +546,7 @@ class TableObjectsSetModal(Modals):
         type_dropdown_value = self.get_element_text(self.LOCATOR_TYPE_DROPDOWN)
         if type_dropdown_value != 'По классу':
             self.select_type('По классу')
-        class_input_locator = (By.XPATH, "//async-dropdown-search[contains(@ng-reflect-name, 'class')]//input")
+        class_input_locator = (By.XPATH, "//async-dropdown-search//input")
         value_locator = (By.XPATH, f"//div[contains(@class,'dropdown-item')][ .=' {class_name} ' or  .='{class_name}' ]")
         self.find_and_enter(class_input_locator, class_name)
         self.find_and_click(value_locator)

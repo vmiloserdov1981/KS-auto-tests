@@ -247,7 +247,7 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
         },
         "custom_relations_filter": {
             'Персонал': [],
-            'Зона': [f'{prefixes[0]} D1L5 {prefixes[1]}'],
+            'Зона': [f'{prefixes[0]}D1L5{prefixes[1]}'],
             'Влияние на показатели': [],
             'Риски': [],
             'События для ИМ': []
@@ -270,9 +270,9 @@ def test_eu_custom_relations_filter(parametrized_login_driver, parameters):
         },
         "custom_relations_filter": {
             'Персонал': ['(пусто)'],
-            'Зона': [f'{prefixes[0]} D1L5 {prefixes[1]}'],
+            'Зона': [f'{prefixes[0]}D1L5{prefixes[1]}'],
             'Влияние на показатели': [],
-            'Риски': [f'{prefixes[0]} Риск 1 {prefixes[1]}', f'{prefixes[0]} Риск 2 {prefixes[1]}'],
+            'Риски': [f'{prefixes[0]}Риск 1{prefixes[1]}', f'{prefixes[0]}Риск 2{prefixes[1]}'],
             'События для ИМ': []
         }
 

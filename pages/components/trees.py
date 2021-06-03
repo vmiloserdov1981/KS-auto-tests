@@ -23,7 +23,7 @@ class Tree(BasePage):
     LOCATOR_TREE_ARROW = (By.CLASS_NAME, "arrow-wrapper")
     LOCATOR_TREE_OPEN_BUTTON = (By.XPATH, "//div[@class='menu-open-button ng-star-inserted']")
     LOCATOR_TREE_CLASS_BUTTON = (By.XPATH, "//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' Классы ']")
-    LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[@class='display-value ng-star-inserted']")
+    LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[contains(@class, 'admin-tree__title')]")
     LOCATOR_TREE_ROOT_NODE = (By.XPATH, "(//div[@class='tree-item-title'])[1]")
     LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item-title') and contains(@class, 'selected')]")
     DICTIONARIES_TREE_NAME = 'Справочники'
@@ -34,7 +34,8 @@ class Tree(BasePage):
 
     @staticmethod
     def folder_locator_creator(folder_name):
-        locator = (By.XPATH, f"//div[@class='tree-item' and .='{folder_name}' and .//fa-icon[@ng-reflect-icon='folder']]")
+        #locator = (By.XPATH, f"//div[@class='tree-item' and .='{folder_name}' and .//fa-icon[@ng-reflect-icon='folder']]")
+        locator = (By.XPATH, f"//div[@class='tree-item' and .='{folder_name}']//*[local-name()='svg' and @data-icon='folder' ]")
         return locator
 
     @staticmethod
@@ -45,7 +46,7 @@ class Tree(BasePage):
     @staticmethod
     def node_arrow_locator_creator(node_name):
         node_xpath = Tree.node_locator_creator(node_name)[1]
-        locator = (By.XPATH, node_xpath + "//preceding-sibling::div[contains(@class, 'item-arrow')]//fa-icon")
+        locator = (By.XPATH, node_xpath + "//preceding-sibling::div[contains(@class, 'item-arrow')]//fa-icon//*[local-name() = 'svg']")
         return locator
 
     @staticmethod
@@ -75,17 +76,11 @@ class Tree(BasePage):
     def switch_to_tree(self, tree_name):
         tree_value = self.get_element_text(self.LOCATOR_TREE_TYPE_BLOCK)
         if tree_value != tree_name:
-            tree_button_locator = (By.XPATH, f"//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' {tree_name} ']")
-            try:
-                self.find_and_click(self.LOCATOR_TREE_ARROW)
-            except TimeoutException:
-                self.open_tree()
-                self.find_and_click(self.LOCATOR_TREE_ARROW)
-            self.find_and_click(tree_button_locator)
-            tree_value = self.get_element_text(self.LOCATOR_TREE_TYPE_BLOCK)
-            assert tree_value == tree_name, 'Неправильное название в переключателе типа дерева'
+            tree_type_button_locator = (By.XPATH, f"(//div[contains(@class, 'admin-sidebar') and .=' {tree_name} '])[1]")
+            self.find_and_click(tree_type_button_locator)
+            self.wait_until_text_in_element(self.LOCATOR_TREE_TYPE_BLOCK, tree_name)
 
-    def is_folder_exists(self, folder_name, time=2):
+    def is_folder_exists(self, folder_name, time=5):
         folder_locator = self.folder_locator_creator(folder_name)
         try:
             self.find_element(folder_locator, time=time)
@@ -147,9 +142,9 @@ class Tree(BasePage):
         arrow = self.get_node_arrow(parent_node_name)
         if not arrow:
             return []
-        if arrow.get_attribute('ng-reflect-icon') == 'angle-right':
+        if arrow.get_attribute('data-icon') == 'angle-right':
             arrow.click()
-        if arrow.get_attribute('ng-reflect-icon') == 'angle-down':
+        if arrow.get_attribute('data-icon') == 'angle-down':
             child_locator = self.children_node_locator_creator(parent_node_name)
             names = [node.text for node in self.elements_generator(child_locator, wait=3)]
             return names
@@ -159,7 +154,7 @@ class Tree(BasePage):
         arrow = self.get_node_arrow(node_name)
         if not arrow:
             return
-        if arrow.get_attribute('ng-reflect-icon') == 'angle-right':
+        if arrow.get_attribute('data-icon') == 'angle-right':
             arrow.click()
 
     def hide_node(self, node_name):

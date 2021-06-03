@@ -21,7 +21,7 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, projec
         ip = os.getenv('SELENOID_IP', '127.0.0.1')
         ip = f'http://{ip}:4444/wd/hub'
         enable_video = True if os.getenv('ENABLE_VIDEO') == 'true' else False
-        timeout = os.getenv('TIMEOUT', '180s')
+        timeout = os.getenv('TIMEOUT', '5m')
         capabilities = {
             "browserName": "chrome",
             # "version": "83.0",
@@ -30,6 +30,8 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, projec
             'videoName': f'{name}.mp4',
             "name": name,
             "sessionTimeout": timeout,
+            "session-attempt-timeout": '5m',
+            "service-startup-timeout": '5m',
             "goog:loggingPrefs": {'browser': 'ALL'}
         }
         driver = webdriver.Remote(

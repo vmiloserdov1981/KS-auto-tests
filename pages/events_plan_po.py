@@ -286,19 +286,25 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                 total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
                 last_row = self.find_element(last_row_locator)
                 cell_height = self.driver.execute_script("return arguments[0].clientHeight", last_row)
+                prelast_row_html = last_row.get_attribute('innerHTML')
 
                 # построчный перебор
                 while self.driver.execute_script("return arguments[0].offsetTop", last_row) + (cell_height * 2) < total_height:
                     self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, cell_height)
                     self.wait_element_changing(last_row.get_attribute('innerHTML'), last_row_locator, time=2, ignore_timeout=True)
                     last_row = self.find_element(last_row_locator)
-                    self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);", last_row)
-                    if names_only:
-                        last_row_text = last_row.text
-                        last_row_name = last_row_text.split('\n')[1]
-                        yield last_row_name
-                    else:
-                        yield last_row
+                    last_row_html = last_row.get_attribute('innerHTML')
+
+                    # Защита от дублирования мероприятий
+                    if last_row_html != prelast_row_html:
+                        self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);", last_row)
+                        if names_only:
+                            last_row_text = last_row.text
+                            last_row_name = last_row_text.split('\n')[1]
+                            yield last_row_name
+                        else:
+                            yield last_row
+                    prelast_row_html = last_row_html
                 break
 
     def get_event(self, event_name, wait_timeout=1) -> WebElement:
@@ -499,8 +505,8 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             events = {}
 
             def add_in_group(item, dictionary, group_value):
-                if '. ' in group_value:
-                    group_values = group_value.split('. ')
+                if ' . ' in group_value:
+                    group_values = group_value.split(' . ')
                     for value in group_values:
                         if value in dictionary.keys():
                             dictionary[value].append(item)

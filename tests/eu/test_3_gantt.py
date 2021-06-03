@@ -10,6 +10,7 @@ from selenium.common.exceptions import TimeoutException
 import pytest
 from pages.components.eu_header import EuHeader
 from pages.login_po import LoginPage
+from conditions.preconditions_ui import PreconditionsFront
 
 
 @allure.feature('Интерфейс КП')
@@ -57,7 +58,7 @@ def test_eu_create_gantt_event(parametrized_login_driver, parameters):
         empty_data = {
             'event_name': event_name,
             'start_date': [''],
-            'duration': '',
+            'duration': '0',
             'end_date': [''],
             'event_type': 'Не заполнено',
             'works_type': 'Не заполнено',
@@ -141,7 +142,7 @@ def test_eu_delete_gantt_event(parametrized_login_driver, parameters):
     deleted_event_data = {
         'event_name': event_name,
         'start_date': [''],
-        'duration': '',
+        'duration': '0',
         'end_date': [''],
         'event_type': event_data.get('event_type'),
         'works_type': event_data.get('works_type'),
@@ -156,7 +157,7 @@ def test_eu_delete_gantt_event(parametrized_login_driver, parameters):
     empty_data = {
         'event_name': event_name,
         'start_date': [''],
-        'duration': '',
+        'duration': '0',
         'end_date': [''],
         'event_type': 'Не заполнено',
         'works_type': 'Не заполнено',
@@ -299,7 +300,7 @@ def test_eu_modify_gantt_event(parametrized_login_driver, parameters):
     empty_data = {
         'event_name': event_name,
         'start_date': [''],
-        'duration': '',
+        'duration': '0',
         'end_date': [''],
         'event_type': 'Не заполнено',
         'works_type': 'Не заполнено',
@@ -451,7 +452,7 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
     empty_data = {
         'event_name': event_name + ' (копия)',
         'start_date': [''],
-        'duration': '',
+        'duration': '0',
         'end_date': [''],
         'event_type': 'Не заполнено',
         'works_type': 'Не заполнено',
@@ -608,11 +609,10 @@ def test_eu_group_gantt_events(parametrized_login_driver, parameters):
     with allure.step(f'Выйти из системы'):
         header.logout()
 
-    with allure.step(f'Залогиниться в системе как {parameters.get("login")}'):
-        login_page.eu_login(parameters.get('login'))
+    preconditions = PreconditionsFront(parametrized_login_driver, parametrized_login_driver.project_uuid, token=parametrized_login_driver.token)
 
-    with allure.step(f'Перейти по ссылке {Vars.PKM_MAIN_URL + "#/user/plans-registry"}'):
-        parametrized_login_driver.get(Vars.PKM_MAIN_URL + "#/user/plans-registry")
+    with allure.step(f'Залогиниться в системе как {parameters.get("login")}'):
+        preconditions.login_as_eu(user.test_users[parameters.get("login")].login, user.test_users[parameters.get("login")].password, parameters.get("project"))
 
     with allure.step('Перейти на страницу "План мероприятий"'):
         header.navigate_to_page('План мероприятий (Главная)')

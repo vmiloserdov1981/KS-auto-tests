@@ -1,36 +1,47 @@
 from core import BasePage
 from selenium.webdriver.common.by import By
-from variables import PkmVars as Vars
-from pages.components.modals import ProjectModal
 
 
 class MainPage(BasePage):
-    LOCATOR_PKM_PROFILENAME_BLOCK = (By.XPATH, "//div[@class='profile-name']")
-    LOCATOR_SELECT_PROJECT_BUTTON = (By.XPATH, "//div[@class='title-content']//div[.='Выбрать проект']")
+    def __init__(self, driver):
+        super().__init__(driver)
+        self.projects_page = ProjectsPage(driver)
+
+    def wait_main_page(self, timeout=10):
+        self.find_element(NavigationSidebar.LOCATOR_SIDEBAR, time=timeout)
+
+    def switch_to_publication(self, project_name, publication_name):
+        self.projects_page.switch_to_page()
+        self.projects_page.select_project(project_name)
+        self.projects_page.switch_to_publication(publication_name)
+
+
+class ProjectsPage(BasePage):
+    LOCATOR_PROJECTS_PAGE = (By.XPATH, "//ks-projects")
+    LOCATOR_PROJECT_NAME_INPUT = (By.XPATH, "//div[contains(@class,'project-details__row') and ./div[.='Название проекта']]//input")
 
     def __init__(self, driver):
         super().__init__(driver)
-        self.project_modal = ProjectModal(driver)
+        self.sidebar = NavigationSidebar(driver)
 
-    def check_url(self, driver):
-        assert self.base_url is not None, 'Для главной страницы не указан url'
-        target_url = '{0}?treeType={1}'.format(self.base_url, Vars.PKM_DEFAULT_TREE_TYPE)
-        assert driver.current_url == target_url, 'Неверный url страницы'
+    def switch_to_page(self):
+        self.sidebar.select_page('Проекты')
+        self.wait_element_stable(self.LOCATOR_PROJECTS_PAGE, 3)
 
-    def go_to_default_page(self):
-        assert self.base_url is not None, 'Для главной страницы не указан url'
-        self.driver.get(f'{self.base_url}?treeType={Vars.PKM_DEFAULT_TREE_TYPE}')
-        self.find_element(self.LOCATOR_PKM_PROFILENAME_BLOCK)
+    def select_project(self, project_name):
+        project_locator = (By.XPATH, f"//div[@routerlink='project-details' and .//div[@class='project__info-name' and .=' {project_name} ']]")
+        self.find_and_click(project_locator)
+        self.wait_until_text_in_element_value(self.LOCATOR_PROJECT_NAME_INPUT, project_name)
 
-    def open_project_modal(self):
-        self.find_and_click(self.LOCATOR_SELECT_PROJECT_BUTTON)
-        self.find_element(self.project_modal.LOCATOR_SELECT_PROJECT_MODAL)
+    def switch_to_publication(self, publication_name):
+        pub_locator = (By.XPATH, f"//div[contains(@class, 'publication-view__name-container') and .//span[.='{publication_name}']]")
+        self.find_and_click(pub_locator)
 
-    def check_project(self, expected_project_name):
-        self.open_project_modal()
-        actual_project_name = self.project_modal.get_selected_project_name()
-        if actual_project_name != expected_project_name:
-            self.project_modal.select_project(expected_project_name)
-        else:
-            self.project_modal.close_project_modal()
 
+class NavigationSidebar(BasePage):
+    LOCATOR_SIDEBAR = (By.XPATH, "//ks-sidebar[.//div[contains(@class, 'sidebar__logo')]]")
+
+    def select_page(self, page_name):
+        page_locator = (By.XPATH, f"//div[contains(@class, 'sidebar__nav-item') and .//span[.='{page_name}']]")
+        if 'selected' not in self.find_element(page_locator).get_attribute('class'):
+            self.find_and_click(page_locator)

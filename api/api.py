@@ -12,7 +12,7 @@ from api.template_creator import TemplateCreator
 class ApiEu(BaseApi):
 
     def api_get_user(self, login, name):
-        users_list = self.post(f'{Vars.PKM_API_URL}users/get-list', self.token, {}, without_project=True).get('data')
+        users_list = self.post(f'{Vars.PKM_API_URL}users/get-list', self.token, {'term': name}, without_project=True).get('data')
         for user in users_list:
             if user.get('login') == login and user.get('fullName') == name:
                 return user

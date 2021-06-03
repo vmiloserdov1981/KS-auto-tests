@@ -1,6 +1,7 @@
 from core import BasePage
 from pages.login_po import LoginPage
 from variables import PkmVars as Vars
+from pages.admin_po import AdminPage
 from pages.main_po import MainPage
 import allure
 from selenium.webdriver.common.by import By
@@ -13,6 +14,9 @@ from pages.components.modals import ProjectModal, PublicationsModal
 
 class PreconditionsFront(BasePage, ApiEu):
 
+    ADMIN_PUBLICATION_NAME = 'Администрирование'
+    EU_PUBLICATION_NAME = 'Приразломная'
+
     def __init__(self, driver, project_uuid, login=None, password=None, token=None):
         BasePage.__init__(self, driver)
         ApiEu.__init__(self, login, password, project_uuid, token=token)
@@ -20,62 +24,41 @@ class PreconditionsFront(BasePage, ApiEu):
     @allure.title('Перейти к интерфейсу администратора')
     def login_as_admin(self, login, password, project):
         login_page = LoginPage(self.driver, url=Vars.PKM_MAIN_URL)
+        admin_page = AdminPage(self.driver)
         main_page = MainPage(self.driver)
-        project_modal = ProjectModal(self.driver)
         with allure.step('Перейти на сайт по адресу {}'.format(Vars.PKM_MAIN_URL)):
             login_page.go_to_site()
-        with allure.step('Ввести логин "{}"'.format(login)):
-            login_page.enter_login(login)
-        with allure.step('Ввести пароль "{}"'.format(password)):
-            login_page.enter_pass(password)
-        with allure.step('Войти в режим администратора'):
-            login_page.login_as_admin()
-        if project_modal.is_project_modal_displaying():
-            with allure.step(f'Выбрать проект {project}'):
-                project_modal.select_project(project)
-            with allure.step('Проверить отображение блока профиля пользователя'):
-                main_page.find_element(main_page.LOCATOR_PKM_PROFILENAME_BLOCK)
-
-        else:
-            with allure.step('Проверить отображение блока профиля пользователя'):
-                main_page.find_element(main_page.LOCATOR_PKM_PROFILENAME_BLOCK)
-            with allure.step('Проверить текущий выбранный проект'):
-                main_page.check_project(self.driver.project_name)
-
+        with allure.step('Войти в систему'):
+            login_page.login(login, password)
+        with allure.step(f'Перейти к публикации {self.ADMIN_PUBLICATION_NAME}'):
+            main_page.switch_to_publication(project, self.ADMIN_PUBLICATION_NAME)
+        with allure.step('Подождать отображение главной страницы'):
+            admin_page.wait_admin_page()
+        # Отключил т.к. поменялся порядок логина (через main страницу)
+        # with allure.step('Проверить корректность выбранного проекта'):
+            # admin_page.check_project(project)
         with allure.step('Сохранить токен приложения в драйвере'):
-            self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
+            # self.driver.token = self.driver.execute_script("return document.cookie;").split('token=')[1].split(';')[0]
+            self.driver.token = self.api_get_token(login, password, Vars.PKM_API_URL)
 
     @allure.title('Перейти к интерфейсу конечного пользователя')
-    def login_as_eu(self, login, password, project, publication=Vars.PKM_PUBLICATION_NAME):
+    def login_as_eu(self, login, password, project):
         login_page = LoginPage(self.driver, url=Vars.PKM_MAIN_URL)
-        main_page = MainPage(self.driver)
-        project_modal = ProjectModal(self.driver)
-        publication_modal = PublicationsModal(self.driver)
         plan_registry = PlanRegistry(self.driver)
-        with allure.step(f'Перейти на сайт по адресу {Vars.PKM_MAIN_URL}#/user/events-plan'):
-            self.driver.get(f'{Vars.PKM_MAIN_URL}#/user/events-plan')
-        with allure.step('Ввести логин "{}"'.format(login)):
-            login_page.enter_login(login)
-        with allure.step('Ввести пароль "{}"'.format(password)):
-            login_page.enter_pass(password)
-        with allure.step('Войти в режим конечного пользователя'):
-            login_page.login_as_eu()
-
-        plan_registry.close_modal()
-
-        if project_modal.is_project_modal_displaying():
-            with allure.step(f'Выбрать проект {project}'):
-                project_modal.select_project(project)
-        if publication_modal.is_publications_bar_displaying():
-            with allure.step(f'Выбрать представление {publication}'):
-                publication_modal.select_publication(publication)
-        plan_registry.close_modal()
-
+        main_page = MainPage(self.driver)
+        with allure.step('Перейти на сайт по адресу {}'.format(Vars.PKM_MAIN_URL)):
+            login_page.go_to_site()
+        with allure.step('Войти в систему'):
+            login_page.login(login, password)
+        with allure.step(f'Перейти к публикации {self.EU_PUBLICATION_NAME}'):
+            main_page.switch_to_publication(project, self.EU_PUBLICATION_NAME)
+        with allure.step(f'Закрыть модальое окно необходимости выбора плана при его отображении'):
+            plan_registry.close_modal()
         with allure.step('Проверить наличие иконки меню'):
             main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
-
         with allure.step('Сохранить токен приложения в драйвере'):
-            self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
+            # self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
+            self.driver.token = self.api_get_token(login, password, Vars.PKM_API_URL)
 
     @allure.title('Посмотреть последний созданный через k6 план мероприятий')
     def view_last_k6_plan(self):

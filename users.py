@@ -1,3 +1,7 @@
+import os
+from ast import literal_eval
+
+
 class PkmUsers:
     def __init__(self, login, password, name=None):
         self.login = login
@@ -5,10 +9,8 @@ class PkmUsers:
         self.name = name
 
 
-admin = PkmUsers('admin', 'Password1', name='админ новый админ новый')
-invalid_pass_user = PkmUsers('admin', 'asdf')
-invalid_login_user = PkmUsers('asdf', 'admin')
-invalid_user = PkmUsers('asdf', 'asdf')
+admin_credentials = literal_eval(os.getenv('ADMIN_CREDENTIALS', '("admin", "admin")'))
+admin = PkmUsers(*admin_credentials)
 system_user = PkmUsers('system', None)
 
 test_users = {

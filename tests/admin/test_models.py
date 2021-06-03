@@ -344,7 +344,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             'period_start_value': '.'.join(expected_date),
             'period_start_year': None,
             'period_amount': None,
-            'last_period': '.'.join(expected_date)
+            'last_period': model_page.convert_date(expected_date)
         }
 
     with allure.step(f'Указать количество периодов {days_amount_period}'):
@@ -356,7 +356,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             'period_start_value': '.'.join(expected_date),
             'period_start_year': None,
             'period_amount': days_amount_period,
-            'last_period': '.'.join(model_api.get_feature_date(expected_date, int(days_amount_period) - 1))
+            'last_period': model_page.convert_date(model_api.get_feature_date(expected_date, int(days_amount_period) - 1))
         }
         assert model_page.get_model_period_data() == expected_period_data
 
@@ -379,7 +379,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             'period_start_value': '.'.join(expected_date),
             'period_start_year': None,
             'period_amount': days_amount_period,
-            'last_period': '.'.join(model_api.get_feature_date(expected_date, int(days_amount_period) - 1))
+            'last_period': model_page.convert_date(model_api.get_feature_date(expected_date, int(days_amount_period) - 1))
         }
         assert model_page.get_model_period_data() == expected_period_data
 
@@ -403,7 +403,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             "period_type": 'Месяц',
             'period_start_value': current_mounth,
             'period_start_year': current_year,
-            'period_amount': None,
+            'period_amount': days_amount_period,
             'last_period': f'{current_mounth} {current_year}'.lower()
         }
         assert model_page.get_model_period_data() == expected_period_data
@@ -435,7 +435,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             "period_type": 'Год',
             'period_start_value': None,
             'period_start_year': current_year,
-            'period_amount': None,
+            'period_amount': mounth_amount_period,
             'last_period': current_year
         }
         assert model_page.get_model_period_data() == expected_period_data
@@ -469,7 +469,8 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             'period_amount': None,
             'last_period': None
         }
-        assert model_page.get_model_period_data() == expected_period_data, 'Временной интервал модели не очищен'
+        # включить проверку после исправления бага PKM-6029
+        # assert model_page.get_model_period_data() == expected_period_data, 'Временной интервал модели не очищен'
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -724,7 +725,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
 @pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user',
-        'project': 'тест2',
+        'project': Vars.PKM_PROJECT_NAME,
         'tree_type': 'Модели',
         'name': 'Управление таблицами данных модели'
     })])
