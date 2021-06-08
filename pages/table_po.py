@@ -37,9 +37,8 @@ class TablePage(EntityPage):
         return locator
 
     @staticmethod
-    def entity_sort_button_creator(entity_type, entity_name):
-        entity_xpath = TablePage.entity_block_locator_creator(entity_type, entity_name)[1]
-        locator = (By.XPATH, f"{entity_xpath}//fa-icon[@icon='sort']")
+    def entity_sort_button_creator(entity_name):
+        locator = (By.XPATH, f"//div[@class='structure-list' or @class='structure-list-element' ]//div[.='{entity_name}']//fa-icon[@icon='sort']")
         return locator
 
     @staticmethod
@@ -159,17 +158,20 @@ class TablePage(EntityPage):
             }
             self.set_entity(rows)
             self.set_entity(columns)
-            time.sleep(3)
+            time.sleep(5)
 
         with allure.step('Задать сортировку по имени (А-Я)'):
             entities = [('Строки', 'Объекты'), ('Столбцы', 'Наборы данных'), ('Столбцы', 'Показатели')]
             for i in entities:
-                sort_button_locator = self.entity_sort_button_creator(i[0], i[1])
+                sort_button_locator = self.entity_sort_button_creator(i[1])
                 sort_by_name_locator = (
                 By.XPATH, "//div[@class='overlay']//div[contains(@class, 'overlay-item') and .=' По названию, А - Я ']")
                 self.find_and_click(sort_button_locator)
-                self.find_and_click(sort_by_name_locator)
-                time.sleep(5)
+                time.sleep(1)
+                option = self.find_element(sort_by_name_locator)
+                if 'selected' not in option.get_attribute('class'):
+                    self.find_and_click(sort_by_name_locator)
+                    time.sleep(5)
 
     def set_class_objects_structure(self, class_name):
         with allure.step('Задать структуру таблицы'):
@@ -190,14 +192,14 @@ class TablePage(EntityPage):
             time.sleep(3)
 
         with allure.step('Задать сортировку по имени (А-Я)'):
-            entities = [('Строки', 'Объекты класса'), ('Столбцы', 'Наборы данных'), ('Столбцы', 'Показатели')]
-            for i in entities:
-                sort_button_locator = self.entity_sort_button_creator(i[0], i[1])
-                sort_by_name_locator = (
+            sort_button_locator = (By.XPATH, "//div[@class='structure-list' or @class='structure-list-element' ]//fa-icon[@icon='sort']")
+            sort_by_name_locator = (
                 By.XPATH, "//div[@class='overlay']//div[contains(@class, 'overlay-item') and .=' По названию, А - Я ']")
-                self.find_and_click(sort_button_locator)
+            for sort_button in self.elements_generator(sort_button_locator):
+                sort_button.click()
+                time.sleep(2)
                 self.find_and_click(sort_by_name_locator)
-                time.sleep(5)
+                time.sleep(3)
 
     @staticmethod
     def get_cell_style_value(style_name: str, cell: WebElement):
