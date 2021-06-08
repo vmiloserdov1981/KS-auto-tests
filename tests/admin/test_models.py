@@ -403,7 +403,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             "period_type": 'Месяц',
             'period_start_value': current_mounth,
             'period_start_year': current_year,
-            'period_amount': days_amount_period,
+            'period_amount': None,
             'last_period': f'{current_mounth} {current_year}'.lower()
         }
         assert model_page.get_model_period_data() == expected_period_data
@@ -435,7 +435,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             "period_type": 'Год',
             'period_start_value': None,
             'period_start_year': current_year,
-            'period_amount': mounth_amount_period,
+            'period_amount': None,
             'last_period': current_year
         }
         assert model_page.get_model_period_data() == expected_period_data
@@ -469,8 +469,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             'period_amount': None,
             'last_period': None
         }
-        # включить проверку после исправления бага PKM-6029
-        # assert model_page.get_model_period_data() == expected_period_data, 'Временной интервал модели не очищен'
+        assert model_page.get_model_period_data() == expected_period_data, 'Временной интервал модели не очищен'
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -811,7 +810,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Проверить отображение всех наборов данных и показателей в качестве столбцов таблицы'):
         actual_names = table_page.get_table_cols_titles(names_only=True)
-        expected_names = ['Набор_1', 'Набор_2', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый']
+        expected_names = ['Набор_1', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый', 'Набор_2', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый']
         assert actual_names == expected_names, 'Фактические объекты не совпадают с ожидаемыми'
 
     expected_data = [
