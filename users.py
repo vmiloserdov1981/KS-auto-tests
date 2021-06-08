@@ -18,3 +18,4 @@ test_users = {
     'eu_user2': PkmUsers('eu_user2', 'Euuser01', name='Иванов Второй'),
     'eu_user3': PkmUsers('eu_user3', 'Euuser01', name='Иванов Третий')
 }
+workshop_user = test_users['eu_user']

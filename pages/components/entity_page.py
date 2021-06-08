@@ -1,3 +1,5 @@
+import allure
+
 from core import BasePage
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -136,6 +138,46 @@ class EntityPage(BasePage):
         }
         return data
 
+    def get_page_data_by_template_new(self, template):
+
+        def set_result(field_name):
+            nonlocal result
+            function = template.get(field_name)[0]
+            try:
+                args = template.get(field)[1]
+            except IndexError:
+                args = ()
+            try:
+                kwargs = template.get(field)[2]
+            except IndexError:
+                kwargs = {}
+            result[field_name] = function(*args, **kwargs)
+
+        '''
+        template = {
+            'model_name': (self.get_entity_page_title, (), {"return_raw": True}),
+            'changes': [self.get_change_data],
+            'datasets': [self.get_model_datasets],
+            'dimensions': [self.get_model_dimensions],
+            'time_period': [self.get_model_period_type],
+            'period_amount': [self.get_model_period_amount],
+            'last_period': [self.get_model_last_period],
+            'solver_values': [self.get_model_solvers],
+            'tags': [self.get_model_tags]
+        }
+        '''
+        self.wait_stable_page()
+        result = {}
+
+        with ThreadPoolExecutor() as executor:
+            for field in template:
+                executor.submit(set_result, [field])
+
+            sorted_result = {}
+            for field in template:
+                if field in result.keys():
+                    sorted_result[field] = result.get(field)
+            return sorted_result
 
     def get_page_data_by_template(self, template):
         '''

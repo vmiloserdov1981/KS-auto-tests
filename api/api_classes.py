@@ -40,11 +40,24 @@ class ApiClasses(BaseApi):
         classes = resp.get('data') or []
         return classes
 
-    def create_unique_class_name(self, basename):
-        classes_list = self.get_tree_nodes().get('class') or []
+    def create_unique_class_name(self, basename, nodes=None):
+        if not nodes:
+            nodes = self.get_tree_nodes()
+        classes_list = nodes.get('class') or []
         count = 0
         newname = basename
         while newname in classes_list:
+            count += 1
+            newname = f"{basename}_{count}"
+        return newname
+
+    def create_unique_folder_name(self, basename, nodes=None):
+        if not nodes:
+            nodes = self.get_tree_nodes()
+        folders_list = nodes.get('folder') or []
+        count = 0
+        newname = basename
+        while newname in folders_list:
             count += 1
             newname = f"{basename}_{count}"
         return newname

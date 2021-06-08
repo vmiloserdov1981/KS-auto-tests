@@ -24,12 +24,26 @@ class DictionaryPage(EntityPage):
             self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, dict_name)
         with allure.step(f'Проверить переход на страницу вновь соданного справочника'):
             self.wait_page_title(dict_name.upper())
-        with allure.step(f'Проверить что справочник создан без элементов'):
-            assert not self.get_dict_elements()
+        with allure.step(f'Проверить заполнение страницы справочника данными по умолчанию'):
+            actual = self.get_dictionary_page_data()
+            expected = {
+                'dictionary_name': dict_name,
+                'elements': None
+            }
+            self.compare_dicts(actual, expected)
 
     def get_dict_elements(self):
         elements = [element.text for element in self.elements_generator(self.LOCATOR_DICTIONARY_ELEMENTS, time=5)]
         return elements if elements != [] else None
+
+    def get_dictionary_page_data(self) -> dict:
+        template = {
+            'dictionary_name': (self.get_entity_page_title, (), {"return_raw": True}),
+            # 'changes': [self.get_change_data],
+            'elements': [self.get_dict_elements]
+        }
+        data = self.get_page_data_by_template(template)
+        return data
 
     def rename_dictionary(self, new_name):
         node = self.find_element(self.tree.LOCATOR_SELECTED_NODE)
