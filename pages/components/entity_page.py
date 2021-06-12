@@ -1,9 +1,9 @@
 from core import BasePage
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.remote.webdriver import WebElement
 from concurrent.futures import ThreadPoolExecutor
 import time
+import allure
 
 
 class EntityPage(BasePage):
@@ -136,8 +136,7 @@ class EntityPage(BasePage):
         }
         return data
 
-
-    def get_page_data_by_template(self, template):
+    def get_page_data_by_template_old(self, template):
         '''
         template = {
             'model_name': (self.get_entity_page_title, (), {"return_raw": True}),
@@ -176,7 +175,43 @@ class EntityPage(BasePage):
                 sorted_result[field] = result.get(field)
         return sorted_result
 
+    def get_page_data_by_template(self, template):
+        """
+        template = {
+            'model_name': (self.get_entity_page_title, (), {"return_raw": True}),
+            'changes': [self.get_change_data],
+            'datasets': [self.get_model_datasets],
+            'dimensions': [self.get_model_dimensions],
+            'time_period': [self.get_model_period_type],
+            'period_amount': [self.get_model_period_amount],
+            'last_period': [self.get_model_last_period],
+            'solver_values': [self.get_model_solvers],
+            'tags': [self.get_model_tags]
+        }
+        """
+
+        self.wait_stable_page()
+        futures = {}
+
+        with allure.step('Получить данные страницы'):
+            with ThreadPoolExecutor() as executor:
+                for field in template:
+                    function = template.get(field)[0]
+                    try:
+                        args = template.get(field)[1]
+                    except IndexError:
+                        args = ()
+                    try:
+                        kwargs = template.get(field)[2]
+                    except IndexError:
+                        kwargs = {}
+
+                    futures[field] = executor.submit(function, *args, **kwargs)
+
+        sorted_result = {}
+        for field in template:
+            sorted_result[field] = futures[field].result()
+        return sorted_result
+
     def wait_stable_page(self, timeout=3):
         self.wait_element_stable(self.LOCATOR_PAGE_CONTENT, timeout)
-
-
