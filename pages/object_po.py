@@ -29,7 +29,7 @@ class ObjectPage(EntityPage):
 
     def create_object(self, object_name: str, model_name, class_name) -> dict:
         with allure.step(f'Создать объект {object_name} в ноде "{model_name}"'):
-            self.find_and_context_click(self.tree.node_locator_creator(model_name))
+            self.find_and_context_click(self.tree.node_locator_creator(model_name), time=20)
             self.hover_over_element(self.tree.context_option_locator_creator('Создать'))
             self.find_and_click(self.tree.submenu_option_locator_creator('Объект'))
         with allure.step(f'Укзать название объекта {object_name}, класс {class_name} и создать его'):

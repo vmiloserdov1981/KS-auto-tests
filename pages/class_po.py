@@ -205,20 +205,30 @@ class ClassPage(EntityPage):
                 'dimensions': None,
                 'indicators': None
             }
-            actual_data = self.get_relation_page_data()
+            actual_data = self.get_relation_page_data(timeout=3)
             assert actual_data == expected_data, 'Страница связи заполнена некорректными данными'
             actual_data['relation_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
         return actual_data
 
-    def get_relation_page_data(self) -> dict:
-        self.wait_stable_page()
-        data = {
-            'relation_name': self.get_entity_page_title(return_raw=True),
-            'source_class_name': self.get_input_value(self.async_dropdown_locator_creator('source')),
-            'destination_class_name': self.get_input_value(self.async_dropdown_locator_creator('destination')),
-            'dimensions': self.get_list_elements_names(self.DIMENSIONS_LIST_NAME),
-            'indicators': self.get_list_elements_names(self.INDICATORS_LIST_NAME)
-        }
+    def get_relation_page_data(self, timeout: int = None) -> dict:
+        if timeout:
+            template = {
+                'relation_name': (self.get_entity_page_title, [], {'return_raw': True, 'timeout': timeout}),
+                'source_class_name': (self.get_input_value, [self.async_dropdown_locator_creator('source')], {'time': timeout}),
+                'destination_class_name': (
+                self.get_input_value, [self.async_dropdown_locator_creator('destination')], {'time': timeout}),
+                'dimensions': (self.get_list_elements_names, [self.DIMENSIONS_LIST_NAME], {'timeout': timeout}),
+                'indicators': (self.get_list_elements_names, [self.INDICATORS_LIST_NAME], {'timeout': timeout})
+            }
+        else:
+            template = {
+                'relation_name': (self.get_entity_page_title, [], {'return_raw': True}),
+                'source_class_name': (self.get_input_value, [self.async_dropdown_locator_creator('source')], {}),
+                'destination_class_name': (self.get_input_value, [self.async_dropdown_locator_creator('destination')], {}),
+                'dimensions': (self.get_list_elements_names, [self.DIMENSIONS_LIST_NAME], {}),
+                'indicators': (self.get_list_elements_names, [self.INDICATORS_LIST_NAME], {})
+            }
+        data = self.get_page_data_by_template(template)
         return data
 
     def rename_indicator(self, indicator_name, new_indicator_name):

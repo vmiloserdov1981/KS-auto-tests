@@ -258,7 +258,6 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         expected_relations = [base_data["class_1"]["relations"]["relation_1"]["name"], base_data["class_1"]["relations"]["relation_2"]["name"], base_data["class_1"]["relations"]["relation_3"]["name"]]
         assert class_page.compare_lists(actual_relations, expected_relations), 'На странице класса отображается некорректный список связей'
 
-    """
     with allure.step(f'Перейти к дереву справочников'):
         class_page.tree.switch_to_tree('Справочники')
 
@@ -274,7 +273,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
 
         with allure.step(f'Создать справочник {base_data["dictionary_4"]["name"]}'):
             dictionary_page.create_dictionary(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dictionary_4"]["name"])
-    """
+
     with allure.step(f'Перейти к дереву классов'):
         class_page.tree.switch_to_tree('Классы')
 
@@ -437,3 +436,46 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         with allure.step(
                 f"Заполнить показатель {base_data['class_4']['indicators']['indicator_4']['name']} тестовыми данными"):
             pass
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить корректный список вложенных нод класса {base_data["class_1"]["name"]}'):
+        expected_nodes = [
+            base_data['class_1']['relations']['relation_1']['name'],
+            base_data['class_1']['relations']['relation_2']['name'],
+            base_data['class_1']['relations']['relation_3']['name'],
+            base_data['class_1']['indicators']['indicator_1']['name'],
+            base_data['class_1']['indicators']['indicator_2']['name'],
+            base_data['class_1']['indicators']['indicator_3']['name'],
+            base_data['class_1']['indicators']['indicator_4']['name']
+        ]
+        actual_nodes = class_page.tree.get_node_children_names(base_data["class_1"]["name"])
+        assert class_page.compare_lists(actual_nodes, expected_nodes), 'Список вложенных нод не соответствует ожидаемому'
+
+    with allure.step(f'Проверить корректный список вложенных нод класса {base_data["class_2"]["name"]}'):
+        expected_nodes = [
+            base_data['class_2']['indicators']['indicator_1']['name']
+        ]
+        actual_nodes = class_page.tree.get_node_children_names(base_data["class_2"]["name"])
+        assert class_page.compare_lists(actual_nodes, expected_nodes), 'Список вложенных нод не соответствует ожидаемому'
+
+    with allure.step(f'Проверить корректный список вложенных нод класса {base_data["class_3"]["name"]}'):
+        expected_nodes = [
+            base_data['class_3']['indicators']['indicator_1']['name'],
+            base_data['class_3']['indicators']['indicator_2']['name'],
+            base_data['class_3']['indicators']['indicator_3']['name'],
+            base_data['class_3']['indicators']['indicator_4']['name'],
+        ]
+        actual_nodes = class_page.tree.get_node_children_names(base_data["class_3"]["name"])
+        assert class_page.compare_lists(actual_nodes, expected_nodes), 'Список вложенных нод не соответствует ожидаемому'
+
+    with allure.step(f'Проверить корректный список вложенных нод класса {base_data["class_4"]["name"]}'):
+        expected_nodes = [
+            base_data['class_4']['indicators']['indicator_1']['name'],
+            base_data['class_4']['indicators']['indicator_2']['name'],
+            base_data['class_4']['indicators']['indicator_3']['name'],
+            base_data['class_4']['indicators']['indicator_4']['name'],
+        ]
+        actual_nodes = class_page.tree.get_node_children_names(base_data["class_4"]["name"])
+        assert class_page.compare_lists(actual_nodes, expected_nodes), 'Список вложенных нод не соответствует ожидаемому'
