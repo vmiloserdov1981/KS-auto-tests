@@ -40,7 +40,7 @@ class ApiDictionaries(BaseApi):
 
     def get_dicts_tree(self):
         tree = self.post(f'{Vars.PKM_API_URL}dictionaries/get-tree', self.token, {}).get('data')
-        return tree
+        return tree or {}
 
     def api_get_dicts_names(self, tree=None):
         if not tree:
@@ -49,11 +49,12 @@ class ApiDictionaries(BaseApi):
         dicts = nodes.get('dictionary')
         return dicts
 
-    def create_unique_dict_name(self, basename, subname=None):
-        dicts_list = self.api_get_dicts_names()
+    def create_unique_dict_name(self, basename, dicts_nodes=None, subname=None):
+        if not dicts_nodes:
+            dicts_nodes = self.api_get_dicts_names() or []
         count = 0
         newname = basename
-        while newname in dicts_list:
+        while newname in dicts_nodes:
             count += 1
             newname = f"{basename}_{count}"
         if subname:

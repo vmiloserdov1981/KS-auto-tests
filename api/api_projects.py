@@ -34,4 +34,17 @@ class ApiProjects(BaseApi):
             if user_uuid not in authorized_users_uuids:
                 self.create_user_access(user_uuid, project_uuid)
 
+    def create_project(self, name: str) -> dict:
+        data = self.post(f'{Vars.PKM_API_URL}projects/create-node', self.token, {'name': name, 'type': 'project'})
+        return data
+
+    def check_project(self, project_name: str) -> str:
+        for name in self.projects_names_generator(term=project_name):
+            if name == project_name:
+                uuid = self.get_project_uuid_by_name(name)
+                assert uuid, 'Не удалось получить uuid проекта'
+                return uuid
+        uuid = self.create_project(project_name).get('referenceUuid')
+        assert uuid, 'Не удалось получить uuid проекта'
+        return uuid
 

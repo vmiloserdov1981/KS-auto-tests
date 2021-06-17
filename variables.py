@@ -5,8 +5,10 @@ class PkmVars:
     PKM_MAIN_URL = 'https://pkm.andersenlab.com/' if os.getenv('USE_STAGE') != 'true' else 'https://rc-test.ks.works/'
     PKM_API_URL = f'{PKM_MAIN_URL}api/'
     PKM_TEST_FOLDER_NAME = 'auto-test'
+    PKM_WORKSHOP_TEST_FOLDER_NAME = os.getenv('WORKSHOP_FOLDER_NAME', 'workshop')
     DEFAULT_PROJECT_NAME = 'Шельф. Приразломная'
     PKM_PROJECT_NAME = os.getenv('PROJECT_NAME', 'Шельф. Приразломная')
+    PKM_WORKSHOP_PROJECT_NAME = os.getenv('WORKSHOP_PROJECT_NAME', 'Workshop_test')
     PKM_PUBLICATION_NAME = 'Приразломная'
     PKM_BASE_DICTIONARY_NAME = 'Тестовый_справочник'
     PKM_BASE_CLASS_NAME = 'Тестовый_класс'

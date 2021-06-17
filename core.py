@@ -151,6 +151,7 @@ class BasePage:
 
     def find_and_context_click(self, locator, time=10):
         element = self.find_element(locator, time)
+        self.scroll_to_element(element)
         action_chains = ActionChains(self.driver)
         return action_chains.context_click(element).perform()
 
@@ -279,8 +280,8 @@ class BasePage:
         self.find_and_click(dropdown_locator)
         return values
 
-    def is_input_checked(self, input_locator: tuple):
-        input_element = self.find_element(input_locator)
+    def is_input_checked(self, input_locator: tuple, time=10):
+        input_element = self.find_element(input_locator, time=time)
         is_checked = self.driver.execute_script("return arguments[0].checked;", input_element)
         return is_checked
 

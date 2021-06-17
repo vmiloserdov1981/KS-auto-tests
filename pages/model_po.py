@@ -45,19 +45,6 @@ class ModelPage(EntityPage):
         return locator
 
     def get_model_page_data(self) -> dict:
-        """
-        data = {
-            'model_name': self.get_entity_page_title(return_raw=True),
-            'changes': self.get_change_data(),
-            'datasets': self.get_model_datasets(),
-            'dimensions': self.get_model_dimensions(),
-            'time_period': self.get_model_period_type(),
-            'period_amount': self.get_model_period_amount(),
-            'last_period': self.get_model_last_period(),
-            'solver_values': self.get_model_solvers(),
-            'tags': self.get_model_tags()
-        }
-        """
         template = {
             'model_name': (self.get_entity_page_title, (), {"return_raw": True}),
             'changes': [self.get_change_data],

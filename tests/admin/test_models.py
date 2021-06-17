@@ -679,9 +679,21 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
     with allure.step(f'Проверить изменение названия объекта в дереве'):
         object_page.wait_until_text_in_element(object_page.tree.LOCATOR_SELECTED_NODE, object_1_name)
 
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Проверить отображение актуального названия объекта на странице объекта'):
+        object_page.wait_page_title(object_1_name)
+
+    with allure.step(f'Проверить отображение актуального названия объекта в дереве'):
+        object_page.wait_until_text_in_element(object_page.tree.LOCATOR_SELECTED_NODE, object_1_name)
+
     with allure.step(f'Переименовать объект {object_1_name} в дереве'):
         object_page.tree.rename_node(object_1_name, f'{object_1_name}_2')
         object_1_name += '_2'
+
+    with allure.step(f'Проверить отображение актуального названия объекта на странице объекта'):
+        object_page.wait_page_title(object_1_name)
 
     with allure.step(f'Открыть объект {object_2_name} через дерево'):
         object_page.tree.select_node(object_2_name)

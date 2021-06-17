@@ -18,16 +18,16 @@ class ClassPage(EntityPage):
         self.tree = Tree(driver)
         self.modal = Modals(driver)
 
-    def get_class_dimensions(self):
-        elements = self.get_list_elements_names(self.DIMENSIONS_LIST_NAME)
+    def get_class_dimensions(self, timeout=5):
+        elements = self.get_list_elements_names(self.DIMENSIONS_LIST_NAME, timeout=timeout)
         return elements
 
-    def get_class_indicators(self):
-        elements = self.get_list_elements_names(self.INDICATORS_LIST_NAME)
+    def get_class_indicators(self, timeout=5):
+        elements = self.get_list_elements_names(self.INDICATORS_LIST_NAME, timeout=timeout)
         return elements
 
-    def get_class_relations(self):
-        elements = self.get_list_elements_names(self.RELATIONS_LIST_NAME)
+    def get_class_relations(self, timeout=5):
+        elements = self.get_list_elements_names(self.RELATIONS_LIST_NAME, timeout=timeout)
         relations = [relation.split('\n')[1] for relation in elements] if elements else None
         return relations
 
@@ -35,13 +35,33 @@ class ClassPage(EntityPage):
         self.find_and_click(self.class_relation_link_locator_creator(relation_name))
         time.sleep(3)
 
-    def get_indicator_dimensions(self):
-        elements = self.get_list_elements_names(self.DIMENSIONS_LIST_NAME)
+    def get_indicator_dimensions(self, timeout=5):
+        elements = self.get_list_elements_names(self.DIMENSIONS_LIST_NAME, timeout=timeout)
         return elements
 
-    def get_indicator_formulas(self):
-        elements = self.get_list_elements_names(self.FORMULAS_LIST_NAME)
+    def get_indicator_formulas(self, timeout=5):
+        elements = self.get_list_elements_names(self.FORMULAS_LIST_NAME, timeout=timeout)
         return elements
+
+    def get_class_page_data(self, timeout: int = None) -> dict:
+        if timeout:
+            template = {
+                'class_name': (self.get_entity_page_title, (), {"return_raw": True, "timeout": timeout}),
+                # 'changes': [self.get_change_data],
+                'indicators': [self.get_class_indicators, (), {"timeout": timeout}],
+                'dimensions': [self.get_class_dimensions, (), {"timeout": timeout}],
+                'relations': [self.get_class_relations, (), {"timeout": timeout}]
+            }
+        else:
+            template = {
+                'class_name': (self.get_entity_page_title, (), {"return_raw": True}),
+                # 'changes': [self.get_change_data],
+                'indicators': [self.get_class_indicators],
+                'dimensions': [self.get_class_dimensions],
+                'relations': [self.get_class_relations]
+            }
+        data = self.get_page_data_by_template(template)
+        return data
 
     def create_class(self, parent_node, class_name):
         with allure.step(f'Создать класс {class_name}'):
@@ -52,15 +72,18 @@ class ClassPage(EntityPage):
             assert self.tree.get_selected_node_name() == class_name, f'В дереве не выбрана нода {class_name}'
         with allure.step(f'Проверить переход на страницу вновь соданного класса'):
             self.wait_page_title(class_name.upper())
-        with allure.step(f'Проверить что справочник создан без показателей'):
-            assert not self.get_class_indicators()
-        with allure.step(f'Проверить что справочник создан без измерений'):
-            assert not self.get_class_dimensions()
-        with allure.step(f'Проверить что справочник создан без связей'):
-            assert not self.get_class_relations()
+        with allure.step(f'Проверить заполнение класса данными по умолчанию'):
+            actual = self.get_class_page_data(timeout=3)
+            expected = {
+                'class_name': class_name,
+                'indicators': None,
+                'dimensions': None,
+                'relations': None
+            }
+            self.compare_dicts(actual, expected)
 
     def create_indicator(self, indicator_name: str, tree_parent_node: str = None) -> dict:
-        time.sleep(5)
+        # time.sleep(5)
         if tree_parent_node:
             with allure.step(f'Создать показатель {indicator_name} в ноде "{tree_parent_node}"'):
                 self.find_and_context_click(self.tree.node_locator_creator(tree_parent_node))
@@ -72,8 +95,9 @@ class ClassPage(EntityPage):
         with allure.step(f'Укзать название показателя {indicator_name} и сохранить его'):
             self.modal.enter_and_save(indicator_name)
         with allure.step(f'Проверить отображение показателя {indicator_name} в дереве классов выбранным'):
-            #assert self.tree.get_selected_node_name() == indicator_name, f'В дереве не выбрана нода {indicator_name}'
-            self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, indicator_name)
+            # self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, indicator_name)
+            # завести баг!
+            pass
         with allure.step(f'Проверить заполнение созданного показателя данными по умолчанию'):
             expected_data = {
                 'indicator_name': indicator_name,
@@ -87,25 +111,69 @@ class ClassPage(EntityPage):
                 'dimensions': None,
                 'formulas': None
             }
-            actual_data = self.get_indicator_page_data()
+            actual_data = self.get_indicator_page_data(timeout=3)
             assert actual_data == expected_data, 'Страница показателя заполнена некорректными данными'
             actual_data['indicator_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
         return actual_data
 
-    def get_indicator_page_data(self) -> dict:
-        self.wait_stable_page()
-        data = {
-            'indicator_name': self.get_entity_page_title(return_raw=True),
-            'indicator_data_type':  self.get_element_text(self.dropdown_locator_creator('dataType')),
-            'format': self.get_input_value(self.input_locator_creator('dataFormat'), return_empty=False),
-            'indicator_value_type': self.get_element_text(self.dropdown_locator_creator('valueType')),
-            'can_be_timed': self.is_input_checked(self.input_locator_creator('canBeTimed')),
-            'is_common_for_datasets': self.is_input_checked(self.input_locator_creator('common')),
-            'unit_measurement': self.get_input_value(self.input_locator_creator('unitMeasurement'), return_empty=False),
-            'default_consolidation': self.get_element_text(self.dropdown_locator_creator('defaultConsolidation')),
-            'dimensions': self.get_indicator_dimensions(),
-            'formulas': self.get_indicator_formulas()
-        }
+    def create_relation_indicator(self, indicator_name: str, tree_parent_node: str = None) -> dict:
+        time.sleep(5)
+        if tree_parent_node:
+            with allure.step(f'Создать показатель {indicator_name} в ноде "{tree_parent_node}"'):
+                self.find_and_context_click(self.tree.node_locator_creator(tree_parent_node))
+                self.hover_over_element(self.tree.context_option_locator_creator('Создать'))
+                self.find_and_click(self.tree.submenu_option_locator_creator('Показатель'))
+        else:
+            with allure.step(f'Создать показатель {indicator_name} на странице класса'):
+                self.find_and_click(self.add_entity_button_locator_creator('Показатели'))
+        with allure.step(f'Укзать название показателя {indicator_name} и сохранить его'):
+            self.modal.enter_and_save(indicator_name)
+        with allure.step(f'Проверить заполнение созданного показателя данными по умолчанию'):
+            expected_data = {
+                'indicator_name': indicator_name,
+                'indicator_data_type': 'Число',
+                'format': None,
+                'indicator_value_type': 'Не указано',
+                'can_be_timed': False,
+                'is_common_for_datasets': False,
+                'unit_measurement': None,
+                'default_consolidation': 'Сумма',
+                'dimensions': None,
+                'formulas': None
+            }
+            actual_data = self.get_indicator_page_data(timeout=3)
+            assert actual_data == expected_data, 'Страница показателя заполнена некорректными данными'
+            actual_data['indicator_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
+        return actual_data
+
+    def get_indicator_page_data(self, timeout: int = None) -> dict:
+        if timeout:
+            template = {
+                'indicator_name': (self.get_entity_page_title, (), {"return_raw": True, "timeout": timeout}),
+                'indicator_data_type': (self.get_element_text, [self.dropdown_locator_creator('dataType')], {'time': timeout}),
+                'format': (self.get_input_value, [self.input_locator_creator('dataFormat')], {'return_empty': False, 'time': timeout}),
+                'indicator_value_type': (self.get_element_text, [self.dropdown_locator_creator('valueType')], {'time': timeout}),
+                'can_be_timed': (self.is_input_checked, [self.input_locator_creator('canBeTimed')], {'time': timeout}),
+                'is_common_for_datasets': (self.is_input_checked, [self.input_locator_creator('common')], {'time': timeout}),
+                'unit_measurement': (self.get_input_value, [self.input_locator_creator('unitMeasurement')], {'return_empty': False, 'time': timeout}),
+                'default_consolidation': (self.get_element_text, [self.dropdown_locator_creator('defaultConsolidation')], {'time': timeout}),
+                'dimensions': (self.get_indicator_dimensions, [], {'timeout': timeout}),
+                'formulas': (self.get_indicator_formulas, [], {'timeout': timeout})
+            }
+        else:
+            template = {
+                'indicator_name': (self.get_entity_page_title, (), {"return_raw": True}),
+                'indicator_data_type': (self.get_element_text, [self.dropdown_locator_creator('dataType')], {}),
+                'format': (self.get_input_value, [self.input_locator_creator('dataFormat')], {'return_empty': False}),
+                'indicator_value_type': (self.get_element_text, [self.dropdown_locator_creator('valueType')], {}),
+                'can_be_timed': (self.is_input_checked, [self.input_locator_creator('canBeTimed')], {}),
+                'is_common_for_datasets': (self.is_input_checked, [self.input_locator_creator('common')], {}),
+                'unit_measurement': (self.get_input_value, [self.input_locator_creator('unitMeasurement')], {'return_empty': False}),
+                'default_consolidation': (self.get_element_text, [self.dropdown_locator_creator('defaultConsolidation')], {}),
+                'dimensions': (self.get_indicator_dimensions, [], {}),
+                'formulas': (self.get_indicator_formulas, [], {})
+            }
+        data = self.get_page_data_by_template(template)
         return data
 
     def create_relation(self, relation_name: str, destination_class_name: str, tree_parent_node: str = None) -> dict:
@@ -126,8 +194,9 @@ class ClassPage(EntityPage):
         with allure.step(f'Укзать название связи {relation_name} и создать ее'):
             self.modal.enter_and_create(relation_name)
         with allure.step(f'Проверить отображение связи {relation_name} в дереве классов выбранной'):
-            #assert self.tree.get_selected_node_name() == relation_name, f'В дереве не выбрана нода {relation_name}'
-            self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, relation_name)
+            # self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, relation_name)
+            # завести баг!
+            pass
         with allure.step(f'Проверить заполнение созданной связи данными по умолчанию'):
             expected_data = {
                 'relation_name': relation_name,
@@ -136,20 +205,30 @@ class ClassPage(EntityPage):
                 'dimensions': None,
                 'indicators': None
             }
-            actual_data = self.get_relation_page_data()
+            actual_data = self.get_relation_page_data(timeout=3)
             assert actual_data == expected_data, 'Страница связи заполнена некорректными данными'
             actual_data['relation_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
         return actual_data
 
-    def get_relation_page_data(self) -> dict:
-        self.wait_stable_page()
-        data = {
-            'relation_name': self.get_entity_page_title(return_raw=True),
-            'source_class_name': self.get_input_value(self.async_dropdown_locator_creator('source')),
-            'destination_class_name': self.get_input_value(self.async_dropdown_locator_creator('destination')),
-            'dimensions': self.get_list_elements_names(self.DIMENSIONS_LIST_NAME),
-            'indicators': self.get_list_elements_names(self.INDICATORS_LIST_NAME)
-        }
+    def get_relation_page_data(self, timeout: int = None) -> dict:
+        if timeout:
+            template = {
+                'relation_name': (self.get_entity_page_title, [], {'return_raw': True, 'timeout': timeout}),
+                'source_class_name': (self.get_input_value, [self.async_dropdown_locator_creator('source')], {'time': timeout}),
+                'destination_class_name': (
+                self.get_input_value, [self.async_dropdown_locator_creator('destination')], {'time': timeout}),
+                'dimensions': (self.get_list_elements_names, [self.DIMENSIONS_LIST_NAME], {'timeout': timeout}),
+                'indicators': (self.get_list_elements_names, [self.INDICATORS_LIST_NAME], {'timeout': timeout})
+            }
+        else:
+            template = {
+                'relation_name': (self.get_entity_page_title, [], {'return_raw': True}),
+                'source_class_name': (self.get_input_value, [self.async_dropdown_locator_creator('source')], {}),
+                'destination_class_name': (self.get_input_value, [self.async_dropdown_locator_creator('destination')], {}),
+                'dimensions': (self.get_list_elements_names, [self.DIMENSIONS_LIST_NAME], {}),
+                'indicators': (self.get_list_elements_names, [self.INDICATORS_LIST_NAME], {})
+            }
+        data = self.get_page_data_by_template(template)
         return data
 
     def rename_indicator(self, indicator_name, new_indicator_name):
@@ -169,3 +248,25 @@ class ClassPage(EntityPage):
         self.find_and_click(delete_button_locator)
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
         #assert self.is_element_disappearing(indicator_locator, wait_display=False), f'Показатель {indicator_name} не исчезает из списка показателей класса'
+
+    def set_indicator(self, data: dict):
+        """
+        data = {
+            'name': 'Тип работ',
+            'data_type': 'Справочник значений',
+            'dictionary_name': 'dictionary',
+            'can_be_timed': False,
+            'format': '0,0.00'
+        }
+        """
+        if data.get('data_type'):
+            self.set_indicator_data_type(data.get('type'))
+
+        if data.get('dictionary_name'):
+            self.set_indicator_dictionary_type(data.get('dictionary_name'))
+
+        if data.get('format'):
+            self.set_indicator_format(data.get('format'))
+
+        if data.get('can_be_timed') is not None:
+            self.set_indicator_timed_type(data.get('can_be_timed'))

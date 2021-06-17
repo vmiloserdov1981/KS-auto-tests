@@ -98,13 +98,13 @@ class EntityPage(BasePage):
         locator = (By.XPATH, f"//div[contains(@class, 'dropdown-item') and .='{value_name}' or contains(@class, 'dropdown-item') and .=' {value_name} ']")
         return locator
 
-    def get_entity_page_title(self, return_raw=False, prev_title_html: str = None):
+    def get_entity_page_title(self, return_raw=False, prev_title_html: str = None, timeout=10):
         if prev_title_html:
             self.wait_element_changing(prev_title_html, self.LOCATOR_ENTITY_PAGE_TITLE, time=5, ignore_timeout=True)
         if return_raw:
             title = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
         else:
-            title = self.get_element_text(self.LOCATOR_ENTITY_PAGE_TITLE, time=10)
+            title = self.get_element_text(self.LOCATOR_ENTITY_PAGE_TITLE, time=timeout)
         return title
 
     def wait_page_title(self, page_title: str, timeout: int = 10):
@@ -121,8 +121,8 @@ class EntityPage(BasePage):
         assert actual_title_name == title_name.upper()
         time.sleep(2)
 
-    def get_list_elements_names(self, list_name):
-        elements = [element.text for element in self.elements_generator(self.list_elements_creator(list_name), time=5)]
+    def get_list_elements_names(self, list_name, timeout=5):
+        elements = [element.text for element in self.elements_generator(self.list_elements_creator(list_name), time=timeout)]
         return elements if elements != [] else None
 
     def get_change_data(self):
@@ -190,7 +190,7 @@ class EntityPage(BasePage):
         }
         """
 
-        self.wait_stable_page()
+        self.wait_stable_page(timeout=2)
         futures = {}
 
         with allure.step('Получить данные страницы'):
