@@ -160,6 +160,7 @@ class BasePage:
         element.send_keys(text)
         return element
 
+    @antistale
     def hover_over_element(self, locator):
         element = self.find_element(locator)
         action = ActionChains(self.driver)
