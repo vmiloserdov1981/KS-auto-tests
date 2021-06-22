@@ -1,5 +1,5 @@
 from pages.components.entity_page import EntityPage
-from pages.components.trees import Tree
+from pages.components.trees import NewTree
 from pages.components.modals import Modals, Calendar
 from core import antistale
 from selenium.webdriver.common.by import By
@@ -28,7 +28,7 @@ class ModelPage(EntityPage):
 
     def __init__(self, driver):
         super().__init__(driver)
-        self.tree = Tree(driver)
+        self.tree = NewTree(driver)
         self.modal = Modals(driver)
         self.calendar = Calendar(driver)
 
