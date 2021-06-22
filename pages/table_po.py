@@ -1,5 +1,5 @@
 from pages.components.entity_page import EntityPage
-from pages.components.trees import Tree
+from pages.components.trees import NewTree
 from pages.components.modals import Modals, TableObjectsSetModal
 from selenium.webdriver.common.by import By
 from selenium.webdriver import ActionChains
@@ -22,7 +22,7 @@ class TablePage(EntityPage):
 
     def __init__(self, driver):
         super().__init__(driver)
-        self.tree = Tree(driver)
+        self.tree = NewTree(driver)
         self.modal = Modals(driver)
         self.objects_modal = TableObjectsSetModal(driver)
 

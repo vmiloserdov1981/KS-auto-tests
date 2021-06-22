@@ -7,7 +7,8 @@ import allure
 
 class DictionaryPage(EntityPage):
 
-    LOCATOR_DICTIONARY_ELEMENTS = (By.XPATH, "//div[@class='list' and ./div[@class='list-header' and .='Элементы']]//div[contains(@class, 'list-item-name')]")
+    LOCATOR_DICTIONARY_ELEMENTS = (By.XPATH, "//div[@class='list' and .//div[@class='title' and .='Элементы']]//div[contains(@class, 'list-item-name')]")
+
     ELEMENTS_LIST_NAME = 'Элементы'
 
     def __init__(self, driver):
@@ -63,7 +64,7 @@ class DictionaryPage(EntityPage):
             self.find_element(new_element_locator)
             actual_elements = self.get_dict_elements()
         with allure.step(f'Проверить отображене элемента "{element_name}" внутри списка элементов справочника'):
-            assert actual_elements == prev_elements, 'Некорректный список элементов справочника'
+            assert self.compare_lists(actual_elements, prev_elements), 'Некорректный список элементов справочника'
 
     def delete_dict_element(self, element_name):
         element_locator = self.list_element_creator(f'{self.ELEMENTS_LIST_NAME}', element_name)
