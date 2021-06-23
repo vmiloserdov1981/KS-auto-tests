@@ -9,7 +9,8 @@ class PkmVars:
     DEFAULT_PROJECT_NAME = 'Шельф. Приразломная'
     PKM_PROJECT_NAME = os.getenv('PROJECT_NAME', 'Шельф. Приразломная')
     PKM_WORKSHOP_PROJECT_NAME = os.getenv('WORKSHOP_PROJECT_NAME', 'Workshop_test')
-    PKM_PUBLICATION_NAME = 'Приразломная'
+    PKM_ADMIN_PUBLICATION_NAME = 'Администрирование'
+    PKM_EU_PUBLICATION_NAME = 'Приразломная'
     PKM_BASE_DICTIONARY_NAME = 'Тестовый_справочник'
     PKM_BASE_CLASS_NAME = 'Тестовый_класс'
     PKM_BASE_MODEL_NAME = 'Тестовая_модель'
