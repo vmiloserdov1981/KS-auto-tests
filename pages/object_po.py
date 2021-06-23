@@ -36,7 +36,8 @@ class ObjectPage(EntityPage):
             self.modal.object_enter_and_save(object_name, class_name)
 
         with allure.step(f'Проверить отображение объекта {object_name} в дереве классов выбранным'):
-            self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, object_name)
+            self.tree.wait_selected_node_name(object_name)
+            # self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, object_name)
         self.wait_until_text_in_element(self.LOCATOR_ENTITY_PAGE_TITLE, object_name.upper())
         actual_data = self.get_object_page_data()
         return actual_data
