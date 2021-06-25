@@ -1,7 +1,6 @@
 import allure
 import pytest
 import users
-from pages.main.projects_po import ProjectsPage
 from pages.main.users_po import UsersPage, UserProfilePage
 from pages.login_po import LoginPage
 from pages.components.modals import ChangePasswordModal
