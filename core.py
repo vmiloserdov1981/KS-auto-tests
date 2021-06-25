@@ -150,6 +150,7 @@ class BasePage:
         action = ActionChains(self.driver)
         action.move_to_element(elem).move_by_offset(x, y).click().perform()
 
+    @antistale
     def find_and_context_click(self, locator, time=10):
         element = self.find_element(locator, time)
         self.scroll_to_element(element)
