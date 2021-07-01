@@ -45,11 +45,11 @@ def test_password_recovery(driver, parameters):
     with allure.step('Сменить пароль на старый'):
         change_pass_modal.change_password(new_pass, target_user_pass)
 
-    with allure.step(f'Войти в систему с логином {target_user_login} и старым паролем'):
-        login_page.login(target_user_login, target_user_pass)
+    with allure.step(f'Попробовать войти в систему с логином {target_user_login} и новым паролем'):
+        login_page.login(target_user_login, new_pass, wait_main_page=False)
 
-    with allure.step('Выйти из системы'):
-        profile_page.header.logout()
+    with allure.step('Проверить отображение уведомления "Ошибка сервера"'):
+        login_page.wait_server_error()
 
     with allure.step(f'Войти в систему с логином {target_user_login} и старым паролем'):
         login_page.login(target_user_login, target_user_pass)

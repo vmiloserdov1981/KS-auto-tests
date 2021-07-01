@@ -8,7 +8,7 @@ from selenium.common.exceptions import TimeoutException
 
 
 class Modals(BasePage):
-    LOCATOR_NAME_INPUT = (By.XPATH, "//pkm-modal-window//input[@placeholder='Введите имя']")
+    LOCATOR_NAME_INPUT = (By.XPATH, "//pkm-modal-window//input")
     LOCATOR_CLASS_INPUT = (By.XPATH, "//input[@placeholder='Выберите класс']")
     LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()='Сохранить' or text()=' Сохранить ']")
     LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()=' Создать ']")
@@ -559,6 +559,7 @@ class ChangePasswordModal(Modals):
     LOCATOR_OLD_PASS_FIELD = (By.XPATH, "//div[@class='form-row' and .='Старый пароль']//input")
     LOCATOR_NEW_PASS_FIELD = (By.XPATH, "//div[@class='form-row' and .='Новый пароль']//input")
     LOCATOR_NEW_PASS_CONFIRM_FIELD = (By.XPATH, "//div[@class='form-row' and .='Новый пароль повторно']//input")
+    LOCATOR_CHANGE_PASS_MODAL = (By.XPATH, "//div[@class='modal-window' and .//div[.='Сменить пароль']]")
 
     def accept_changing(self):
         self.find_and_click(self.LOCATOR_CHANGE_PASS_BUTTON)
@@ -568,6 +569,6 @@ class ChangePasswordModal(Modals):
         self.find_and_enter(self.LOCATOR_NEW_PASS_FIELD, new_pass)
         self.find_and_enter(self.LOCATOR_NEW_PASS_CONFIRM_FIELD, new_pass)
         self.find_and_click(self.LOCATOR_SAVE_BUTTON)
-        time.sleep(3)
+        self.is_element_disappearing(self.LOCATOR_CHANGE_PASS_MODAL, time=15, wait_display=False)
 
 
