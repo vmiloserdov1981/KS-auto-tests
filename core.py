@@ -166,6 +166,7 @@ class BasePage:
     @antistale
     def hover_over_element(self, locator):
         element = self.find_element(locator)
+        self.scroll_to_element(element)
         action = ActionChains(self.driver)
         action.move_to_element(element).perform()
 
