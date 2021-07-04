@@ -235,12 +235,16 @@ class NewTree(BasePage):
             elif target_depth and target_depth != item.get_attribute('ng-reflect-depth'):
                 break
 
-    @staticmethod
-    def children_node_locator_creator(parent_node_name, children_node_name=None):
+    @antistale
+    def children_node_locator_creator(self, parent_node_name, children_node_name=None):
+        parent_locator = (By.XPATH, f"//div[@class='tree-item' and ./div[contains(@class, 'tree-item-title') and .='{parent_node_name}']]")
+        parent_node = self.find_element(parent_locator)
+        parent_uuid = parent_node.get_attribute('test-uuid')
+        assert parent_uuid, 'Не удалось получить uuid родительской ноды'
         if children_node_name:
-            locator = (By.XPATH, f"//div[@class='tree-item' and ./div[contains(@class, 'tree-item-title') and .='{parent_node_name}']]//div[contains(@class, 'tree-item-children')] //div[contains(@class, 'tree-item-title') and .='{children_node_name}']")
+            locator = (By.XPATH, f"(//div[contains(@class, 'tree-item') and @test-parent-uuid='{parent_uuid}']//div[contains(@class, 'tree-item-title')])[.='{children_node_name}']")
         else:
-            locator = (By.XPATH, f"//div[@class='tree-item' and ./div[contains(@class, 'tree-item-title') and .='{parent_node_name}']]//div[contains(@class, 'tree-item-children')] //div[contains(@class, 'tree-item-title')]")
+            locator = (By.XPATH, f"//div[contains(@class, 'tree-item') and @test-parent-uuid='{parent_uuid}']//div[contains(@class, 'tree-item-title')]")
         return locator
 
     def switch_to_tree(self, tree_name):

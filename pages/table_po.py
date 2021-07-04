@@ -33,18 +33,17 @@ class TablePage(EntityPage):
 
     @staticmethod
     def entity_block_locator_creator(entity_type, entity_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'constructor-list') and .//div[@class='list-header' and .='{entity_type}']]//div[@class='structure-list'][.//label[.='{entity_name}'] or .//div[.='{entity_name}']]")
+        locator = (By.XPATH, f"//div[contains(@class, 'constructor-list') and .//div[.='{entity_type}']]//pkm-structure-list-element[.//div[.='{entity_name}']]")
         return locator
 
     @staticmethod
     def entity_sort_button_creator(entity_name):
-        locator = (By.XPATH, f"//div[@class='structure-list' or @class='structure-list-element' ]//div[.='{entity_name}']//fa-icon[@icon='sort']")
+        locator = (By.XPATH, f"//div[contains(@class, 'structure-list-element') and .//div[.='{entity_name}']]//fa-icon[@icon='sort']")
         return locator
 
     @staticmethod
     def entity_drag_zone_locator_creator(entity_type, entity_name):
-        entity_block_xpath = TablePage.entity_block_locator_creator(entity_type, entity_name)[1]
-        locator = (By.XPATH, f"({entity_block_xpath}//div[contains(@class, 'multi-select')])[1]")
+        locator = TablePage.entity_block_locator_creator(entity_type, entity_name)
         return locator
 
     @staticmethod

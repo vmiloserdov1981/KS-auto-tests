@@ -7,6 +7,7 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+from selenium.webdriver.remote.webelement import WebElement
 from datetime import datetime
 from datetime import date
 from datetime import timedelta
@@ -37,7 +38,7 @@ class BasePage:
         from api.api import ApiCreator
         self.api_creator = ApiCreator(None, None, driver.project_uuid, token=driver.token)
 
-    def find_element(self, locator, time=10):
+    def find_element(self, locator, time=10) -> WebElement:
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),
                                                       message=f"Can't find element by locator {locator}")
 
