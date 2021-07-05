@@ -560,7 +560,6 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
 def test_eu_group_gantt_events(parametrized_login_driver, parameters):
     events_plan = EventsPlan(parametrized_login_driver)
     header = EuHeader(parametrized_login_driver)
-    login_page = LoginPage(parametrized_login_driver)
     login = user.system_user.login
     versions = ('Проект плана', 'Факт', 'План потребности')
     k6_plan_uuid = parametrized_login_driver.test_data.get('last_k6_plan').get('uuid')

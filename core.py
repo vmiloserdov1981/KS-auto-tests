@@ -7,6 +7,7 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+from selenium.webdriver.remote.webelement import WebElement
 from datetime import datetime
 from datetime import date
 from datetime import timedelta
@@ -29,6 +30,7 @@ def antistale(func):
 
 class BasePage:
     LOCATOR_DROPDOWN_VALUE = (By.XPATH, "//pkm-dropdown-item")
+    LOCATOR_SERVER_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class, 'notification-container') and .='Ошибка сервера']//div[contains(@class, 'notification-simple')]")
 
     def __init__(self, driver, url=None):
         self.driver = driver
@@ -36,7 +38,7 @@ class BasePage:
         from api.api import ApiCreator
         self.api_creator = ApiCreator(None, None, driver.project_uuid, token=driver.token)
 
-    def find_element(self, locator, time=10):
+    def find_element(self, locator, time=10) -> WebElement:
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),
                                                       message=f"Can't find element by locator {locator}")
 
@@ -165,6 +167,7 @@ class BasePage:
     @antistale
     def hover_over_element(self, locator):
         element = self.find_element(locator)
+        self.scroll_to_element(element)
         action = ActionChains(self.driver)
         action.move_to_element(element).perform()
 
@@ -204,6 +207,9 @@ class BasePage:
             return value
         else:
             return value if value != '' else None
+
+    def wait_server_error(self, timeout=10):
+        assert self.is_element_disappearing(self.LOCATOR_SERVER_ERROR_NOTIFICATION, time=timeout, wait_display=True), 'Сообщение с ошибкой сервера не исчезает'
 
     @staticmethod
     def compare_lists(list_a: list, list_b: list) -> bool:

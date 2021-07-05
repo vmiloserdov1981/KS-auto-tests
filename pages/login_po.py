@@ -11,7 +11,7 @@ class LoginPage(BasePage):
     LOCATOR_PKM_LOGIN_FIELD = (By.XPATH, "//ks-input[@formcontrolname='login']//input")
     LOCATOR_PKM_PASS_FIELD = (By.XPATH, "//ks-input[@formcontrolname='password']//input")
     LOCATOR_PKM_LOGIN_EU_BUTTON = (By.XPATH, "//ks-button[.='Войти']")
-    LOCATOR_PKM_LOGIN_TITLE = (By.XPATH, "//h1[.='Knowledge Space']")
+    LOCATOR_PKM_LOGIN_TITLE = (By.XPATH, "//ks-login")
 
     def __init__(self, driver, url=None):
         super().__init__(driver, url)
@@ -37,10 +37,13 @@ class LoginPage(BasePage):
         assert login_title == 'Авторизация', 'неверный тайтл страницы'
         assert self.base_url in self.driver.current_url, 'Неверный url страницы'
 
-    def login(self, login, password):
+    def login(self, login, password, wait_main_page=True):
         self.enter_login(login)
         self.enter_pass(password)
         # добавлена рандомная задержка для предотвращения одновременного логина при выполнении тестов параллельно
-        time.sleep(randint(2, 11))
+        time.sleep(randint(2, 5))
         with allure.step(f'Клик на кнопку логина'):
             self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
+        if wait_main_page:
+            with allure.step('Проверить переход на главную страницу'):
+                self.find_element((By.XPATH, "//ks-home"))

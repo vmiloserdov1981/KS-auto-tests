@@ -2,14 +2,14 @@ from core import BasePage
 from pages.login_po import LoginPage
 from variables import PkmVars as Vars
 from pages.admin_po import AdminPage
-from pages.main_po import MainPage
+from pages.main.projects_po import ProjectsPage
 import allure
 from selenium.webdriver.common.by import By
 from pages.components.eu_header import EuHeader
 from pages.plan_registry_po import PlanRegistry
 from api.api import ApiEu
 from pages.components.trees import Tree
-from pages.components.modals import ProjectModal, PublicationsModal
+from pages.components.modals import ProjectModal
 
 
 class PreconditionsFront(BasePage, ApiEu):
@@ -22,40 +22,41 @@ class PreconditionsFront(BasePage, ApiEu):
         ApiEu.__init__(self, login, password, project_uuid, token=token)
 
     @allure.title('Перейти к интерфейсу администратора')
-    def login_as_admin(self, login, password, project):
+    def login_as_admin(self, login, password, project, publication=Vars.PKM_ADMIN_PUBLICATION_NAME):
         login_page = LoginPage(self.driver, url=Vars.PKM_MAIN_URL)
         admin_page = AdminPage(self.driver)
-        main_page = MainPage(self.driver)
+        projects_page = ProjectsPage(self.driver)
         with allure.step('Перейти на сайт по адресу {}'.format(Vars.PKM_MAIN_URL)):
             login_page.go_to_site()
         with allure.step('Войти в систему'):
             login_page.login(login, password)
-        with allure.step(f'Перейти к публикации {self.ADMIN_PUBLICATION_NAME}'):
-            main_page.switch_to_publication(project, self.ADMIN_PUBLICATION_NAME)
+        if publication:
+            with allure.step('Перейти на вкладку "Проекты"'):
+                projects_page.switch_to_page()
+            with allure.step(f'Перейти к публикации {publication}'):
+                projects_page.switch_to_publication(project, publication)
         with allure.step('Подождать отображение главной страницы'):
             admin_page.wait_admin_page()
-        # Отключил т.к. поменялся порядок логина (через main страницу)
-        # with allure.step('Проверить корректность выбранного проекта'):
-            # admin_page.check_project(project)
         with allure.step('Сохранить токен приложения в драйвере'):
-            # self.driver.token = self.driver.execute_script("return document.cookie;").split('token=')[1].split(';')[0]
             self.driver.token = self.api_get_token(login, password, Vars.PKM_API_URL)
 
     @allure.title('Перейти к интерфейсу конечного пользователя')
     def login_as_eu(self, login, password, project):
         login_page = LoginPage(self.driver, url=Vars.PKM_MAIN_URL)
         plan_registry = PlanRegistry(self.driver)
-        main_page = MainPage(self.driver)
+        projects_page = ProjectsPage(self.driver)
         with allure.step('Перейти на сайт по адресу {}'.format(Vars.PKM_MAIN_URL)):
             login_page.go_to_site()
         with allure.step('Войти в систему'):
             login_page.login(login, password)
+        with allure.step('Перейти на вкладку "Проекты"'):
+            projects_page.switch_to_page()
         with allure.step(f'Перейти к публикации {self.EU_PUBLICATION_NAME}'):
-            main_page.switch_to_publication(project, self.EU_PUBLICATION_NAME)
+            projects_page.switch_to_publication(project, self.EU_PUBLICATION_NAME)
         with allure.step(f'Закрыть модальое окно необходимости выбора плана при его отображении'):
             plan_registry.close_modal()
         with allure.step('Проверить наличие иконки меню'):
-            main_page.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
+            plan_registry.find_element((By.XPATH, "//fa-icon[@icon='bars']"), time=10)
         with allure.step('Сохранить токен приложения в драйвере'):
             # self.driver.token = self.driver.execute_script("return window.localStorage.getItem(arguments[0]);", 'token')
             self.driver.token = self.api_get_token(login, password, Vars.PKM_API_URL)

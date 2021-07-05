@@ -683,7 +683,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         parametrized_login_admin_driver.refresh()
 
     with allure.step(f'Проверить отображение актуального названия объекта на странице объекта'):
-        object_page.wait_page_title(object_1_name)
+        object_page.wait_page_title(object_1_name.upper())
 
     with allure.step(f'Проверить отображение актуального названия объекта в дереве'):
         object_page.wait_until_text_in_element(object_page.tree.LOCATOR_SELECTED_NODE, object_1_name)
@@ -693,7 +693,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         object_1_name += '_2'
 
     with allure.step(f'Проверить отображение актуального названия объекта на странице объекта'):
-        object_page.wait_page_title(object_1_name)
+        object_page.wait_page_title(object_1_name.upper())
 
     with allure.step(f'Открыть объект {object_2_name} через дерево'):
         object_page.tree.select_node(object_2_name)
@@ -895,17 +895,13 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         table_page.add_table_object(table_object_1_name)
 
     with allure.step(f'Проверить отображение объекта "{table_object_1_name}" в дереве'):
-        # включить после исправления бага PKM-6265
-        # assert table_page.tree.wait_child_node(model_name, table_object_1_name), f'Объект {table_object_1_name} не отображается в дереве'
-        pass
+        assert table_page.tree.wait_child_node(model_name, table_object_1_name), f'Объект {table_object_1_name} не отображается в дереве'
 
     with allure.step(f'Добавить объект "{table_object_2_name}" в таблицу'):
         table_page.add_table_object(table_object_2_name)
 
     with allure.step(f'Проверить отображение объекта "{table_object_1_name}" в дереве'):
-        # включить после исправления бага PKM-6265
-        # assert table_page.tree.wait_child_node(model_name, table_object_2_name), f'Объект {table_object_2_name} не отображается в дереве'
-        pass
+        assert table_page.tree.wait_child_node(model_name, table_object_2_name), f'Объект {table_object_2_name} не отображается в дереве'
 
     new_objects_data = [
             {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
@@ -940,7 +936,9 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
         {'object_name': table_object_1_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'},
         {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
-        {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '1 111.33'}
+        {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '1 111.33'},
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1', 'value': '0'},
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2', 'value': '0'}
     ]
     with allure.step(f'Заполнить ячейки вновь созданных объектов тестовыми данными'):
         table_page.fill_cells(new_cells_fill_data)

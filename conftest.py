@@ -71,18 +71,6 @@ def pytest_runtest_makereport(item, call):
 
 
 @pytest.fixture()
-def driver(parameters):
-    """
-       parameters = {
-           'name': 'Автотест'
-       }
-       """
-    driver = driver_init(name=parameters.get('name'))
-    yield driver
-    driver.quit()
-
-
-@pytest.fixture()
 def parametrized_login_driver(parameters):
     """
     parameters = {
@@ -157,6 +145,49 @@ def parametrized_login_admin_driver(parameters):
             driver.current_user = ai_user
         else:
             preconditions_ui.login_as_admin(user.admin.login, user.admin.password, parameters.get('project'))
+            driver.current_user = user.admin
+        if parameters.get('tree_type'):
+            preconditions_ui.set_tree(parameters.get('tree_type'))
+
+    yield driver
+
+    with AttachmentsCreator(driver):
+        if driver.test_data.get('to_delete'):
+            with allure.step(f'Удалить тестовые данные'):
+                for entity in driver.test_data.get('to_delete'):
+                    delete_entity(entity)
+                    time.sleep(10)
+
+    driver.quit()
+
+
+@pytest.fixture()
+def driver(parameters):
+    """
+    parameters = {
+        'login': 'eu_user',
+        'use_admin': False,
+        'project': 'Шельф. Приразломная',
+        'publication_name': 'Администрирование'
+        'tree_type': 'Справочники',
+        'name': 'Автотест'
+    }
+    """
+    project_name = parameters.get('project')
+    login = parameters.get('login')
+    token = ApiEuPreconditions.api_get_token(user.test_users[login].login, user.test_users[login].password, Vars.PKM_API_URL) if not parameters.get('use_admin') else ApiEuPreconditions.api_get_token(user.admin.login, user.admin.password, Vars.PKM_API_URL)
+    project_uuid = ApiEuPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
+    driver = driver_init(name=parameters.get('name'), project_uuid=project_uuid, project_name=project_name, token=token)
+    preconditions_api = ApiEuPreconditions(None, None, project_uuid, token)
+    preconditions_ui = PreconditionsFront(driver, project_uuid, token=token)
+    with AttachmentsCreator(driver):
+        if not parameters.get('use_admin'):
+            preconditions_api.api_check_user(parameters.get('login'))
+            ai_user = user.test_users[parameters.get('login')]
+            preconditions_ui.login_as_admin(ai_user.login, ai_user.password, parameters.get('project'), publication=parameters.get('publication'))
+            driver.current_user = ai_user
+        else:
+            preconditions_ui.login_as_admin(user.admin.login, user.admin.password, parameters.get('project'), publication=parameters.get('publication'))
             driver.current_user = user.admin
         if parameters.get('tree_type'):
             preconditions_ui.set_tree(parameters.get('tree_type'))
