@@ -114,7 +114,39 @@ def test_workshop(parametrized_login_admin_driver, parameters):
                 'indicator_1': {
                     'name': 'График потребления, ед.',
                     'type': 'Число',
-                    'can_be_timed': True
+                    'can_be_timed': True,
+                    'formula': {
+                                0: {
+                                    "type": "function",
+                                    "value": "ЕСЛИ",
+                                    "arguments": {
+                                        "Условие": {
+                                            0: {
+                                                "type": "function",
+                                                "value": "И",
+                                                "arguments": {
+                                                    'выражение 1': {
+                                                        0: {"type": "indicator", "value": "Дата начала"},
+                                                        1: {"type": "text", "value": ">="},
+                                                        2: {"type": "function", "value": "НАЧАЛО ПЕРИОДА"}
+                                                    },
+                                                    'выражение 2': {
+                                                        0: {"type": "indicator", "value": "Дата начала"},
+                                                        1: {"type": "text", "value": "<"},
+                                                        2: {"type": "function", "value": "КОНЕЦ ПЕРИОДА"}
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "Истина": {
+                                            0: {"type": "indicator", "value": "Потребление"}
+                                        },
+                                        "Ложь": {
+                                            0: {"type": "text", "value": "0"}
+                                        },
+                                    },
+                                }
+                            }
                 },
                 'indicator_2': {
                     'name': 'Потребление',
@@ -290,7 +322,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         with allure.step(f'Создать показатель связи {base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_1"]["name"]} через страницу связи'):
             class_page.create_relation_indicator(base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_1"]["name"])
         with allure.step('Заполнить показатель тестовыми данными'):
-            pass
+            class_page.set_indicator(base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_1"])
 
         with allure.step(f'Развернуть класс {base_data["class_1"]["name"]} через дерево'):
             class_page.tree.expand_node(base_data["class_1"]["name"])
@@ -301,7 +333,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         with allure.step(f'Создать показатель связи {base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_2"]["name"]} через страницу связи'):
             class_page.create_relation_indicator(base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_2"]["name"])
         with allure.step('Заполнить показатель тестовыми данными'):
-            pass
+            class_page.set_indicator(base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_2"])
 
         with allure.step(f'Перейти к связи {base_data["class_1"]["relations"]["relation_3"]["name"]} через дерево'):
             class_page.tree.select_node(base_data["class_1"]["relations"]["relation_3"]["name"])
@@ -309,7 +341,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         with allure.step(f'Создать показатель связи {base_data["class_1"]["relations"]["relation_3"]["indicators"]["indicator_1"]["name"]} через страницу связи'):
             class_page.create_relation_indicator(base_data["class_1"]["relations"]["relation_3"]["indicators"]["indicator_1"]["name"])
         with allure.step('Заполнить показатель тестовыми данными'):
-            pass
+            class_page.set_indicator(base_data["class_1"]["relations"]["relation_3"]["indicators"]["indicator_1"])
 
         with allure.step(f'Перейти к связи {base_data["class_1"]["relations"]["relation_3"]["name"]} через дерево'):
             class_page.tree.select_node(base_data["class_1"]["relations"]["relation_3"]["name"])
@@ -317,7 +349,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         with allure.step(f'Создать показатель связи {base_data["class_1"]["relations"]["relation_3"]["indicators"]["indicator_2"]["name"]} через страницу связи'):
             class_page.create_relation_indicator(base_data["class_1"]["relations"]["relation_3"]["indicators"]["indicator_2"]["name"])
         with allure.step('Заполнить показатель тестовыми данными'):
-            pass
+            class_page.set_indicator(base_data["class_1"]["relations"]["relation_3"]["indicators"]["indicator_2"])
 
     with allure.step(f'Создать показатели класса {base_data["class_1"]["name"]}'):
         with allure.step(f'Перейти к классу {base_data["class_1"]["name"]} через дерево'):
@@ -326,7 +358,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         with allure.step(f"Создать показатель {base_data['class_1']['indicators']['indicator_1']['name']} через страницу класса"):
             class_page.create_indicator(base_data['class_1']['indicators']['indicator_1']['name'])
         with allure.step(f"Заполнить показатель {base_data['class_1']['indicators']['indicator_1']['name']} тестовыми данными"):
-            pass
+            class_page.set_indicator(base_data['class_1']['indicators']['indicator_1'])
 
         with allure.step(f'Перейти к классу {base_data["class_1"]["name"]} через дерево'):
             class_page.tree.select_node(base_data["class_1"]["name"])
@@ -334,17 +366,17 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         with allure.step(f"Создать показатель {base_data['class_1']['indicators']['indicator_2']['name']} через страницу класса"):
             class_page.create_indicator(base_data['class_1']['indicators']['indicator_2']['name'])
         with allure.step(f"Заполнить показатель {base_data['class_1']['indicators']['indicator_2']['name']} тестовыми данными"):
-            pass
+            class_page.set_indicator(base_data['class_1']['indicators']['indicator_2'])
 
         with allure.step(f"Создать показатель {base_data['class_1']['indicators']['indicator_3']['name']} через дерево"):
             class_page.create_indicator(base_data['class_1']['indicators']['indicator_3']['name'], tree_parent_node=base_data["class_1"]["name"])
         with allure.step(f"Заполнить показатель {base_data['class_1']['indicators']['indicator_3']['name']} тестовыми данными"):
-            pass
+            class_page.set_indicator(base_data['class_1']['indicators']['indicator_3'])
 
         with allure.step(f"Создать показатель {base_data['class_1']['indicators']['indicator_4']['name']} через дерево"):
             class_page.create_indicator(base_data['class_1']['indicators']['indicator_4']['name'], tree_parent_node=base_data["class_1"]["name"])
         with allure.step(f"Заполнить показатель {base_data['class_1']['indicators']['indicator_4']['name']} тестовыми данными"):
-            pass
+            class_page.set_indicator(base_data['class_1']['indicators']['indicator_4'])
 
     with allure.step(f'Перейти к классу {base_data["class_2"]["name"]} через дерево'):
         class_page.tree.select_node(base_data["class_2"]["name"])
@@ -358,7 +390,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         with allure.step(f"Создать показатель {base_data['class_2']['indicators']['indicator_1']['name']} через страницу класса"):
             class_page.create_indicator(base_data['class_2']['indicators']['indicator_1']['name'])
         with allure.step(f"Заполнить показатель {base_data['class_2']['indicators']['indicator_1']['name']} тестовыми данными"):
-            pass
+            class_page.set_indicator(base_data['class_2']['indicators']['indicator_1'])
 
     with allure.step(f'Перейти к классу {base_data["class_3"]["name"]} через дерево'):
         class_page.tree.select_node(base_data["class_3"]["name"])
@@ -372,7 +404,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         with allure.step(f"Создать показатель {base_data['class_3']['indicators']['indicator_1']['name']} через страницу класса"):
             class_page.create_indicator(base_data['class_3']['indicators']['indicator_1']['name'])
         with allure.step(f"Заполнить показатель {base_data['class_3']['indicators']['indicator_1']['name']} тестовыми данными"):
-            pass
+            class_page.set_indicator(base_data['class_3']['indicators']['indicator_1'])
 
         with allure.step(f'Перейти к классу {base_data["class_3"]["name"]} через дерево'):
             class_page.tree.select_node(base_data["class_3"]["name"])
@@ -381,19 +413,19 @@ def test_workshop(parametrized_login_admin_driver, parameters):
             class_page.create_indicator(base_data['class_3']['indicators']['indicator_2']['name'])
         with allure.step(
                 f"Заполнить показатель {base_data['class_3']['indicators']['indicator_2']['name']} тестовыми данными"):
-            pass
+            class_page.set_indicator(base_data['class_3']['indicators']['indicator_2'])
 
         with allure.step(f"Создать показатель {base_data['class_3']['indicators']['indicator_3']['name']} через дерево"):
             class_page.create_indicator(base_data['class_3']['indicators']['indicator_3']['name'], tree_parent_node=base_data["class_3"]["name"])
         with allure.step(
                 f"Заполнить показатель {base_data['class_3']['indicators']['indicator_3']['name']} тестовыми данными"):
-            pass
+            class_page.set_indicator(base_data['class_3']['indicators']['indicator_3'])
 
         with allure.step(f"Создать показатель {base_data['class_3']['indicators']['indicator_4']['name']} через дерево"):
             class_page.create_indicator(base_data['class_3']['indicators']['indicator_4']['name'], tree_parent_node=base_data["class_3"]["name"])
         with allure.step(
                 f"Заполнить показатель {base_data['class_3']['indicators']['indicator_4']['name']} тестовыми данными"):
-            pass
+            class_page.set_indicator(base_data['class_3']['indicators']['indicator_4'])
 
     with allure.step(f'Перейти к классу {base_data["class_4"]["name"]} через дерево'):
         class_page.tree.select_node(base_data["class_4"]["name"])
@@ -409,7 +441,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
             class_page.create_indicator(base_data['class_4']['indicators']['indicator_1']['name'])
         with allure.step(
                 f"Заполнить показатель {base_data['class_4']['indicators']['indicator_1']['name']} тестовыми данными"):
-            pass
+            class_page.set_indicator(base_data['class_4']['indicators']['indicator_1'])
 
         with allure.step(f'Перейти к классу {base_data["class_4"]["name"]} через дерево'):
             class_page.tree.select_node(base_data["class_4"]["name"])
@@ -419,7 +451,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
             class_page.create_indicator(base_data['class_4']['indicators']['indicator_2']['name'])
         with allure.step(
                 f"Заполнить показатель {base_data['class_4']['indicators']['indicator_2']['name']} тестовыми данными"):
-            pass
+            class_page.set_indicator(base_data['class_4']['indicators']['indicator_2'])
 
         with allure.step(
                 f"Создать показатель {base_data['class_4']['indicators']['indicator_3']['name']} через дерево"):
@@ -427,7 +459,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
                                         tree_parent_node=base_data["class_4"]["name"])
         with allure.step(
                 f"Заполнить показатель {base_data['class_4']['indicators']['indicator_3']['name']} тестовыми данными"):
-            pass
+            class_page.set_indicator(base_data['class_4']['indicators']['indicator_3'])
 
         with allure.step(
                 f"Создать показатель {base_data['class_4']['indicators']['indicator_4']['name']} через дерево"):
@@ -435,7 +467,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
                                         tree_parent_node=base_data["class_4"]["name"])
         with allure.step(
                 f"Заполнить показатель {base_data['class_4']['indicators']['indicator_4']['name']} тестовыми данными"):
-            pass
+            class_page.set_indicator(base_data['class_4']['indicators']['indicator_4'])
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()

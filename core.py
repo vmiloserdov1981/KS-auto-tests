@@ -1,3 +1,4 @@
+from selenium.webdriver import Remote
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 import requests
@@ -25,6 +26,18 @@ def antistale(func):
             except StaleElementReferenceException:
                 count += 1
         return func(*args, **kwargs)
+    return wrap
+
+
+def retry(func):
+    def wrap(*args, **kwargs):
+        page_object = args[0]
+        try:
+            return func(*args, **kwargs)
+        except TimeoutException:
+            page_object.driver.refresh()
+            page_object.wait_dom_stable()
+            return func(*args, **kwargs)
     return wrap
 
 
@@ -78,6 +91,19 @@ class BasePage:
             retry_count += 1
             element_html = self.find_element(locator).get_attribute('innerHTML')
         raise AssertionError('Превышено количество попыток ожидания стабильности')
+
+    def wait_dom_stable(self, timeout=3, retry_limit=10):
+        dom_locator = (By.XPATH, "//body")
+        dom_html = self.find_element(dom_locator).get_attribute('innerHTML')
+        retry_count = 0
+        while retry_count <= retry_limit:
+            try:
+                self.wait_element_changing(dom_html, dom_locator, time=timeout)
+            except TimeoutException:
+                return
+            retry_count += 1
+            dom_html = self.find_element(dom_locator).get_attribute('innerHTML')
+        raise AssertionError('Превышено количество попыток ожидания стабильности страницы')
 
     def is_element_disappearing(self, locator, time=10, wait_display=True):
         if wait_display:
@@ -163,6 +189,10 @@ class BasePage:
         element = self.find_element(locator, time)
         element.send_keys(text)
         return element
+
+    def type_text(self, text: str):
+        actions = ActionChains(self.driver)
+        actions.send_keys(text)
 
     @antistale
     def hover_over_element(self, locator):
@@ -513,20 +543,3 @@ class BaseApi:
                 else:
                     dictionary[i] = [item]
         return dictionary
-
-
-"""
-def antistale(func):
-    def wrap(*args, **kwargs):
-        stale = True
-        count = 0
-        while stale:
-            if count > 10:
-                raise AssertionError('Превышено количество повторных перезапусков метода')
-            try:
-                return func(*args, **kwargs)
-            except StaleElementReferenceException:
-                stale = True
-                count += 1
-    return wrap
-"""

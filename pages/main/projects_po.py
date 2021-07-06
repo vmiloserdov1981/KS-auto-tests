@@ -1,11 +1,13 @@
 from pages.main.new_po import NewPage
 from selenium.webdriver.common.by import By
+from core import retry
 
 
 class ProjectsPage(NewPage):
     LOCATOR_PROJECTS_PAGE = (By.XPATH, "//ks-projects")
     LOCATOR_PROJECT_NAME_INPUT = (By.XPATH, "//div[contains(@class,'project-details__row') and ./div[.='Название проекта']]//input")
 
+    @retry
     def switch_to_publication(self, project_name, publication_name):
         self.select_project(project_name)
         self.select_publication(publication_name)

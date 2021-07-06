@@ -22,7 +22,7 @@ class DictionaryPage(EntityPage):
             self.find_and_click(self.tree.context_option_locator_creator('Создать справочник'))
             self.tree.modal.enter_and_save(dict_name)
         with allure.step(f'Проверить отображение справочника {dict_name} в дереве справочников выбранным'):
-            self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, dict_name)
+            self.tree.wait_selected_node_name(dict_name, timeout=15)
         with allure.step(f'Проверить переход на страницу вновь соданного справочника'):
             self.wait_page_title(dict_name.upper())
         with allure.step(f'Проверить заполнение страницы справочника данными по умолчанию'):
