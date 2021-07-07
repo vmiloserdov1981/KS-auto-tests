@@ -85,10 +85,10 @@ class ClassPage(EntityPage):
             self.find_and_context_click(self.tree.node_locator_creator(parent_node))
             self.find_and_click(self.tree.context_option_locator_creator('Создать класс'))
             self.tree.modal.enter_and_save(class_name)
-        with allure.step(f'Проверить отображение класса {class_name} в дереве классов выбранным'):
-            assert self.tree.get_selected_node_name() == class_name, f'В дереве не выбрана нода {class_name}'
         with allure.step(f'Проверить переход на страницу вновь соданного класса'):
             self.wait_page_title(class_name.upper())
+        with allure.step(f'Проверить отображение класса {class_name} в дереве классов выбранным'):
+            assert self.tree.get_selected_node_name() == class_name, f'В дереве не выбрана нода {class_name}'
         '''
         with allure.step(f'Проверить заполнение класса данными по умолчанию'):
             actual = self.get_class_page_data(timeout=3)
@@ -380,52 +380,15 @@ class ClassPage(EntityPage):
             self.wait_element_changing(formulas_list_html, formulas_list_locator)
         with allure.step('Настроить формулу'):
             self.find_and_click(last_formula_locator)
-            self.set_formula(formula_data)
-
-    def set_formula(self, formula_data):
-        """
-        formula_data = {
-                        0: {
-                            "type": "function",
-                            "value": "ЕСЛИ",
-                            "arguments": {
-                                "Условие": {
-                                    0: {
-                                        "type": "function",
-                                        "value": "И",
-                                        "arguments": {
-                                            'выражение 1': {
-                                                0: {"type": "indicator", "value": "Дата начала"},
-                                                1: {"type": "text", "value": ">="},
-                                                2: {"type": "function", "value": "НАЧАЛО ПЕРИОДА"}
-                                            },
-                                            'выражение 2': {
-                                                0: {"type": "indicator", "value": "Дата начала"},
-                                                1: {"type": "text", "value": "<"},
-                                                2: {"type": "function", "value": "КОНЕЦ ПЕРИОДА"}
-                                            }
-                                        }
-                                    }
-                                },
-                                "Истина": {
-                                    0: {"type": "indicator", "value": "Потребление"}
-                                },
-                                "Ложь": {
-                                    0: {"type": "text", "value": "0"}
-                                },
-                            },
-                        }
-            }
-        """
-        for main_element_index in formula_data:
-            self.add_formula_element(formula_data[main_element_index])
+            for main_element_index in formula_data:
+                self.add_formula_element(formula_data[main_element_index])
 
     def add_formula_element(self, element: dict, parent_function_name: str = None, parent_argument_name: str = None):
         def argument_cell_locator_creator(function_name, argument_name):
-            locator = (By.XPATH, f"//div[contains(@class, 'function-body') and ./div[//div[contains(@class, 'function-title') and .=' {function_name} ']]]//pkm-formula-list[@ng-reflect-placeholder='{argument_name}']")
+            locator = (By.XPATH, f"(//div[contains(@class, 'function-body') and ./div[//div[contains(@class, 'function-title') and .=' {function_name} ']]]//pkm-formula-list[@ng-reflect-placeholder='{argument_name}']//div[@class='input-field'])[last()]")
             return locator
 
-        main_empty_space_locator = (By.XPATH, "//div[contains(@class, 'main-list')]/div[contains(@class, 'empty-space')]")
+        main_empty_space_locator = (By.XPATH, "(//pkm-formula-list//div[@class='input-field'])[last()]")
 
         if parent_function_name and parent_argument_name:
             self.find_and_click(argument_cell_locator_creator(parent_function_name, parent_argument_name))
@@ -434,38 +397,38 @@ class ClassPage(EntityPage):
 
         if element.get('type') == 'function':
             try:
-                self.find_element(self.LOCATOR_FUNCTIONS_CONTAINER)
+                self.find_element(self.LOCATOR_FUNCTIONS_CONTAINER, time=2)
             except TimeoutException:
                 self.find_and_click(self.LOCATOR_FX_FORMULA_BUTTON)
             function_locator = ClassPage.function_button_locator_creator(element.get('value'))
             try:
-                self.find_and_click(function_locator)
+                self.find_and_click(function_locator, time=3)
             except TimeoutException:
                 self.find_and_click(ClassPage.function_button_locator_creator('...'))
                 self.find_and_click(self.function_modal_button_locator_creator(element.get('value')))
                 self.find_and_click((By.XPATH, "//button[.=' Добавить ']"))
-            for argument in element.get('arguments'):
-                for argument_number in element.get('arguments').get(argument):
-                    self.add_formula_element(element.get('arguments').get(argument).get(argument_number), parent_function_name=element.get('value'), parent_argument_name=argument)
+            if element.get('arguments'):
+                for argument in element.get('arguments'):
+                    for argument_number in element.get('arguments').get(argument):
+                        self.add_formula_element(element.get('arguments').get(argument).get(argument_number), parent_function_name=element.get('value'), parent_argument_name=argument)
 
         if element.get('type') == 'text':
-            self.type_text(element.get('value'))
+            if parent_function_name and parent_argument_name:
+                self.find_and_enter(argument_cell_locator_creator(parent_function_name, parent_argument_name), element.get('value'))
+            else:
+                self.find_and_enter(main_empty_space_locator, element.get('value'))
 
         if element.get('type') == 'indicator':
             self.select_formula_indicator(element.get('value'))
 
-        time.sleep(3)
+        self.find_and_click((By.XPATH, "(//pkm-indicator-formula-field//div[contains(@class, 'title')])[1]"))
+        time.sleep(1)
 
     def select_formula_indicator(self, indicator_name):
         try:
-            self.find_and_click(self.LOCATOR_ADD_FORMULA_INDICATOR_BUTTON)
+            self.find_and_click(self.LOCATOR_ADD_FORMULA_INDICATOR_BUTTON, time=1)
         except TimeoutException:
             pass
-        self.find_and_enter(self.LOCATOR_ADD_FORMULA_INDICATOR_FIELD, indicator_name)
+        self.find_and_click(self.LOCATOR_ADD_FORMULA_INDICATOR_FIELD)
         indicator_locator = (By.XPATH, f"//div[contains(@class, 'search-item-name') and .=' {indicator_name} ']")
         self.find_and_click(indicator_locator)
-
-
-
-
-

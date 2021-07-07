@@ -12,7 +12,7 @@ from pages.dictionary_po import DictionaryPage
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user',
         'project': Vars.PKM_WORKSHOP_PROJECT_NAME,
-        'tree_type': 'Классы',
+        'tree_type': 'Справочники',
         'name': 'Воркшоп тест'
     })])
 def test_workshop(parametrized_login_admin_driver, parameters):
@@ -164,7 +164,39 @@ def test_workshop(parametrized_login_admin_driver, parameters):
                 },
                 'indicator_2': {
                     'name': 'График требуемой численности, чел.',
-                    'type': 'Число'
+                    'type': 'Число',
+                    'formula': {
+                                0: {
+                                    "type": "function",
+                                    "value": "ЕСЛИ",
+                                    "arguments": {
+                                        "Условие": {
+                                            0: {
+                                                "type": "function",
+                                                "value": "И",
+                                                "arguments": {
+                                                    'выражение 1': {
+                                                        0: {"type": "function", "value": "КОНЕЦ ПЕРИОДА"},
+                                                        1: {"type": "text", "value": ">"},
+                                                        2: {"type": "indicator", "value": "Дата начала"}
+                                                    },
+                                                    'выражение 2': {
+                                                        0: {"type": "function", "value": "НАЧАЛО ПЕРИОДА"},
+                                                        1: {"type": "text", "value": "<="},
+                                                        2: {"type": "indicator", "value": "Дата окончания"}
+                                                    },
+                                                }
+                                            }
+                                        },
+                                        "Истина": {
+                                            0: {"type": "indicator", "value": "Требуемая численность, чел."}
+                                        },
+                                        "Ложь": {
+                                            0: {"type": "text", "value": "0"}
+                                        },
+                                    },
+                                }
+                            }
                 }
             }
         },
@@ -185,7 +217,12 @@ def test_workshop(parametrized_login_admin_driver, parameters):
                 'indicator_3': {
                     'name': 'Длительность',
                     'type': 'Число',
-                    'can_be_timed': False
+                    'can_be_timed': False,
+                    'formula': {
+                                0: {"type": "indicator", "value": "Дата окончания"},
+                                1: {"type": "text", "value": "-"},
+                                2: {"type": "indicator", "value": "Дата начала"}
+                                    }
                 },
                 'indicator_4': {
                     'name': 'Тип работ',
@@ -220,12 +257,18 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         'indicator_3': {
             'name': 'Совокупный график потребности, ед.',
             'type': 'Число',
-            'can_be_timed': True
+            'can_be_timed': True,
+            'formula': {0: {"type": "indicator", "value": "График потребления, ед."}}
         },
         'indicator_4': {
             'name': 'Совокупные затраты на МТР, руб.',
             'type': 'Число',
-            'can_be_timed': True
+            'can_be_timed': True,
+            'formula': {
+                0: {"type": "indicator", "value": "Нормативная стоимость, руб"},
+                1: {"type": "text", "value": "*"},
+                2: {"type": "indicator", "value": "Совокупный график потребности, ед."},
+            }
         }
     }
 
@@ -237,7 +280,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
             'can_be_timed': False
         },
         'indicator_2': {
-            'name': 'Ставка, руб',
+            'name': 'Ставка, руб.',
             'type': 'Число',
             'format': '0,0.00',
             'can_be_timed': False
@@ -245,18 +288,60 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         'indicator_3': {
             'name': 'Совокупный график требуемой численности, чел.',
             'type': 'Число',
-            'can_be_timed': True
+            'can_be_timed': True,
+            'formula': {0: {"type": "indicator", "value": "График требуемой численности, чел."}}
         },
         'indicator_4': {
             'name': 'Совокупные затраты на персонал, руб.',
             'type': 'Число',
             'format': '0,0',
-            'can_be_timed': True
+            'can_be_timed': True,
+            'formula': {
+                0: {"type": "indicator", "value": "Ставка, руб."},
+                1: {"type": "text", "value": "*"},
+                2: {"type": "indicator", "value": "Совокупный график требуемой численности, чел."},
+            }
         },
     }
 
+    with allure.step('Создать тестовые справочники'):
+        with allure.step(f'Создать справочник {base_data["dictionary_1"]["name"]}'):
+            dictionary_page.create_dictionary(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dictionary_1"]["name"])
+
+        with allure.step(f'Создать справочник {base_data["dictionary_2"]["name"]}'):
+            dictionary_page.create_dictionary(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dictionary_2"]["name"])
+
+        with allure.step(f'Создать справочник {base_data["dictionary_3"]["name"]}'):
+            dictionary_page.create_dictionary(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dictionary_3"]["name"])
+
+        with allure.step(f'Создать справочник {base_data["dictionary_4"]["name"]}'):
+            dictionary_page.create_dictionary(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dictionary_4"]["name"])
+
+    with allure.step(f'Перейти к дереву классов'):
+        class_page.tree.switch_to_tree('Классы')
+
     with allure.step(f'Создать класс {base_data["class_1"]["name"]}'):
         class_page.create_class(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["class_1"]["name"])
+
+    with allure.step(f'Создать показатели класса {base_data["class_1"]["name"]}'):
+        with allure.step(f"Создать показатель {base_data['class_1']['indicators']['indicator_1']['name']} через страницу класса"):
+            class_page.create_indicator(base_data['class_1']['indicators']['indicator_1']['name'])
+        with allure.step(f"Заполнить показатель {base_data['class_1']['indicators']['indicator_1']['name']} тестовыми данными"):
+            class_page.set_indicator(base_data['class_1']['indicators']['indicator_1'])
+        with allure.step(f'Перейти к классу {base_data["class_1"]["name"]} через дерево'):
+            class_page.tree.select_node(base_data["class_1"]["name"])
+        with allure.step(f"Создать показатель {base_data['class_1']['indicators']['indicator_2']['name']} через страницу класса"):
+            class_page.create_indicator(base_data['class_1']['indicators']['indicator_2']['name'])
+        with allure.step(f"Заполнить показатель {base_data['class_1']['indicators']['indicator_2']['name']} тестовыми данными"):
+            class_page.set_indicator(base_data['class_1']['indicators']['indicator_2'])
+        with allure.step(f"Создать показатель {base_data['class_1']['indicators']['indicator_3']['name']} через дерево"):
+            class_page.create_indicator(base_data['class_1']['indicators']['indicator_3']['name'], tree_parent_node=base_data["class_1"]["name"])
+        with allure.step(f"Заполнить показатель {base_data['class_1']['indicators']['indicator_3']['name']} тестовыми данными"):
+            class_page.set_indicator(base_data['class_1']['indicators']['indicator_3'])
+        with allure.step(f"Создать показатель {base_data['class_1']['indicators']['indicator_4']['name']} через дерево"):
+            class_page.create_indicator(base_data['class_1']['indicators']['indicator_4']['name'], tree_parent_node=base_data["class_1"]["name"])
+        with allure.step(f"Заполнить показатель {base_data['class_1']['indicators']['indicator_4']['name']} тестовыми данными"):
+            class_page.set_indicator(base_data['class_1']['indicators']['indicator_4'])
 
     with allure.step(f'Создать класс {base_data["class_2"]["name"]}'):
         class_page.create_class(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["class_2"]["name"])
@@ -290,39 +375,14 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         expected_relations = [base_data["class_1"]["relations"]["relation_1"]["name"], base_data["class_1"]["relations"]["relation_2"]["name"], base_data["class_1"]["relations"]["relation_3"]["name"]]
         assert class_page.compare_lists(actual_relations, expected_relations), 'На странице класса отображается некорректный список связей'
 
-    with allure.step(f'Перейти к дереву справочников'):
-        class_page.tree.switch_to_tree('Справочники')
-
-    with allure.step('Создать тестовые справочники'):
-        with allure.step(f'Создать справочник {base_data["dictionary_1"]["name"]}'):
-            dictionary_page.create_dictionary(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dictionary_1"]["name"])
-
-        with allure.step(f'Создать справочник {base_data["dictionary_2"]["name"]}'):
-            dictionary_page.create_dictionary(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dictionary_2"]["name"])
-
-        with allure.step(f'Создать справочник {base_data["dictionary_3"]["name"]}'):
-            dictionary_page.create_dictionary(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dictionary_3"]["name"])
-
-        with allure.step(f'Создать справочник {base_data["dictionary_4"]["name"]}'):
-            dictionary_page.create_dictionary(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dictionary_4"]["name"])
-
-    with allure.step(f'Перейти к дереву классов'):
-        class_page.tree.switch_to_tree('Классы')
-
-    with allure.step(f'Развернуть тестовую папку {Vars.PKM_WORKSHOP_TEST_FOLDER_NAME}'):
-        class_page.tree.expand_node(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
-
-    with allure.step(f'Перейти к классу {base_data["class_1"]["name"]} через дерево'):
-        class_page.tree.select_node(base_data["class_1"]["name"])
-
     with allure.step('Создать показатели связей'):
         with allure.step(f'Перейти к связи {base_data["class_1"]["relations"]["relation_2"]["name"]} через страницу класса'):
             class_page.select_relation(base_data["class_1"]["relations"]["relation_2"]["name"])
 
-        with allure.step(f'Создать показатель связи {base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_1"]["name"]} через страницу связи'):
-            class_page.create_relation_indicator(base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_1"]["name"])
+        with allure.step(f'Создать показатель связи {base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_2"]["name"]} через страницу связи'):
+            class_page.create_relation_indicator(base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_2"]["name"])
         with allure.step('Заполнить показатель тестовыми данными'):
-            class_page.set_indicator(base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_1"])
+            class_page.set_indicator(base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_2"])
 
         with allure.step(f'Развернуть класс {base_data["class_1"]["name"]} через дерево'):
             class_page.tree.expand_node(base_data["class_1"]["name"])
@@ -330,10 +390,10 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         with allure.step(f'Перейти к связи {base_data["class_1"]["relations"]["relation_2"]["name"]} через дерево'):
             class_page.tree.select_node(base_data["class_1"]["relations"]["relation_2"]["name"])
 
-        with allure.step(f'Создать показатель связи {base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_2"]["name"]} через страницу связи'):
-            class_page.create_relation_indicator(base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_2"]["name"])
+        with allure.step(f'Создать показатель связи {base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_1"]["name"]} через страницу связи'):
+            class_page.create_relation_indicator(base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_1"]["name"])
         with allure.step('Заполнить показатель тестовыми данными'):
-            class_page.set_indicator(base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_2"])
+            class_page.set_indicator(base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_1"])
 
         with allure.step(f'Перейти к связи {base_data["class_1"]["relations"]["relation_3"]["name"]} через дерево'):
             class_page.tree.select_node(base_data["class_1"]["relations"]["relation_3"]["name"])
@@ -351,32 +411,11 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         with allure.step('Заполнить показатель тестовыми данными'):
             class_page.set_indicator(base_data["class_1"]["relations"]["relation_3"]["indicators"]["indicator_2"])
 
-    with allure.step(f'Создать показатели класса {base_data["class_1"]["name"]}'):
-        with allure.step(f'Перейти к классу {base_data["class_1"]["name"]} через дерево'):
-            class_page.tree.select_node(base_data["class_1"]["name"])
+    with allure.step(f'Перейти к дереву классов'):
+        class_page.tree.switch_to_tree('Классы')
 
-        with allure.step(f"Создать показатель {base_data['class_1']['indicators']['indicator_1']['name']} через страницу класса"):
-            class_page.create_indicator(base_data['class_1']['indicators']['indicator_1']['name'])
-        with allure.step(f"Заполнить показатель {base_data['class_1']['indicators']['indicator_1']['name']} тестовыми данными"):
-            class_page.set_indicator(base_data['class_1']['indicators']['indicator_1'])
-
-        with allure.step(f'Перейти к классу {base_data["class_1"]["name"]} через дерево'):
-            class_page.tree.select_node(base_data["class_1"]["name"])
-
-        with allure.step(f"Создать показатель {base_data['class_1']['indicators']['indicator_2']['name']} через страницу класса"):
-            class_page.create_indicator(base_data['class_1']['indicators']['indicator_2']['name'])
-        with allure.step(f"Заполнить показатель {base_data['class_1']['indicators']['indicator_2']['name']} тестовыми данными"):
-            class_page.set_indicator(base_data['class_1']['indicators']['indicator_2'])
-
-        with allure.step(f"Создать показатель {base_data['class_1']['indicators']['indicator_3']['name']} через дерево"):
-            class_page.create_indicator(base_data['class_1']['indicators']['indicator_3']['name'], tree_parent_node=base_data["class_1"]["name"])
-        with allure.step(f"Заполнить показатель {base_data['class_1']['indicators']['indicator_3']['name']} тестовыми данными"):
-            class_page.set_indicator(base_data['class_1']['indicators']['indicator_3'])
-
-        with allure.step(f"Создать показатель {base_data['class_1']['indicators']['indicator_4']['name']} через дерево"):
-            class_page.create_indicator(base_data['class_1']['indicators']['indicator_4']['name'], tree_parent_node=base_data["class_1"]["name"])
-        with allure.step(f"Заполнить показатель {base_data['class_1']['indicators']['indicator_4']['name']} тестовыми данными"):
-            class_page.set_indicator(base_data['class_1']['indicators']['indicator_4'])
+    with allure.step(f'Развернуть тестовую папку {Vars.PKM_WORKSHOP_TEST_FOLDER_NAME}'):
+        class_page.tree.expand_node(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
 
     with allure.step(f'Перейти к классу {base_data["class_2"]["name"]} через дерево'):
         class_page.tree.select_node(base_data["class_2"]["name"])
@@ -468,6 +507,9 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         with allure.step(
                 f"Заполнить показатель {base_data['class_4']['indicators']['indicator_4']['name']} тестовыми данными"):
             class_page.set_indicator(base_data['class_4']['indicators']['indicator_4'])
+
+    with allure.step(f'Перейти к классу {base_data["class_1"]["name"]} через дерево'):
+        class_page.tree.select_node(base_data["class_1"]["name"])
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()

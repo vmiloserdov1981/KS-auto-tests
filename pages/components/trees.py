@@ -166,13 +166,15 @@ class Tree(BasePage):
             arrow.click()
 
     def select_node(self, node_name):
+        node_locator = self.node_locator_creator(node_name)
+        self. scroll_to_element(self.find_element(node_locator))
         self.find_and_click(self.node_locator_creator(node_name), time=20)
         self.wait_selected_node_name(node_name, timeout=20)
         page_title_locator = (By.XPATH, "//div[contains(@class, 'title-value')]")
         self.wait_until_text_in_element(page_title_locator, node_name.upper())
 
     def wait_selected_node_name(self, name, timeout=10):
-        self.scroll_to_element(self.find_element(self.LOCATOR_SELECTED_NODE))
+        self.scroll_to_element(self.find_element(self.LOCATOR_SELECTED_NODE, time=timeout))
         self.wait_until_text_in_element(self.LOCATOR_SELECTED_NODE, name, time=timeout)
 
     def wait_child_node(self, parent_node_name: str, child_node_name: str, timeout=30) -> bool:
