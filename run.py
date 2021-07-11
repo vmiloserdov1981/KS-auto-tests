@@ -28,7 +28,7 @@ def run_all_tests():
     api_eu.prepare_data()
 
     print('run tests from green_group')
-    pytest.main([f"-n={quantity}", "-v", "-m", "green_label", "--alluredir=reports"])
+    #pytest.main([f"-n={quantity}", "-v", "-m", "green_label", "--alluredir=reports"])
 
     api_admin.prepare_data()
 

@@ -89,7 +89,7 @@ class ClassPage(EntityPage):
             self.wait_page_title(class_name.upper())
         with allure.step(f'Проверить отображение класса {class_name} в дереве классов выбранным'):
             assert self.tree.get_selected_node_name() == class_name, f'В дереве не выбрана нода {class_name}'
-        '''
+
         with allure.step(f'Проверить заполнение класса данными по умолчанию'):
             actual = self.get_class_page_data(timeout=3)
             expected = {
@@ -99,10 +99,8 @@ class ClassPage(EntityPage):
                 'relations': None
             }
             self.compare_dicts(actual, expected)
-        '''
 
     def create_indicator(self, indicator_name: str, tree_parent_node: str = None) -> dict:
-        # time.sleep(5)
         if tree_parent_node:
             with allure.step(f'Создать показатель {indicator_name} в ноде "{tree_parent_node}"'):
                 self.find_and_context_click(self.tree.node_locator_creator(tree_parent_node))
@@ -117,7 +115,7 @@ class ClassPage(EntityPage):
             # self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, indicator_name)
             # завести баг!
             pass
-        '''
+
         with allure.step(f'Проверить заполнение созданного показателя данными по умолчанию'):
             expected_data = {
                 'indicator_name': indicator_name,
@@ -135,7 +133,6 @@ class ClassPage(EntityPage):
             assert actual_data == expected_data, 'Страница показателя заполнена некорректными данными'
             actual_data['indicator_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
         return actual_data
-        '''
 
     def create_relation_indicator(self, indicator_name: str, tree_parent_node: str = None) -> dict:
         time.sleep(5)
@@ -149,7 +146,7 @@ class ClassPage(EntityPage):
                 self.find_and_click(self.add_entity_button_locator_creator('Показатели'))
         with allure.step(f'Укзать название показателя {indicator_name} и сохранить его'):
             self.modal.enter_and_save(indicator_name)
-        '''
+
         with allure.step(f'Проверить заполнение созданного показателя данными по умолчанию'):
             expected_data = {
                 'indicator_name': indicator_name,
@@ -167,7 +164,6 @@ class ClassPage(EntityPage):
             assert actual_data == expected_data, 'Страница показателя заполнена некорректными данными'
             actual_data['indicator_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
         return actual_data
-        '''
 
     def get_indicator_page_data(self, timeout: int = None) -> dict:
         if timeout:
@@ -220,7 +216,7 @@ class ClassPage(EntityPage):
             # self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, relation_name)
             # завести баг!
             pass
-        '''
+
         with allure.step(f'Проверить заполнение созданной связи данными по умолчанию'):
             expected_data = {
                 'relation_name': relation_name,
@@ -233,7 +229,6 @@ class ClassPage(EntityPage):
             assert actual_data == expected_data, 'Страница связи заполнена некорректными данными'
             actual_data['relation_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
         return actual_data
-        '''
 
     def get_relation_page_data(self, timeout: int = None) -> dict:
         if timeout:
@@ -272,7 +267,7 @@ class ClassPage(EntityPage):
         self.hover_over_element(indicator_locator)
         self.find_and_click(delete_button_locator)
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
-        #assert self.is_element_disappearing(indicator_locator, wait_display=False), f'Показатель {indicator_name} не исчезает из списка показателей класса'
+        # assert self.is_element_disappearing(indicator_locator, wait_display=False), f'Показатель {indicator_name} не исчезает из списка показателей класса'
 
     def set_indicator(self, data: dict):
         """
@@ -383,15 +378,16 @@ class ClassPage(EntityPage):
             for main_element_index in formula_data:
                 self.add_formula_element(formula_data[main_element_index])
 
-    def add_formula_element(self, element: dict, parent_function_name: str = None, parent_argument_name: str = None):
-        def argument_cell_locator_creator(function_name, argument_name):
-            locator = (By.XPATH, f"(//div[contains(@class, 'function-body') and ./div[//div[contains(@class, 'function-title') and .=' {function_name} ']]]//pkm-formula-list[@ng-reflect-placeholder='{argument_name}']//div[@class='input-field'])[last()]")
+    def add_formula_element(self, element: dict, parent_function_name: str = None, parent_argument_index: int = None):
+
+        def argument_cell_locator_creator(function_name, argument_index: int):
+            locator = (By.XPATH, f"(//div[contains(@class, 'function-body') and ./div[contains(@class, 'function-title') and .=' {function_name} ']]/div/pkm-formula-list[{str(argument_index + 1)}]/div//div[@class='input-field'])[last()]")
             return locator
 
         main_empty_space_locator = (By.XPATH, "(//pkm-formula-list//div[@class='input-field'])[last()]")
 
-        if parent_function_name and parent_argument_name:
-            self.find_and_click(argument_cell_locator_creator(parent_function_name, parent_argument_name))
+        if parent_function_name is not None and parent_argument_index is not None:
+            self.find_and_click(argument_cell_locator_creator(parent_function_name, parent_argument_index))
         else:
             self.find_and_click(main_empty_space_locator)
 
@@ -410,11 +406,11 @@ class ClassPage(EntityPage):
             if element.get('arguments'):
                 for argument in element.get('arguments'):
                     for argument_number in element.get('arguments').get(argument):
-                        self.add_formula_element(element.get('arguments').get(argument).get(argument_number), parent_function_name=element.get('value'), parent_argument_name=argument)
+                        self.add_formula_element(element.get('arguments').get(argument).get(argument_number), parent_function_name=element.get('value'), parent_argument_index=argument)
 
         if element.get('type') == 'text':
-            if parent_function_name and parent_argument_name:
-                self.find_and_enter(argument_cell_locator_creator(parent_function_name, parent_argument_name), element.get('value'))
+            if parent_function_name is not None and parent_argument_index is not None:
+                self.find_and_enter(argument_cell_locator_creator(parent_function_name, parent_argument_index), element.get('value'))
             else:
                 self.find_and_enter(main_empty_space_locator, element.get('value'))
 
