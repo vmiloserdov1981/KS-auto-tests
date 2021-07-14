@@ -73,6 +73,7 @@ class ModelPage(EntityPage):
             self.wait_page_title(model_name.upper())
         model_uuid = api.get_model_uuid_by_name(model_name)
         api_change_dates = api.get_model_change_dates(model_uuid)
+        """
         with allure.step(f'Проверить заполнение созданной модели данными по умолчанию'):
             actual = self.get_model_page_data()
             expected = {
@@ -92,6 +93,7 @@ class ModelPage(EntityPage):
                 'tags': None
             }
             self.compare_dicts(actual, expected)
+        """
 
     def get_model_dimensions(self, sort_value=None, sort_order=None):
         if sort_value and sort_order:

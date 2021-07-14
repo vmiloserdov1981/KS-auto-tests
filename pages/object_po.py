@@ -39,8 +39,10 @@ class ObjectPage(EntityPage):
             self.tree.wait_selected_node_name(object_name)
             # self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, object_name)
         self.wait_until_text_in_element(self.LOCATOR_ENTITY_PAGE_TITLE, object_name.upper())
+        """
         actual_data = self.get_object_page_data()
         return actual_data
+        """
 
     def get_object_description(self):
         description_input = self.input_locator_creator('shortName')
