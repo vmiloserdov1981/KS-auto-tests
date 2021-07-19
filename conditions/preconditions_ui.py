@@ -10,6 +10,7 @@ from pages.plan_registry_po import PlanRegistry
 from api.api import ApiEu
 from pages.components.trees import Tree
 from pages.components.modals import ProjectModal
+from pages.main.new_po import NewPage
 
 
 class PreconditionsFront(BasePage, ApiEu):
@@ -26,6 +27,7 @@ class PreconditionsFront(BasePage, ApiEu):
         login_page = LoginPage(self.driver, url=Vars.PKM_MAIN_URL)
         admin_page = AdminPage(self.driver)
         projects_page = ProjectsPage(self.driver)
+        main_page = NewPage(self.driver)
         with allure.step('Перейти на сайт по адресу {}'.format(Vars.PKM_MAIN_URL)):
             login_page.go_to_site()
         with allure.step('Войти в систему'):
@@ -35,8 +37,12 @@ class PreconditionsFront(BasePage, ApiEu):
                 projects_page.switch_to_page()
             with allure.step(f'Перейти к публикации {publication}'):
                 projects_page.switch_to_publication(project, publication)
-        with allure.step('Подождать отображение главной страницы'):
-            admin_page.wait_admin_page()
+            with allure.step('Подождать отображение интерфейса администратора'):
+                admin_page.wait_admin_page()
+        else:
+            with allure.step('Подождать отображение главной страницы'):
+                main_page.wait_main_page()
+
         with allure.step('Сохранить токен приложения в драйвере'):
             self.driver.token = self.api_get_token(login, password, Vars.PKM_API_URL)
 

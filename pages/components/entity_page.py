@@ -78,6 +78,11 @@ class EntityPage(BasePage):
         return locator
 
     @staticmethod
+    def pkm_dropdown_actual_value_locator_creator(form_control_name):
+        locator = (By.XPATH, f"//pkm-dropdown[@formcontrolname='{form_control_name}']//div[contains(@class,'display-value-text')]")
+        return locator
+
+    @staticmethod
     def input_locator_creator(form_control_name):
         locator = (By.XPATH, f"//input[@formcontrolname='{form_control_name}']")
         return locator

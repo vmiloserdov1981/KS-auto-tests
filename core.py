@@ -1,3 +1,4 @@
+from selenium.webdriver import Remote
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 import requests
@@ -25,6 +26,18 @@ def antistale(func):
             except StaleElementReferenceException:
                 count += 1
         return func(*args, **kwargs)
+    return wrap
+
+
+def retry(func):
+    def wrap(*args, **kwargs):
+        page_object = args[0]
+        try:
+            return func(*args, **kwargs)
+        except TimeoutException:
+            page_object.driver.refresh()
+            page_object.wait_dom_stable()
+            return func(*args, **kwargs)
     return wrap
 
 
@@ -68,7 +81,7 @@ class BasePage:
             WebDriverWait(self.driver, time).until(ElementChanged(html, locator), message=f"Element hasn`t been changed")
 
     def wait_element_stable(self, locator, timeout, retry_limit=10):
-        element_html = self.find_element(locator).get_attribute('innerHTML')
+        element_html = self.get_element_html(locator)
         retry_count = 0
         while retry_count <= retry_limit:
             try:
@@ -76,8 +89,21 @@ class BasePage:
             except TimeoutException:
                 return
             retry_count += 1
-            element_html = self.find_element(locator).get_attribute('innerHTML')
+            element_html = self.get_element_html(locator)
         raise AssertionError('Превышено количество попыток ожидания стабильности')
+
+    def wait_dom_stable(self, timeout=3, retry_limit=10):
+        dom_locator = (By.XPATH, "//body")
+        dom_html = self.find_element(dom_locator).get_attribute('innerHTML')
+        retry_count = 0
+        while retry_count <= retry_limit:
+            try:
+                self.wait_element_changing(dom_html, dom_locator, time=timeout)
+            except TimeoutException:
+                return
+            retry_count += 1
+            dom_html = self.find_element(dom_locator).get_attribute('innerHTML')
+        raise AssertionError('Превышено количество попыток ожидания стабильности страницы')
 
     def is_element_disappearing(self, locator, time=10, wait_display=True):
         if wait_display:
@@ -163,6 +189,10 @@ class BasePage:
         element = self.find_element(locator, time)
         element.send_keys(text)
         return element
+
+    def type_text(self, text: str):
+        actions = ActionChains(self.driver)
+        actions.send_keys(text)
 
     @antistale
     def hover_over_element(self, locator):
@@ -294,6 +324,12 @@ class BasePage:
         is_checked = self.driver.execute_script("return arguments[0].checked;", input_element)
         return is_checked
 
+    @antistale
+    def get_element_html(self, locator):
+        element = self.find_element(locator)
+        attribute_value = element.get_attribute('innerHTML')
+        return attribute_value
+
 
 class DomChanged(object):
     def __init__(self, dom):
@@ -325,9 +361,16 @@ class ElementChanged(object):
         self.html = html
         self.locator = locator
 
+    @staticmethod
+    @antistale
+    def get_element_html(driver, by, value):
+        element = driver.find_element(by, value)
+        html = element.get_attribute('innerHTML')
+        return html
+
     def __call__(self, driver):
         old_html = self.html
-        new_html = driver.find_element(*self.locator).get_attribute('innerHTML')
+        new_html = self.get_element_html(driver, self.locator[0], self.locator[1])
         if old_html != new_html:
             return True
         else:
@@ -513,20 +556,3 @@ class BaseApi:
                 else:
                     dictionary[i] = [item]
         return dictionary
-
-
-"""
-def antistale(func):
-    def wrap(*args, **kwargs):
-        stale = True
-        count = 0
-        while stale:
-            if count > 10:
-                raise AssertionError('Превышено количество повторных перезапусков метода')
-            try:
-                return func(*args, **kwargs)
-            except StaleElementReferenceException:
-                stale = True
-                count += 1
-    return wrap
-"""

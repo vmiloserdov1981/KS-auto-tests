@@ -5,7 +5,7 @@ from pages.components.modals import ProjectModal
 
 
 class AdminPage(BasePage):
-    LOCATOR_PKM_PROFILENAME_BLOCK = (By.XPATH, "//div[contains(@class, 'header__user-info')]")
+    LOCATOR_PKM_ADMIN_LOGO = (By.XPATH, "//ks-logo[contains(@class, 'admin-sidebar__logo')]")
     LOCATOR_SELECT_PROJECT_BUTTON = (By.XPATH, "//div[@class='title-content']//div[.='Выбрать проект']")
 
     def __init__(self, driver):
@@ -13,7 +13,7 @@ class AdminPage(BasePage):
         self.project_modal = ProjectModal(driver)
 
     def wait_admin_page(self):
-        self.find_element(self.LOCATOR_PKM_PROFILENAME_BLOCK)
+        self.find_element(self.LOCATOR_PKM_ADMIN_LOGO)
 
     def check_url(self, driver):
         assert self.base_url is not None, 'Для главной страницы не указан url'
@@ -23,7 +23,7 @@ class AdminPage(BasePage):
     def go_to_default_page(self):
         assert self.base_url is not None, 'Для главной страницы не указан url'
         self.driver.get(f'{self.base_url}?treeType={Vars.PKM_DEFAULT_TREE_TYPE}')
-        self.find_element(self.LOCATOR_PKM_PROFILENAME_BLOCK)
+        self.find_element(self.LOCATOR_PKM_ADMIN_LOGO)
 
     def open_project_modal(self):
         self.find_and_click(self.LOCATOR_SELECT_PROJECT_BUTTON)
