@@ -34,15 +34,14 @@ class ObjectPage(EntityPage):
             self.find_and_click(self.tree.submenu_option_locator_creator('Объект'))
         with allure.step(f'Укзать название объекта {object_name}, класс {class_name} и создать его'):
             self.modal.object_enter_and_save(object_name, class_name)
-
         with allure.step(f'Проверить отображение объекта {object_name} в дереве классов выбранным'):
             self.tree.wait_selected_node_name(object_name)
-            # self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, object_name)
-        self.wait_until_text_in_element(self.LOCATOR_ENTITY_PAGE_TITLE, object_name.upper())
-        """
-        actual_data = self.get_object_page_data()
+        with allure.step(f'Проверить переход на страницу объекта'):
+            self.wait_until_text_in_element(self.LOCATOR_ENTITY_PAGE_TITLE, object_name.upper())
+        with allure.step(f'Собрать данные страницы объекта'):
+            actual_data = self.get_object_page_data()
+
         return actual_data
-        """
 
     def get_object_description(self):
         description_input = self.input_locator_creator('shortName')

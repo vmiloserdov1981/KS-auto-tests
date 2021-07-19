@@ -9,7 +9,6 @@ from variables import PkmVars
 from selenium.common.exceptions import TimeoutException
 import pytest
 from pages.components.eu_header import EuHeader
-from pages.login_po import LoginPage
 from conditions.preconditions_ui import PreconditionsFront
 
 
@@ -172,6 +171,9 @@ def test_eu_delete_gantt_event(parametrized_login_driver, parameters):
     with allure.step('Создать тестовое мероприятие через API"'):
         api.api_create_event(event_name, k6_copy_plan_uuid, 'Проект плана', login, event_data)
 
+    with allure.step('Обновить страницу'):
+        parametrized_login_driver.refresh()
+
     with allure.step(f'Выбрать версию плана "{versions[0]}"'):
         events_plan.set_version(versions[0], force=True)
 
@@ -321,6 +323,9 @@ def test_eu_modify_gantt_event(parametrized_login_driver, parameters):
         event_fact = api.api_update_event(event_uuid, k6_copy_plan_uuid, versions[1], login, event_data_fact)
         created_event_data_fact = event_fact.get('event_data')
 
+    with allure.step('Обновить страницу'):
+        parametrized_login_driver.refresh()
+
     with allure.step(f'Выбрать версию плана "{versions[0]}"'):
         events_plan.set_version(versions[0], force=True)
 
@@ -469,6 +474,9 @@ def test_eu_copy_gantt_event(parametrized_login_driver, parameters):
         copied_event_data = event_plan.get('event_data')
         copied_event_data['event_name'] += ' (копия)'
         copied_event_name = copied_event_data.get('event_name')
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_driver.refresh()
 
     with allure.step(f'Выбрать версию плана "{versions[0]}"'):
         events_plan.set_version(versions[0], force=True)

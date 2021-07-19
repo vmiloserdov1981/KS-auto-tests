@@ -414,6 +414,7 @@ class NewEventModal(Calendar, BasePage):
                     'is_need_attention': True
                 }
                 """
+        self.wait_element_stable((By.XPATH, "//pkm-modal-window"), 5)
         actual_data = self.get_event_data()
         for indicator in actual_data:
             if actual_data.get(indicator) == '' or actual_data.get(indicator) == [''] or actual_data.get(indicator) == 'Не заполнено':

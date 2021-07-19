@@ -81,7 +81,7 @@ class BasePage:
             WebDriverWait(self.driver, time).until(ElementChanged(html, locator), message=f"Element hasn`t been changed")
 
     def wait_element_stable(self, locator, timeout, retry_limit=10):
-        element_html = self.find_element(locator).get_attribute('innerHTML')
+        element_html = self.get_element_html(locator)
         retry_count = 0
         while retry_count <= retry_limit:
             try:
@@ -89,7 +89,7 @@ class BasePage:
             except TimeoutException:
                 return
             retry_count += 1
-            element_html = self.find_element(locator).get_attribute('innerHTML')
+            element_html = self.get_element_html(locator)
         raise AssertionError('Превышено количество попыток ожидания стабильности')
 
     def wait_dom_stable(self, timeout=3, retry_limit=10):
@@ -324,6 +324,12 @@ class BasePage:
         is_checked = self.driver.execute_script("return arguments[0].checked;", input_element)
         return is_checked
 
+    @antistale
+    def get_element_html(self, locator):
+        element = self.find_element(locator)
+        attribute_value = element.get_attribute('innerHTML')
+        return attribute_value
+
 
 class DomChanged(object):
     def __init__(self, dom):
@@ -355,9 +361,16 @@ class ElementChanged(object):
         self.html = html
         self.locator = locator
 
+    @staticmethod
+    @antistale
+    def get_element_html(driver, by, value):
+        element = driver.find_element(by, value)
+        html = element.get_attribute('innerHTML')
+        return html
+
     def __call__(self, driver):
         old_html = self.html
-        new_html = driver.find_element(*self.locator).get_attribute('innerHTML')
+        new_html = self.get_element_html(driver, self.locator[0], self.locator[1])
         if old_html != new_html:
             return True
         else:
