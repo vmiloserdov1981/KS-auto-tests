@@ -300,7 +300,7 @@ class NewTree(BasePage):
         expected_deletion_modal_text = f'Вы действительно хотите удалить\n{node_type} {node_name} ?'
         assert actual_deletion_modal_text == expected_deletion_modal_text, 'Некорректный текст подтверждения удаления ноды'
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
-        assert self.is_element_disappearing(node_locator, wait_display=False), f'Нода "{node_name}" не исчезает при удалении'
+        assert self.is_element_disappearing(node_locator, time=20, wait_display=False), f'Нода "{node_name}" не исчезает при удалении'
 
     def rename_node(self, node_name, new_node_name):
         time.sleep(3)
