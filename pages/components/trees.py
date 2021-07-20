@@ -311,6 +311,7 @@ class NewTree(BasePage):
     def get_node_arrow(self, node_name, timeout=5):
         try:
             arrow = self.find_element(self.node_arrow_locator_creator(node_name), time=timeout)
+            self.scroll_to_element(arrow, to_top=True)
         except TimeoutException:
             return
         return arrow

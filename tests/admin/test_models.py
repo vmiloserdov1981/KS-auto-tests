@@ -38,7 +38,7 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
         model_page.rename_title(new_model_name)
 
     with allure.step(f'Проверить изменение названия модели в дереве'):
-        model_page.wait_until_text_in_element(model_page.tree.LOCATOR_SELECTED_NODE, new_model_name)
+        model_page.tree.wait_selected_node_name(new_model_name)
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()

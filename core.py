@@ -163,8 +163,9 @@ class BasePage:
         return WebDriverWait(self.driver, time).until(ec.visibility_of_element_located(locator),
                                                       message=f"Can't find element by locator {locator}")
 
-    def scroll_to_element(self, webelement):
-        self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);", webelement)
+    def scroll_to_element(self, webelement, to_top=False):
+        top_value = 'true' if to_top else 'false'
+        self.driver.execute_script(f"arguments[0].scrollIntoView(alignToTop={top_value});", webelement)
 
     @antistale
     def find_and_click(self, locator, time=10, scroll_to_element=True):
