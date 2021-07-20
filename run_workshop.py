@@ -18,14 +18,11 @@ project_api.check_project_access([users.workshop_user.login], project_uuid)
 api_admin = ApiAdminPreconditions(project_uuid, token=token)
 
 
-def run_all_tests():
-    if os.getenv('CLEAR_VIDEOS') == 'true':
-        api_eu.clear_videos()
-
+def run_workshop_tests():
     api_admin.prepare_workshop_data()
 
     print('run workshop test')
     pytest.main(["-v", "tests/workshop/test_workshop.py", "--alluredir=reports"])
 
 
-run_all_tests()
+run_workshop_tests()
