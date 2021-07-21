@@ -135,7 +135,7 @@ class NewEventModal(Calendar, BasePage):
     LOCATOR_START_DATE_FIELD = (By.XPATH, "//*[contains (text(), 'Дата начала*')]//..//input")
     LOCATOR_EVENT_NAME_FIELD = (By.XPATH, "//input[@id='title']")
     LOCATOR_EVENT_START_DATE_FIELD = (By.XPATH, f"//*[contains(text(), 'Дата начала*')]//..//input[contains(@class,'datepicker-input')]")
-    LOCATOR_EVENT_END_DATE_FIELD = (By.XPATH, f"//*[contains(text(), 'Дата окончания')]//..//input[contains(@id,'end-date')]")
+    LOCATOR_EVENT_END_DATE_FIELD = (By.XPATH, f"//div[@class='form-col' and .//div[.='Дата окончания']]//input")
     LOCATOR_EVENT_DURATION_FIELD = (By.XPATH, f"//pkm-gant-diagram-task-duration//input[@formcontrolname='days']")
     LOCATOR_NEXT_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Дальше ']")
     LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Сохранить ']")
@@ -160,7 +160,7 @@ class NewEventModal(Calendar, BasePage):
 
     def get_end_date(self):
         date = self.get_input_value(self.LOCATOR_EVENT_END_DATE_FIELD)
-        date = date.split('-')
+        date = date.split('.')
         return date
 
     def fill_field(self, field_name, text):
