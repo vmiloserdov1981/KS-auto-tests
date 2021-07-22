@@ -1,4 +1,4 @@
-from core import BasePage
+from core import BasePage, antistale
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from concurrent.futures import ThreadPoolExecutor
@@ -180,6 +180,7 @@ class EntityPage(BasePage):
                 sorted_result[field] = result.get(field)
         return sorted_result
 
+    @antistale
     def get_page_data_by_template(self, template):
         """
         template = {

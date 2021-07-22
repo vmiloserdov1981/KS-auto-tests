@@ -42,7 +42,10 @@ class UserProfilePage(NewPage):
         else:
             self.find_and_click(self.LOCATOR_GENERATE_PASSWORD_BUTTON)
             self.find_and_click(self.LOCATOR_SHOW_PASSWORD_BUTTON)
+            time.sleep(3)
             actual_password = self.get_input_value(self.LOCATOR_PASSWORD_FIELD)
+            assert actual_password
+            print(f'ACTUAL PASSWORD IS "{actual_password}"')
             self.find_and_click(self.LOCATOR_CHANGE_PASSWORD_BUTTON)
             self.modal.accept_modal()
             self.is_element_disappearing(self.LOCATOR_CHANGE_PASSWORD_BUTTON, wait_display=False)

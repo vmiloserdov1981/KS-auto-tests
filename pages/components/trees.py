@@ -149,7 +149,7 @@ class Tree(BasePage):
             child_locator = self.children_node_locator_creator(parent_node_name)
             names = [node.text for node in self.elements_generator(child_locator, wait=3)]
             return names
-        return []
+        return
 
     def expand_node(self, node_name):
         arrow = self.get_node_arrow(node_name)
