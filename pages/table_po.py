@@ -351,12 +351,12 @@ class TablePage(EntityPage):
             try:
                 self.wait_until_text_in_element(cell_locator, cell_data.get('value'), time=timeout)
             except TimeoutException:
-                raise AssertionError(f'Значение ячейки не соответствует ожидаемому. Ожидаемые данные: \n {cell_data}')
+                raise AssertionError(f'Значение ячейки не соответствует ожидаемому. Ожидаемые данные: \n {cell_data} \n Фактические данные: \n {self.get_element_text(cell_locator, ignore_error=True)}')
 
     def sort_entities_by_name(self):
         entities = [('Строки', 'Объекты'), ('Столбцы', 'Наборы данных'), ('Столбцы', 'Показатели')]
         for i in entities:
-            sort_button_locator = self.entity_sort_button_creator(i[0], i[1])
+            sort_button_locator = self.entity_sort_button_creator(i[1])
             sort_by_name_locator = (By.XPATH, "//div[@class='overlay']//div[contains(@class, 'overlay-item') and .=' По названию, А - Я ']")
             self.find_and_click(sort_button_locator)
             self.find_and_click(sort_by_name_locator)

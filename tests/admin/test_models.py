@@ -191,6 +191,8 @@ def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
         ui_datasets = model_page.get_model_datasets()
         assert api_datasets == ui_datasets, 'Некорректная сортировка по умолчанию'
 
+"""
+Отключено, в связи с задачей PKM-6775
 
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
@@ -293,6 +295,7 @@ def test_admin_dimensions_control(parametrized_login_admin_driver, parameters):
         api_dimensions = model_api.get_model_dictionaries_names(model_uuid, group_value='createdAt', reverse=True)
         ui_dimensions = model_page.get_model_dimensions()
         assert api_dimensions == ui_dimensions, 'Некорректная сортировка по умолчанию'
+    """
 
 
 @allure.feature('Интерфейс Администратора')
@@ -801,9 +804,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         parametrized_login_admin_driver.test_data['to_delete'].append(FormulaEntityCreator(parametrized_login_admin_driver, formula_uuid, delete_anyway=True))
 
     with allure.step(f'Добавить класс {class_name} в список на удаление в постусловиях'):
-        # включить после исправления бага PKM-?
-        # parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, class_node_uuid, delete_anyway=True, force=[16, 17]))
-        pass
+        parametrized_login_admin_driver.test_data['to_delete'].append(ClassNodeCreator(parametrized_login_admin_driver, class_node_uuid, delete_anyway=True, force=[16, 17]))
 
     with allure.step(f'развернуть тестовую папку {test_folder_name}'):
         table_page.tree.expand_node(test_folder_name)
@@ -937,8 +938,8 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         {'object_name': table_object_1_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'},
         {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
         {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '1 111.33'},
-        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1', 'value': '0'},
-        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2', 'value': '0'}
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1', 'value': ''},
+        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2', 'value': ''}
     ]
     with allure.step(f'Заполнить ячейки вновь созданных объектов тестовыми данными'):
         table_page.fill_cells(new_cells_fill_data)
@@ -948,6 +949,8 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Проверить расчет всех ячеек с показателями по формуле'):
         table_page.wait_cells_value(new_cells_calc_data)
+        new_cells_calc_data.pop(5)
+        new_cells_calc_data.pop(4)
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()

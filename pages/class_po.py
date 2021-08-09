@@ -88,7 +88,7 @@ class ClassPage(EntityPage):
         with allure.step(f'Проверить переход на страницу вновь соданного класса'):
             self.wait_page_title(class_name.upper())
         with allure.step(f'Проверить отображение класса {class_name} в дереве классов выбранным'):
-            assert self.tree.get_selected_node_name() == class_name, f'В дереве не выбрана нода {class_name}'
+            self.tree.wait_selected_node_name(class_name)
 
         with allure.step(f'Проверить заполнение класса данными по умолчанию'):
             actual = self.get_class_page_data(timeout=3)

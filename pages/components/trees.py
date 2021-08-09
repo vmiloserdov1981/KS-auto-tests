@@ -23,7 +23,7 @@ class Tree(BasePage):
     LOCATOR_TREE_ARROW = (By.CLASS_NAME, "arrow-wrapper")
     LOCATOR_TREE_OPEN_BUTTON = (By.XPATH, "//div[@class='menu-open-button ng-star-inserted']")
     LOCATOR_TREE_CLASS_BUTTON = (By.XPATH, "//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' Классы ']")
-    LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[contains(@class, 'admin-tree__title')]")
+    LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[contains(@class, 'admin-sidebar__item-selected')]//div[contains(@class, 'admin-sidebar__item__name')]")
     LOCATOR_TREE_ROOT_NODE = (By.XPATH, "(//div[@class='tree-item-title'])[1]")
     LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item-title') and contains(@class, 'selected')]")
     DICTIONARIES_TREE_NAME = 'Справочники'
@@ -173,7 +173,7 @@ class Tree(BasePage):
         page_title_locator = (By.XPATH, "//div[contains(@class, 'title-value')]")
         self.wait_until_text_in_element(page_title_locator, node_name.upper())
 
-    def wait_selected_node_name(self, name, timeout=10):
+    def wait_selected_node_name(self, name, timeout=20):
         self.scroll_to_element(self.find_element(self.LOCATOR_SELECTED_NODE, time=timeout))
         self.wait_until_text_in_element(self.LOCATOR_SELECTED_NODE, name, time=timeout)
 
@@ -268,7 +268,7 @@ class NewTree(BasePage):
     def context_selection(self, node_name, choice_name):
         node_locator = self.node_locator_creator(node_name)
         choice_locator = self.context_option_locator_creator(choice_name)
-        self.find_and_context_click(node_locator)
+        self.find_and_context_click(node_locator, time=20)
         self.find_and_click(choice_locator)
 
     def create_root_folder(self, folder_name):
@@ -290,11 +290,14 @@ class NewTree(BasePage):
             return
 
     def delete_node(self, node_name, node_type, parent_node_name=None):
+        """
         if parent_node_name:
-            self.hide_node(node_name)
-            children = self.get_node_children_names(parent_node_name)
-            assert node_name in children, f'Нода для удаления не в родительской ноде "{parent_node_name}"'
+            self.expand_node(parent_node_name)
+            node_locator = self.children_node_locator_creator(parent_node_name, children_node_name=node_name)
+        else:
+        """
         node_locator = self.node_locator_creator(node_name)
+
         self.context_selection(node_name, 'Удалить')
         actual_deletion_modal_text = self.modal.get_deletion_confirm_modal_text()
         expected_deletion_modal_text = f'Вы действительно хотите удалить\n{node_type} {node_name} ?'
@@ -348,6 +351,7 @@ class NewTree(BasePage):
         self.wait_until_text_in_element(self.LOCATOR_SELECTED_NODE, node_name)
         page_title_locator = (By.XPATH, "//div[contains(@class, 'title-value')]")
         self.wait_until_text_in_element(page_title_locator, node_name.upper())
+        time.sleep(2)
 
     @antistale
     def wait_selected_node_name(self, name, timeout=15):
