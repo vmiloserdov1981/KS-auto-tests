@@ -207,12 +207,12 @@ class NewTree(BasePage):
 
     @staticmethod
     def node_locator_creator(node_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'tree-item-title') and .='{node_name}']")
+        locator = (By.XPATH, f"(//div[contains(@class, 'tree-item-title') and .='{node_name}'])[last()]")
         return locator
 
     @staticmethod
     def node_arrow_locator_creator(node_name):
-        node_xpath = Tree.node_locator_creator(node_name)[1]
+        node_xpath = NewTree.node_locator_creator(node_name)[1]
         locator = (By.XPATH, node_xpath + "//preceding-sibling::div[contains(@class, 'item-arrow')]//fa-icon//*[local-name() = 'svg']")
         return locator
 

@@ -13,8 +13,9 @@ from variables import PkmVars as Vars
 
 
 class EventsPlan(NewEventModal, Modals, EuFilter):
-    LOCATOR_VERSION_INPUT = (By.XPATH, "//div[@class='controls-base-block']//input[contains(@class, 'dropdown-input')]")
-    LOCATOR_VERSION_INPUT_VALUE = (By.XPATH, "//div[@class='controls-base-block']//div[contains(@class, 'display-value-text')]")
+    LOCATOR_VERSION_BUTTON = (By.XPATH, "//pkm-button[.//button[contains(text(), 'Наборы данных')]]")
+    LOCATOR_VERSION_DROPDOWN = (By.XPATH, "//div[@stylesmodule='pr']")
+    LOCATOR_BASE_VERSION_VALUE = (By.XPATH, "//div[contains(@class, 'filter-dropdown-item') and contains(@class, 'selected') and ./div[.=' 1 ']]")
     LOCATOR_EVENT_NAME = (By.XPATH, "//div[contains(@class, 'gantt-indicator-name-value ')]")
     LOCATOR_LAST_EVENT_NAME = (By.XPATH, "(//div[contains(@class, 'gantt-indicator-name-value ')])[last()]")
     LOCATOR_ADD_EVENT_BUTTON = (By.XPATH, "//div[contains(@class, 'controls-base-block')]//fa-icon[@icon='plus']")
@@ -28,25 +29,43 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
     def __init__(self, driver):
         BasePage.__init__(self, driver)
 
+    def open_versions_list(self):
+        try:
+            dropdown = self.find_element(self.LOCATOR_VERSION_DROPDOWN, time=2)
+        except TimeoutException:
+            dropdown = None
+        if not dropdown:
+            self.find_and_click(self.LOCATOR_VERSION_BUTTON)
+            self.find_element(self.LOCATOR_VERSION_DROPDOWN)
+
+    def close_versions_list(self):
+        try:
+            dropdown = self.find_element(self.LOCATOR_VERSION_DROPDOWN, time=2)
+        except TimeoutException:
+            dropdown = None
+        if dropdown:
+            self.find_and_click(self.LOCATOR_VERSION_BUTTON)
+            assert self.is_element_disappearing(self.LOCATOR_VERSION_DROPDOWN, wait_display=False), 'Дропдаун версий плана не скрывается'
+
     def get_active_version_name(self):
-        current_version = self.get_element_text(self.LOCATOR_VERSION_INPUT_VALUE, time=20)
-        return current_version
+        self.open_versions_list()
+        active_base_version = self.get_element_text(self.LOCATOR_BASE_VERSION_VALUE)
+        active_base_version = active_base_version.split('\n')[0]
+        self.close_versions_list()
+        return active_base_version
 
     def set_version(self, version_name, force=False):
-        if force:
-            do = True
-        elif self.get_active_version_name() == version_name:
-            do = False
-        else:
-            do = True
-        if do:
-            target_version = (By.XPATH, f"//div[@class='content' and text()=' {version_name} ']")
-            self.find_and_click(self.LOCATOR_VERSION_INPUT)
-            self.find_and_click(target_version)
-            self.wait_until_text_in_element(self.LOCATOR_VERSION_INPUT_VALUE, version_name)
-            grid_data_locator = (By.XPATH, "//div[@class='gantt_grid_data']")
-            self.find_element(grid_data_locator)
-            time.sleep(Vars.PKM_USER_WAIT_TIME)
+        self.open_versions_list()
+        base_active_version = self.get_element_text(self.LOCATOR_BASE_VERSION_VALUE).split('\n')[0]
+        target_version_locator = (By.XPATH, f"//div[contains(@class, 'filter-dropdown-item') and .//div[.='{version_name}']]")
+        selected_version_locator = (By.XPATH, "(//div[contains(@class, 'filter-dropdown-item') and contains(@class, 'selected')])")
+        if base_active_version != version_name:
+            self.find_and_click(target_version_locator)
+        for selected_version in self.elements_generator(selected_version_locator):
+            if selected_version.text.split('\n')[0] != version_name:
+                selected_version.click()
+        self.close_versions_list()
+        time.sleep(2)
 
     @antistale
     def get_event_names(self):
