@@ -24,11 +24,6 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
     with allure.step(f'Проверить наличие тестовой папки "{Vars.PKM_TEST_FOLDER_NAME}" в дереве справочников'):
         dictionary_page.tree.check_test_folder(Vars.PKM_TEST_FOLDER_NAME)
 
-    with allure.step(f'Проверить отображение всех нод в тестовой папке "{Vars.PKM_TEST_FOLDER_NAME}" в дереве справочников'):
-        dictionary_page.check_tree_node_children(Vars.PKM_TEST_FOLDER_NAME)
-
-    dictionary_page.tree.hide_node(Vars.PKM_TEST_FOLDER_NAME)
-
     with allure.step(f'Определить уникальное название справочника'):
         dict_name = api.create_unique_dict_name(Vars.PKM_BASE_DICTIONARY_NAME)
 

@@ -283,13 +283,11 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                 time.sleep(3)
                 rows = self.driver.find_elements(*rows_locator)
                 for row in rows:
-                    if '\n' not in row.text:
+                    if row.text == '':
                         self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
                                                    row)
                     if names_only:
-                        row_text = row.text
-                        row_name = row_text.split('\n')[1]
-                        yield row_name
+                        yield row.text
                     else:
                         yield row
                 scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
@@ -318,9 +316,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                     if last_row_html != prelast_row_html:
                         self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);", last_row)
                         if names_only:
-                            last_row_text = last_row.text
-                            last_row_name = last_row_text.split('\n')[1]
-                            yield last_row_name
+                            yield last_row.text
                         else:
                             yield last_row
                     prelast_row_html = last_row_html
@@ -361,19 +357,6 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                     actual_height += screen_height
 
         raise AssertionError(f'Мероприятие {event_name} не найдено на диаграмме')
-
-    def check_event(self, name, start_date, end_date):
-        for event in self.events_generator():
-            if event.text.split('\n')[1] == name:
-                aria_label = event.get_attribute('aria-label')
-                aria_name = aria_label.split(' Start date: ')[0].split(' Task: ')[1]
-                aria_start = aria_label.split(' Start date: ')[1].split(' End date: ')[0].split('-')[::-1]
-                aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
-                assert aria_name == name
-                assert aria_start == start_date
-                assert aria_end == end_date
-                return True
-        raise AssertionError(f'Мероприятие "{name}" не найдено')
 
     @antistale
     def select_event_old(self, name):
@@ -589,7 +572,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             else:
                 ui_events = []
             for event in self.events_generator():
-                event_name = event.text.split('\n')[1]
+                event_name = event.text
                 assert event_name in all_api_events
                 if event_name in all_api_events and event_name in filtered_api_events:
                     assert 'filter-hide' not in event.get_attribute('class')
@@ -641,5 +624,8 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         return value
 
     def get_versions_names(self):
-        names = self.get_dropdown_values(self.LOCATOR_VERSION_INPUT, time=20)
+        self.open_versions_list()
+        version_name_locator = (By.XPATH, "//div[contains(@class, 'filter-dropdown-item')]//div[1]")
+        names = [version.text for version in self.elements_generator(version_name_locator)]
+        self.close_versions_list()
         return names

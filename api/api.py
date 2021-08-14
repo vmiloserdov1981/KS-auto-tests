@@ -349,7 +349,7 @@ class ApiEu(BaseApi):
         start_uuid = gantt.get('ganttDiagram').get('options')[0].get('startUuid')
         duration_uuid = gantt.get('ganttDiagram').get('options')[0].get('durationUuid')
         end_uuid = gantt.get('ganttDiagram').get('options')[0].get('endUuid')
-        event_type_uuid = get_custom_field_uuid(gantt, 'Тип работ')
+        event_type_uuid = get_custom_field_uuid(gantt, 'Тип мероприятия')
         works_type_uuid = get_custom_field_uuid(gantt, 'Тип одновременных работ')
         plan_type_uuid = get_custom_field_uuid(gantt, 'Функциональный план')
         ready_type_uuid = get_custom_field_uuid(gantt, 'Готовность')
@@ -542,7 +542,7 @@ class ApiEu(BaseApi):
                 'Тип одновременных работ': [],
                 'Функциональный план': [],
                 'Готовность': [],
-                'Тип работ': [],
+                'Тип мероприятия': [],
 
             },
             "custom_relations_filter": {
@@ -888,8 +888,6 @@ class ApiEu(BaseApi):
 
     def api_get_custom_field_value(self, gantt, custom_field_name, event):
         if event.get('custom') is not None and event.get('custom') != {}:
-            if custom_field_name == 'Тип мероприятия':
-                custom_field_name = 'Тип работ'
             custom_field_uuid = self.api_get_custom_field_uuid(gantt, custom_field_name)
             for custom_field in event.get('custom'):
                 if custom_field == custom_field_uuid:
