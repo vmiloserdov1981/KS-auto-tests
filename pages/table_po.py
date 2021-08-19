@@ -268,6 +268,8 @@ class TablePage(EntityPage):
 
     def columns_title_generator(self):
         scroll = self.find_element(self.LOCATOR_TABLE_SCROLL_ZONE, time=3)
+        self.driver.execute_script("arguments[0].scrollTo(0, 0);", scroll)
+        time.sleep(2)
         scroll_width = self.driver.execute_script("return arguments[0].scrollWidth", scroll)
         if scroll_width == 0:
             for col_title in self.elements_generator(self.LOCATOR_TABLE_COLUMN_TITLE):
@@ -292,6 +294,7 @@ class TablePage(EntityPage):
                     break
                 previous_left_scroll = left_scroll
 
+    @antistale
     def get_table_cols_titles(self, level_only: int = None, names_only: bool = False):
         if names_only:
             result = []

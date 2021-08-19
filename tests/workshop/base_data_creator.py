@@ -285,6 +285,7 @@ def get_workshop_base_data(driver):
                     {
                         "name": "Наборы данных",
                         "entity_type": "Столбцы",
+                        "values": ["План"],
                         "children": [
                             {"name": "Показатели", "entity_type": "Столбцы", "values": [base_data['class_4']['indicators']['indicator_1']['name'], base_data['class_4']['indicators']['indicator_2']['name']]},
                             {"name": "Показатели", "entity_type": "Столбцы", "values": [base_data['class_4']['indicators']['indicator_3']['name']],
@@ -309,6 +310,7 @@ def get_workshop_base_data(driver):
                     {
                         "name": "Наборы данных",
                         "entity_type": "Столбцы",
+                        "values": ["План"],
                         "children": [
                             {"name": "Показатели", "entity_type": "Столбцы",
                              "values": [base_data['class_3']['indicators']['indicator_1']['name'],
@@ -342,6 +344,7 @@ def get_workshop_base_data(driver):
                     },
                     {
                         "name": "Наборы данных",
+                        "values": ["План"],
                         "entity_type": "Столбцы",
                         "children": [{"name": "Временные измерения", "entity_type": "Столбцы"}],
                     }
