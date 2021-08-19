@@ -570,6 +570,6 @@ class ChangePasswordModal(Modals):
         self.find_and_enter(self.LOCATOR_NEW_PASS_FIELD, new_pass)
         self.find_and_enter(self.LOCATOR_NEW_PASS_CONFIRM_FIELD, new_pass)
         self.find_and_click(self.LOCATOR_SAVE_BUTTON)
-        self.is_element_disappearing(self.LOCATOR_CHANGE_PASS_MODAL, time=15, wait_display=False)
+        self.is_element_disappearing(self.LOCATOR_CHANGE_PASS_MODAL, time=25, wait_display=False)
 
 
