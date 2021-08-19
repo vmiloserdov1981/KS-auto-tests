@@ -253,6 +253,11 @@ class ModelPage(EntityPage):
         self.find_and_click(self.dropdown_value_locator_creator(period_type))
         assert self.get_model_period_type() == period_type, "В дропдауне периода отображается некорректное значение"
 
+    def set_start_period_month(self, month: str):
+        month_locator = (By.XPATH, f"//div[contains(@class, 'dropdown-item') and .=' {month} ']")
+        self.find_and_click(self.LOCATOR_MODEL_PERIOD_TIME)
+        self.find_and_click(month_locator)
+
     def get_model_period_data(self):
         template = {
             "period_type": [self.get_model_period_type],

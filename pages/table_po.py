@@ -19,6 +19,7 @@ class TablePage(EntityPage):
     LOCATOR_TABLE_CELL = (By.XPATH, "//pkm-table-cell")
     LOCATOR_DELETE_TABLE_ENTITY_ICON = (By.XPATH, "//div[contains(@class, 'list-element-buttons')]//fa-icon[@icon='times']")
     LOCATOR_ADD_OBJECT_ICON = (By.XPATH, "//div[contains(@class, 'table-buttons')]//*[local-name()='svg' and @data-icon='plus']")
+    LOCATOR_TABLE_SCROLL_ZONE = (By.XPATH, "//pkm-table-cells-container")
 
     def __init__(self, driver):
         super().__init__(driver)
@@ -33,7 +34,19 @@ class TablePage(EntityPage):
 
     @staticmethod
     def entity_block_locator_creator(entity_type, entity_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'constructor-list') and .//div[.='{entity_type}']]//pkm-structure-list-element[.//div[.='{entity_name}']]")
+        locator = (By.XPATH, f"(//div[contains(@class, 'constructor-list') and .//div[.='{entity_type}']]//pkm-structure-list-element[.//div[.='{entity_name}']])[last()]")
+        return locator
+
+    @staticmethod
+    def entity_expand_arrow_locator_creator(entity_type, entity_name):
+        block_xpath = TablePage.entity_block_locator_creator(entity_type, entity_name)[1]
+        locator = (By.XPATH, f"{block_xpath}//div[contains(@class, 'arrow-wrapper')]")
+        return locator
+
+    @staticmethod
+    def entity_clear_button_locator_creator(entity_type, entity_name):
+        block_xpath = TablePage.entity_block_locator_creator(entity_type, entity_name)[1]
+        locator = (By.XPATH, f"{block_xpath}//div[contains(@class, 'ks-dropdown-times')]")
         return locator
 
     @staticmethod
@@ -83,18 +96,17 @@ class TablePage(EntityPage):
         self.wait_stable_page()
         self.wait_table_page_type(page_type)
 
-    def set_base_structure_old(self):
-        rows_drag_zone_locator = self.entity_type_drag_zone_locator_creator('Строки')
-        cols_drag_zone_locator = self.entity_type_drag_zone_locator_creator('Столбцы')
-        objects_entity_locator = self.table_entity_locator_creator('Настройка объекта')
-        datasets_entity_locator = self.table_entity_locator_creator('Наборы данных')
-        indicators_entity_locator = self.table_entity_locator_creator('Показатели')
-        self.drag_and_drop(objects_entity_locator, rows_drag_zone_locator)
-        self.objects_modal.set_all_objects('Объекты')
-        self.drag_and_drop(datasets_entity_locator, cols_drag_zone_locator)
-        datasets_entity_locator = self.entity_drag_zone_locator_creator('Столбцы', 'Наборы данных')
-        self.drag_and_drop(indicators_entity_locator, datasets_entity_locator)
-        time.sleep(3)
+    def set_entity_values(self, entity_type: str, entity_name: str, values: list):
+        clean_button_locator = self.entity_clear_button_locator_creator(entity_type, entity_name)
+        expand_button_locator = self.entity_expand_arrow_locator_creator(entity_type, entity_name)
+        try:
+            self.find_and_click(clean_button_locator, time=1)
+        except TimeoutException:
+            self.find_and_click(expand_button_locator)
+        for value in values:
+            value_locator = (By.XPATH, f"//div[contains(@class, 'multiple-dropdown-item') and .=' {value} ']")
+            self.find_and_click(value_locator)
+        self.find_and_click(expand_button_locator)
 
     def set_entity(self, entity_data):
         """
@@ -103,8 +115,9 @@ class TablePage(EntityPage):
             'entity_type': 'Строки',
             'parent_entity_name': None,
             'additional_action': ('func', 'args', 'kwargs'),
+            'values': ['option_1', 'option_2']
             'children': [
-                {'name': 'yo', 'entity_type': 'Строки', 'children': None, 'additional_action': None}
+                {'name': 'yo', 'entity_type': 'Строки', 'children': None, 'additional_action': None, 'alter_parent_name': 'changed_name'}
             ]
         }
         """
@@ -114,6 +127,7 @@ class TablePage(EntityPage):
         parent_entity_name = entity_data.get('parent_entity_name')
         additional_action = entity_data.get('additional_action')
         children = entity_data.get('children')
+        values = entity_data.get('values')
 
         assert entity_name, 'Не указано название сущности'
         assert entity_type, 'Не указан тип сущности'
@@ -136,10 +150,41 @@ class TablePage(EntityPage):
             function(*args, **kwargs)
             time.sleep(1)
 
+        if values:
+            self.set_entity_values(entity_type, entity_name, values)
+
         if children:
             for children_data in children:
-                children_data['parent_entity_name'] = entity_name
+                children_data['parent_entity_name'] = entity_name if not children_data.get('alter_parent_name') else children_data.get('alter_parent_name')
                 self.set_entity(children_data)
+        time.sleep(2)
+
+    def build_table(self, model_name, table_name, table_entities, check_data: dict = None):
+        with allure.step(f'Создать таблицу {table_name}'):
+            self.create_data_table(model_name, table_name)
+
+        with allure.step('Задать структуру таблицы'):
+            for entity in table_entities:
+                self.set_entity(entity)
+        time.sleep(2)
+        if check_data:
+            with allure.step('Проверить корректное отображение созданной таблицы'):
+                expected_cols = check_data.get('cols')
+                expected_rows = check_data.get('rows')
+                expected_cells = check_data.get('cells')
+                self.switch_table_page_type('Таблица')
+                if expected_cols:
+                    with allure.step('Проверить корректное отображение колонок в таблице'):
+                        actual_cols = self.get_table_cols_titles(names_only=True)
+                        assert actual_cols == expected_cols, 'Фактические колонки не совпадают с ожидаемыми'
+                    if expected_rows:
+                        with allure.step('Проверить корректное отображение строк в таблице'):
+                            actual_rows = self.get_table_rows_titles(names_only=True)
+                            assert actual_rows == expected_rows, 'Фактические колонки не совпадают с ожидаемыми'
+                    if expected_cells:
+                        with allure.step('Проверить корректное отображение ячеек в таблице'):
+                            actual_cells = self.get_table_data()
+                            assert actual_cells == expected_cells, 'Фактические ячейки не совпадают с ожидаемыми'
 
     def set_base_structure(self):
         with allure.step('Задать структуру таблицы'):
@@ -221,10 +266,36 @@ class TablePage(EntityPage):
                 result[height_range] = row_title.text
         return result
 
+    def columns_title_generator(self):
+        scroll = self.find_element(self.LOCATOR_TABLE_SCROLL_ZONE, time=3)
+        scroll_width = self.driver.execute_script("return arguments[0].scrollWidth", scroll)
+        if scroll_width == 0:
+            for col_title in self.elements_generator(self.LOCATOR_TABLE_COLUMN_TITLE):
+                yield col_title
+
+        else:
+            screen_width = self.driver.execute_script("return arguments[0].clientWidth", scroll)
+            left_scroll = self.driver.execute_script("return arguments[0].scrollLeft", scroll)
+            previous_left_scroll = left_scroll
+            title_positions = []
+            while left_scroll + screen_width <= scroll_width:
+                for col_title in self.elements_generator(self.LOCATOR_TABLE_COLUMN_TITLE):
+                    col_top = self.get_cell_style_value('top', col_title)
+                    col_left = self.get_cell_style_value('left', col_title)
+                    position = (col_top, col_left)
+                    if position not in title_positions:
+                        title_positions.append(position)
+                        yield col_title
+                self.driver.execute_script("arguments[0].scrollBy(arguments[1], 0);", scroll, screen_width)
+                left_scroll = self.driver.execute_script("return arguments[0].scrollLeft", scroll)
+                if left_scroll == previous_left_scroll:
+                    break
+                previous_left_scroll = left_scroll
+
     def get_table_cols_titles(self, level_only: int = None, names_only: bool = False):
         if names_only:
             result = []
-            for col_title in self.elements_generator(self.LOCATOR_TABLE_COLUMN_TITLE):
+            for col_title in self.columns_title_generator():
                 result.append(col_title.text)
             return result
 

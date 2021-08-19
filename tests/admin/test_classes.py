@@ -71,22 +71,22 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
         assert class_page.tree.get_selected_node_name() == class_name
 
     with allure.step(f'Создать новый показатель класса "{indicator_1}" через дерево '):
-        indicator_1 = class_page.create_indicator(indicator_1, tree_parent_node=class_name)
+        indicator_1 = class_page.create_indicator(indicator_1, tree_parent_node=class_name, with_check=True)
 
     with allure.step(f'Перейти к классу "{class_name}"'):
         class_page.tree.select_node(class_name)
 
     with allure.step(f'Создать новый показатель класса "{indicator_2}" через страницу класса "{class_name}"'):
-        indicator_2 = class_page.create_indicator(indicator_2)
+        indicator_2 = class_page.create_indicator(indicator_2, with_check=True)
 
     with allure.step(f'Создать новый класс-связь "{relation_1}" через дерево '):
-        relation_1 = class_page.create_relation(f'{class_name}:{relation_1}', Vars.PKM_RELATION_CLASS_NAME, tree_parent_node=class_name)
+        relation_1 = class_page.create_relation(f'{class_name}:{relation_1}', Vars.PKM_RELATION_CLASS_NAME, tree_parent_node=class_name, with_check=True)
 
     with allure.step(f'Перейти к классу "{class_name}"'):
         class_page.tree.select_node(class_name)
 
     with allure.step(f'Создать новый класс-связь "{relation_2}" через страницу класса "{class_name}"'):
-        relation_2 = class_page.create_relation(f'{class_name}:{relation_2}', Vars.PKM_RELATION_CLASS_NAME)
+        relation_2 = class_page.create_relation(f'{class_name}:{relation_2}', Vars.PKM_RELATION_CLASS_NAME, with_check=True)
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()

@@ -64,7 +64,6 @@ class ClassPage(EntityPage):
         if timeout:
             template = {
                 'class_name': (self.get_entity_page_title, (), {"return_raw": True, "timeout": timeout}),
-                # 'changes': [self.get_change_data],
                 'indicators': [self.get_class_indicators, (), {"timeout": timeout}],
                 'dimensions': [self.get_class_dimensions, (), {"timeout": timeout}],
                 'relations': [self.get_class_relations, (), {"timeout": timeout}]
@@ -72,7 +71,6 @@ class ClassPage(EntityPage):
         else:
             template = {
                 'class_name': (self.get_entity_page_title, (), {"return_raw": True}),
-                # 'changes': [self.get_change_data],
                 'indicators': [self.get_class_indicators],
                 'dimensions': [self.get_class_dimensions],
                 'relations': [self.get_class_relations]
@@ -80,7 +78,7 @@ class ClassPage(EntityPage):
         data = self.get_page_data_by_template(template)
         return data
 
-    def create_class(self, parent_node, class_name):
+    def create_class(self, parent_node, class_name, with_check=False):
         with allure.step(f'Создать класс {class_name}'):
             self.find_and_context_click(self.tree.node_locator_creator(parent_node))
             self.find_and_click(self.tree.context_option_locator_creator('Создать класс'))
@@ -89,18 +87,18 @@ class ClassPage(EntityPage):
             self.wait_page_title(class_name.upper())
         with allure.step(f'Проверить отображение класса {class_name} в дереве классов выбранным'):
             self.tree.wait_selected_node_name(class_name)
+        if with_check:
+            with allure.step(f'Проверить заполнение класса данными по умолчанию'):
+                actual = self.get_class_page_data(timeout=3)
+                expected = {
+                    'class_name': class_name,
+                    'indicators': None,
+                    'dimensions': None,
+                    'relations': None
+                }
+                self.compare_dicts(actual, expected)
 
-        with allure.step(f'Проверить заполнение класса данными по умолчанию'):
-            actual = self.get_class_page_data(timeout=3)
-            expected = {
-                'class_name': class_name,
-                'indicators': None,
-                'dimensions': None,
-                'relations': None
-            }
-            self.compare_dicts(actual, expected)
-
-    def create_indicator(self, indicator_name: str, tree_parent_node: str = None) -> dict:
+    def create_indicator(self, indicator_name: str, tree_parent_node: str = None, with_check: bool = False) -> dict:
         if tree_parent_node:
             with allure.step(f'Создать показатель {indicator_name} в ноде "{tree_parent_node}"'):
                 self.find_and_context_click(self.tree.node_locator_creator(tree_parent_node))
@@ -111,30 +109,32 @@ class ClassPage(EntityPage):
                 self.find_and_click(self.add_entity_button_locator_creator('Показатели'))
         with allure.step(f'Укзать название показателя {indicator_name} и сохранить его'):
             self.modal.enter_and_save(indicator_name)
-        with allure.step(f'Проверить отображение показателя {indicator_name} в дереве классов выбранным'):
-            # self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, indicator_name)
-            # завести баг!
-            pass
+        with allure.step(f'Проверить переход на страницу вновь соданного показателя'):
+            self.wait_page_title(indicator_name.upper())
 
-        with allure.step(f'Проверить заполнение созданного показателя данными по умолчанию'):
-            expected_data = {
-                'indicator_name': indicator_name,
-                'indicator_data_type': 'Число',
-                'format': None,
-                'indicator_value_type': 'Максимизирующий',
-                'can_be_timed': False,
-                'is_common_for_datasets': False,
-                'unit_measurement': None,
-                'default_consolidation': 'Сумма',
-                'dimensions': None,
-                'formulas': None
-            }
-            actual_data = self.get_indicator_page_data(timeout=3)
-            assert actual_data == expected_data, 'Страница показателя заполнена некорректными данными'
-            actual_data['indicator_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
-        return actual_data
+        if with_check:
+            with allure.step(f'Проверить отображение показателя {indicator_name} в дереве классов выбранным'):
+                self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, indicator_name)
 
-    def create_relation_indicator(self, indicator_name: str, tree_parent_node: str = None) -> dict:
+            with allure.step(f'Проверить заполнение созданного показателя данными по умолчанию'):
+                expected_data = {
+                    'indicator_name': indicator_name,
+                    'indicator_data_type': 'Число',
+                    'format': None,
+                    'indicator_value_type': 'Максимизирующий',
+                    'can_be_timed': False,
+                    'is_common_for_datasets': False,
+                    'unit_measurement': None,
+                    'default_consolidation': 'Сумма',
+                    'dimensions': None,
+                    'formulas': None
+                }
+                actual_data = self.get_indicator_page_data(timeout=3)
+                assert actual_data == expected_data, 'Страница показателя заполнена некорректными данными'
+                actual_data['indicator_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
+            return actual_data
+
+    def create_relation_indicator(self, indicator_name: str, tree_parent_node: str = None, with_check: bool = False) -> dict:
         time.sleep(5)
         if tree_parent_node:
             with allure.step(f'Создать показатель {indicator_name} в ноде "{tree_parent_node}"'):
@@ -147,23 +147,29 @@ class ClassPage(EntityPage):
         with allure.step(f'Укзать название показателя {indicator_name} и сохранить его'):
             self.modal.enter_and_save(indicator_name)
 
-        with allure.step(f'Проверить заполнение созданного показателя данными по умолчанию'):
-            expected_data = {
-                'indicator_name': indicator_name,
-                'indicator_data_type': 'Число',
-                'format': None,
-                'indicator_value_type': 'Не указано',
-                'can_be_timed': False,
-                'is_common_for_datasets': False,
-                'unit_measurement': None,
-                'default_consolidation': 'Сумма',
-                'dimensions': None,
-                'formulas': None
-            }
-            actual_data = self.get_indicator_page_data(timeout=3)
-            assert actual_data == expected_data, 'Страница показателя заполнена некорректными данными'
-            actual_data['indicator_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
-        return actual_data
+        with allure.step(f'Проверить переход на страницу вновь соданного показателя'):
+            # Баг PKM-7172. удалить следующую строку после исправления
+            self.find_and_click(self.list_element_creator(self.INDICATORS_LIST_NAME, indicator_name))
+            self.wait_page_title(indicator_name.upper())
+
+        if with_check:
+            with allure.step(f'Проверить заполнение созданного показателя данными по умолчанию'):
+                expected_data = {
+                    'indicator_name': indicator_name,
+                    'indicator_data_type': 'Число',
+                    'format': None,
+                    'indicator_value_type': 'Не указано',
+                    'can_be_timed': False,
+                    'is_common_for_datasets': False,
+                    'unit_measurement': None,
+                    'default_consolidation': 'Сумма',
+                    'dimensions': None,
+                    'formulas': None
+                }
+                actual_data = self.get_indicator_page_data(timeout=3)
+                assert actual_data == expected_data, 'Страница показателя заполнена некорректными данными'
+                actual_data['indicator_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
+            return actual_data
 
     def get_indicator_page_data(self, timeout: int = None) -> dict:
         if timeout:
@@ -195,7 +201,7 @@ class ClassPage(EntityPage):
         data = self.get_page_data_by_template(template)
         return data
 
-    def create_relation(self, relation_name: str, destination_class_name: str, tree_parent_node: str = None) -> dict:
+    def create_relation(self, relation_name: str, destination_class_name: str, tree_parent_node: str = None, with_check: bool = False) -> dict:
         time.sleep(5)
         if tree_parent_node:
             source_class_name = tree_parent_node
@@ -213,22 +219,21 @@ class ClassPage(EntityPage):
         with allure.step(f'Укзать название связи {relation_name} и создать ее'):
             self.modal.enter_and_create(relation_name)
         with allure.step(f'Проверить отображение связи {relation_name} в дереве классов выбранной'):
-            # self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, relation_name)
-            # завести баг!
-            pass
+            self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, relation_name)
 
-        with allure.step(f'Проверить заполнение созданной связи данными по умолчанию'):
-            expected_data = {
-                'relation_name': relation_name,
-                'source_class_name': source_class_name,
-                'destination_class_name': destination_class_name,
-                'dimensions': None,
-                'indicators': None
-            }
-            actual_data = self.get_relation_page_data(timeout=3)
-            assert actual_data == expected_data, 'Страница связи заполнена некорректными данными'
-            actual_data['relation_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
-        return actual_data
+        if with_check:
+            with allure.step(f'Проверить заполнение созданной связи данными по умолчанию'):
+                expected_data = {
+                    'relation_name': relation_name,
+                    'source_class_name': source_class_name,
+                    'destination_class_name': destination_class_name,
+                    'dimensions': None,
+                    'indicators': None
+                }
+                actual_data = self.get_relation_page_data(timeout=3)
+                assert actual_data == expected_data, 'Страница связи заполнена некорректными данными'
+                actual_data['relation_name'] = self.driver.execute_script("return arguments[0].textContent;", self.find_element(self.LOCATOR_ENTITY_PAGE_TITLE)).strip()
+            return actual_data
 
     def get_relation_page_data(self, timeout: int = None) -> dict:
         if timeout:
@@ -267,7 +272,8 @@ class ClassPage(EntityPage):
         self.hover_over_element(indicator_locator)
         self.find_and_click(delete_button_locator)
         self.find_and_click(self.modal.LOCATOR_DELETE_BUTTON)
-        # assert self.is_element_disappearing(indicator_locator, wait_display=False), f'Показатель {indicator_name} не исчезает из списка показателей класса'
+        #Включить после исправления PKM-7180
+        #assert self.is_element_disappearing(indicator_locator, wait_display=False), f'Показатель {indicator_name} не исчезает из списка показателей класса'
 
     def set_indicator(self, data: dict):
         """
