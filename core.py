@@ -295,7 +295,7 @@ class BasePage:
                 dictionary[group_value] = [item]
         return dictionary
 
-    def elements_generator(self, locator, time=5, wait=None):
+    def elements_generator(self, locator, time=5, wait=None, scroll_to_element=False):
         if wait:
             sleep(wait)
         try:
@@ -304,6 +304,8 @@ class BasePage:
             return None
         elements = self.driver.find_elements(*locator)
         for element in elements:
+            if scroll_to_element:
+                self.scroll_to_element(element)
             yield element
 
     def is_element_clickable(self, locator):

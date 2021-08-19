@@ -273,7 +273,9 @@ class TablePage(EntityPage):
         scroll_width = self.driver.execute_script("return arguments[0].scrollWidth", scroll)
         if scroll_width == 0:
             for col_title in self.elements_generator(self.LOCATOR_TABLE_COLUMN_TITLE):
-                yield col_title
+                col_top = self.get_cell_style_value('top', col_title)
+                col_left = self.get_cell_style_value('left', col_title)
+                yield col_title, col_top, col_left
 
         else:
             screen_width = self.driver.execute_script("return arguments[0].clientWidth", scroll)
@@ -281,35 +283,41 @@ class TablePage(EntityPage):
             previous_left_scroll = left_scroll
             title_positions = []
             while left_scroll + screen_width <= scroll_width:
-                for col_title in self.elements_generator(self.LOCATOR_TABLE_COLUMN_TITLE):
+                for col_title in self.elements_generator(self.LOCATOR_TABLE_COLUMN_TITLE, wait=3):
+                    if col_title.text == '':
+                        continue
                     col_top = self.get_cell_style_value('top', col_title)
                     col_left = self.get_cell_style_value('left', col_title)
                     position = (col_top, col_left)
                     if position not in title_positions:
                         title_positions.append(position)
-                        yield col_title
+                        yield col_title, col_top, col_left
                 self.driver.execute_script("arguments[0].scrollBy(arguments[1], 0);", scroll, screen_width)
                 left_scroll = self.driver.execute_script("return arguments[0].scrollLeft", scroll)
                 if left_scroll == previous_left_scroll:
                     break
                 previous_left_scroll = left_scroll
 
-    @antistale
     def get_table_cols_titles(self, level_only: int = None, names_only: bool = False):
+        def get_title_position(title: tuple):
+            return title[1], title[2]
+
         if names_only:
             result = []
             for col_title in self.columns_title_generator():
-                result.append(col_title.text)
+                result.append((col_title[0].text, col_title[1], col_title[2]))
+            result.sort(key=get_title_position)
+            result = [col[0] for col in result]
             return result
 
         else:
             result = {}
-            for col_title in self.elements_generator(self.LOCATOR_TABLE_COLUMN_TITLE):
-                col_width = self.get_cell_style_value('width', col_title)
-                col_left = self.get_cell_style_value('left', col_title)
-                col_top = self.get_cell_style_value('top', col_title)
+            for col_title in self.columns_title_generator():
+                col_width = self.get_cell_style_value('width', col_title[0])
+                col_left = col_title[2]
+                col_top = col_title[1]
                 width_range = range(col_left, col_left + col_width)
-                result[(col_top, width_range)] = col_title.text
+                result[(col_top, width_range)] = col_title[0].text
             if not level_only:
                 return result
             else:
