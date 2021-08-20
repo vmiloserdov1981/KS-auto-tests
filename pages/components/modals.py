@@ -133,7 +133,7 @@ class Calendar(BasePage, BaseApi):
 class NewEventModal(Calendar, BasePage):
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]")
     LOCATOR_START_DATE_FIELD = (By.XPATH, "//*[contains (text(), 'Дата начала*')]//..//input")
-    LOCATOR_EVENT_NAME_FIELD = (By.XPATH, "//input[@id='title']")
+    LOCATOR_EVENT_NAME_FIELD = (By.XPATH, "//div[contains(@class, 'modal-window-container')]//div[.='Название*']//input[@id='title']")
     LOCATOR_EVENT_START_DATE_FIELD = (By.XPATH, f"//div[@class='form-col' and .//*[.='Дата начала*']]//input")
     LOCATOR_EVENT_END_DATE_FIELD = (By.XPATH, f"//div[@class='form-col' and .//*[.='Дата окончания']]//input")
     LOCATOR_EVENT_DURATION_FIELD = (By.XPATH, f"//pkm-gant-diagram-task-duration//input[@formcontrolname='days']")

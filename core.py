@@ -238,12 +238,19 @@ class BasePage:
         else:
             return value if value != '' else None
 
-    def wait_server_error(self, timeout=10):
-        assert self.is_element_disappearing(self.LOCATOR_SERVER_ERROR_NOTIFICATION, time=timeout, wait_display=True), 'Сообщение с ошибкой сервера не исчезает'
+    def wait_server_error(self, timeout=10, error_text=None):
+        if error_text:
+            locator = (By.XPATH, f"//div[contains(@class, 'notification-container') and .='{error_text}']//div[contains(@class, 'notification-simple')]")
+        else:
+            locator = (By.XPATH, "//div[contains(@class, 'notification-container') and .='Ошибка сервера']//div[contains(@class, 'notification-simple')]")
+
+        assert self.is_element_disappearing(locator, time=timeout, wait_display=True), 'Сообщение с ошибкой сервера не исчезает'
 
     @staticmethod
     def compare_lists(list_a: list, list_b: list) -> bool:
-        return collections.Counter(list_a) == collections.Counter(list_b)
+        list_a_collection = collections.Counter(list_a)
+        list_b_collection = collections.Counter(list_b)
+        return list_a_collection == list_b_collection
 
     @staticmethod
     def compare_dicts_lists(list_a: list, list_b: list) -> None:
