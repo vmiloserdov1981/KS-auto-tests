@@ -68,22 +68,6 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         time.sleep(2)
 
     @antistale
-    def get_event_names(self):
-        names = [event for event in self.events_generator(names_only=True)]
-        return names
-
-    @antistale
-    def is_event_exists_old(self, event_name):
-        try:
-            self.find_element(self.LOCATOR_EVENT_NAME)
-        except TimeoutException:
-            return False
-        for event in self.events_generator(names_only=True):
-            if event_name == event:
-                return True
-        return False
-
-    @antistale
     def is_event_exists(self, event_name):
         try:
             event = self.get_event(event_name)
@@ -91,15 +75,6 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                 return True
         except AssertionError:
             return False
-
-    def create_unique_event_name(self, base_name):
-        events_list = self.get_event_names()
-        count = 0
-        new_name = base_name
-        while new_name in events_list:
-            count += 1
-            new_name = "{0}_{1}".format(base_name, count)
-        return new_name
 
     def create_event(self, data, check=True):
         """
@@ -260,7 +235,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                             else:
                                 yield row
 
-    def events_generator_new(self, names_only=False):
+    def events_generator(self, names_only=False):
         # Новый
         # перебирает мероприятия построчно в соответствии с подгрузкой ганта
         last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
@@ -314,7 +289,6 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                     self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, cell_height)
                     self.wait_element_changing(last_row_html, last_row_locator, time=2, ignore_timeout=True)
                     last_row = self.find_element(last_row_locator)
-                    last_row_html = last_row.get_attribute('innerHTML')
                     scrollbar = self.find_element(scroll_area, time=2)
                     scroll_top = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
                     screen_height_range = range(scroll_top, scroll_top + screen_height+cell_height)
@@ -339,7 +313,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                         total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
                 break
 
-    def events_generator(self, names_only=False):
+    def events_generator_last(self, names_only=False):
         # отрефакторенный
         # перебирает мероприятия построчно, стабильный но менее быстрый
         last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
@@ -440,20 +414,6 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         raise AssertionError(f'Мероприятие {event_name} не найдено на диаграмме')
 
     @antistale
-    def select_event_old(self, name):
-        for event in self.events_generator(names_only=True):
-            try:
-                if event == name:
-                    event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {name} ')]")
-                    # self.driver.execute_script("arguments[0].scrollIntoView();", event)
-                    self.find_and_click(event_locator)
-                    # assert 'gantt_selected' in event.get_attribute('class')
-                    return True
-            except IndexError:
-                pass
-        raise AssertionError(f'Мероприятие "{name}" не найдено')
-
-    @antistale
     def select_event(self, name):
         event = self.get_event(name)
         event.click()
@@ -474,76 +434,6 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         self.find_and_click(self.LOCATOR_COPY_ICON)
         self.find_element(self.LOCATOR_MODAL_TITLE, time=10)
 
-    '''
-    Стандартное открытие, отключил т.к. есть вероятность что не всегда открывает
-    
-    @antistale
-    def open_event(self, event_name, start_date=None, end_date=None, from_top=False):
-        found = False
-        event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
-        if from_top:
-            for event in self.events_generator(names_only=False):
-                if event.text.split('\n')[1] == event_name:
-                    found = True
-                    break
-        else:
-            try:
-                time.sleep(Vars.PKM_USER_WAIT_TIME)
-                self.find_element(event_locator, time=5)
-                found = True
-            except TimeoutException:
-                found = False
-                for event in self.events_generator(names_only=False):
-                    if event.text.split('\n')[1] == event_name:
-                        found = True
-                        break
-        if found:
-            action = ActionChains(self.driver)
-            aria_label = self.find_element(event_locator).get_attribute('aria-label')
-            aria_name = aria_label.split(' Start date: ')[0].split(' Task: ')[1]
-            assert aria_name == event_name
-            if start_date:
-                aria_start = aria_label.split(' Start date: ')[1].split(' End date: ')[0].split('-')[::-1]
-                assert aria_start == start_date
-            if end_date:
-                aria_end = aria_label.split(' End date: ')[1].split('-')[::-1]
-                assert aria_end == end_date
-            self.find_and_click(event_locator)
-            time.sleep(2)
-            action.double_click(self.find_element(event_locator)).perform()
-            title = self.get_title()
-            assert title == event_name
-            return True
-        else:
-            raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
-    '''
-
-    @antistale
-    def open_event_old(self, event_name, start_date=None, end_date=None, from_top=False):
-        # Ранее работающая стабильная версия
-        event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
-        try:
-            time.sleep(Vars.PKM_USER_WAIT_TIME)
-            self.find_element(event_locator, time=5)
-            found = True
-        except TimeoutException:
-            found = False
-            for event in self.events_generator(names_only=False):
-                if event.text.split('\n')[1] == event_name:
-                    found = True
-                    self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=true);", event)
-                    break
-        if found:
-            action = ActionChains(self.driver)
-            self.find_and_click(event_locator)
-            time.sleep(2)
-            action.double_click(self.find_element(event_locator)).perform()
-            title = self.get_title()
-            assert title == event_name
-            return True
-        else:
-            raise AssertionError(f'Мероприятие "{event_name}" не найдено на диаграмме')
-
     @antistale
     def open_event(self, event_name, **kwargs):
         # Экспериментальная версия
@@ -563,24 +453,6 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         except TimeoutException:
             return None
         self.driver.execute_script("arguments[0].scrollTop = 0;", scroll)
-
-    @antistale
-    def get_grouped_events(self):
-        events = {}
-
-        def add_in_group(item, dictionary, group_value):
-            if group_value in dictionary.keys():
-                dictionary[group_value].append(item)
-            else:
-                dictionary[group_value] = [item]
-            return dictionary
-        summary = None
-        for event in self.events_generator():
-            if 'summary-bar' in event.get_attribute('class'):
-                summary = event.text.split('\n')[1]
-            else:
-                add_in_group(event.text.split('\n')[1], events, summary)
-        return events
 
     @antistale
     def get_events(self, names_only=False, grouped=False):
@@ -607,10 +479,10 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                 if not event:
                     return events
                 if 'summary-bar' in event.get_attribute('class'):
-                    summary = event.text.split('\n')[1]
+                    summary = event.text
                 else:
                     if names_only:
-                        add_in_group(event.text.split('\n')[1], events, summary)
+                        add_in_group(event.text, events, summary)
                     else:
                         add_in_group(event, events, summary)
             return events
