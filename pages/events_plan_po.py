@@ -235,7 +235,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                             else:
                                 yield row
 
-    def events_generator(self, names_only=False):
+    def events_generator_debug(self, names_only=False):
         # Новый
         # перебирает мероприятия построчно в соответствии с подгрузкой ганта
         last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
@@ -280,12 +280,10 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                 cell_height = self.driver.execute_script("return arguments[0].clientHeight", last_row) + 1
                 last_target_row_html = last_row_html = last_row.get_attribute('innerHTML')
                 last_row_top = self.driver.execute_script("return arguments[0].offsetTop", last_row)
-                scroll_top = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
                 screen_height = self.driver.execute_script("return arguments[0].offsetHeight", scrollbar)
-                screen_height_range = range(scroll_top, scroll_top + screen_height)
                 target_row_top = last_row_top
                 # построчный перебор
-                while last_row_top + (cell_height * 2) < total_height:
+                while last_row_top + cell_height <= total_height and not stop_gen:
                     self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, cell_height)
                     self.wait_element_changing(last_row_html, last_row_locator, time=2, ignore_timeout=True)
                     last_row = self.find_element(last_row_locator)
@@ -295,7 +293,11 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
 
                     while target_row_top in screen_height_range:
                         target_row_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@style, 'top: {target_row_top}px')]")
-                        target_row = self.find_element(target_row_locator)
+                        try:
+                            target_row = self.find_element(target_row_locator, time=2)
+                        except TimeoutException:
+                            stop_gen = True
+                            break
                         if last_target_row_html != target_row.get_attribute('innerHTML'):
                             self.scroll_to_element(target_row)
                             if names_only:
@@ -307,11 +309,92 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                     last_row_top = self.driver.execute_script("return arguments[0].offsetTop", last_row)
                     last_row_html = last_row.get_attribute('innerHTML')
 
-                    if last_row_top + (cell_height * 2) >= total_height:
+                    if last_row_top + cell_height >= total_height:
                         time.sleep(5)
                         scrollbar = self.find_element(scroll_area, time=2)
                         total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
                 break
+
+    def events_generator(self, names_only=False):
+        # Эксперимент
+        # перебирает мероприятия построчно в соответствии с подгрузкой ганта
+        last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
+        rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
+        stop_gen = False
+
+        # скролл в начало диаграммы
+        self.scroll_to_gantt_top()
+        time.sleep(5)
+
+        # Перебор мероприятий которые уже отрисованы
+        while not stop_gen:
+            try:
+                self.find_element(rows_locator, time=10)
+            except TimeoutException:
+                stop_gen = True
+                yield None
+
+            if not stop_gen:
+                time.sleep(3)
+                rows = self.driver.find_elements(*rows_locator)
+                for row in rows:
+                    if row.text == '':
+                        self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
+                                                   row)
+                    if names_only:
+                        yield row.text
+                    else:
+                        yield row
+                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
+                try:
+                    self.find_element(scroll_area, time=2)
+                except TimeoutException:
+                    stop_gen = True
+
+            # настройка построчного перебора
+            if not stop_gen:
+                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
+                scrollbar = self.find_element(scroll_area, time=2)
+                total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
+                last_row = self.find_element(last_row_locator)
+                cell_height = self.driver.execute_script("return arguments[0].clientHeight", last_row) + 1
+                last_target_row_html = last_row.get_attribute('innerHTML')
+                last_row_top = self.driver.execute_script("return arguments[0].offsetTop", last_row)
+                screen_height = self.driver.execute_script("return arguments[0].offsetHeight", scrollbar)
+                target_row_top = last_row_top
+                scroll_top = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
+                screen_height_range = range(scroll_top, scroll_top + screen_height + cell_height)
+
+
+                # построчный перебор
+                while not stop_gen:
+                    if target_row_top in screen_height_range:
+                        target_row_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@style, 'top: {target_row_top}px')]")
+                        try:
+                            target_row = self.find_element(target_row_locator, time=2)
+                        except TimeoutException:
+                            break
+                        if target_row.get_attribute('innerHTML') != last_target_row_html:
+                            self.scroll_to_element(target_row)
+                            if names_only:
+                                yield target_row.text
+                            else:
+                                yield target_row
+                        target_row_top += cell_height
+                        last_target_row_html = target_row.get_attribute('innerHTML')
+                    else:
+                        self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, cell_height)
+                        if scroll_top + screen_height + cell_height > total_height:
+                            time.sleep(5)
+                        scrollbar = self.find_element(scroll_area, time=2)
+                        scroll_top = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
+                        screen_height_range = range(scroll_top, scroll_top + screen_height + cell_height)
+                        total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
+                        if target_row_top not in screen_height_range:
+                            stop_gen = True
+                break
+
+
 
     def events_generator_last(self, names_only=False):
         # отрефакторенный
@@ -490,6 +573,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             events = [event for event in self.events_generator(names_only=names_only) if event is not None]
             return events
 
+    @antistale
     def check_plan_events(self, plan_uuid, version, login, filter_set, group_by=None):
         api = self.api_creator.get_api_eu()
         """
@@ -534,7 +618,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                 if group_by:
                     summary = None
                     if 'summary-bar' in event.get_attribute('class'):
-                        summary = event.text.split('\n')[1]
+                        summary = event.text
                     self.add_in_group(event_name, ui_events, summary)
                 else:
                     ui_events.append(event_name)
