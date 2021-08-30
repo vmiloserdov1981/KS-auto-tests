@@ -14,7 +14,8 @@ from variables import PkmVars as Vars
 
 class EventsPlan(NewEventModal, Modals, EuFilter):
     LOCATOR_VERSION_BUTTON = (By.XPATH, "//pkm-button[.//button[contains(text(), 'Наборы данных')]]")
-    LOCATOR_VERSION_DROPDOWN = (By.XPATH, "//div[@stylesmodule='pr']")
+    #LOCATOR_VERSION_DROPDOWN = (By.XPATH, "//div[@stylesmodule='pr']")
+    LOCATOR_VERSION_DROPDOWN = (By.XPATH, "//div[contains(@class, 'gantt-overlay-menu')]")
     LOCATOR_BASE_VERSION_VALUE = (By.XPATH, "//div[contains(@class, 'filter-dropdown-item') and contains(@class, 'selected') and ./div[.=' 1 ']]")
     LOCATOR_EVENT_NAME = (By.XPATH, "//div[contains(@class, 'gantt-indicator-name-value ')]")
     LOCATOR_LAST_EVENT_NAME = (By.XPATH, "(//div[contains(@class, 'gantt-indicator-name-value ')])[last()]")
@@ -119,7 +120,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             NewEventModal.set_start_day(self, data.get('start_day'))
             NewEventModal.set_duration(self, data.get('duration'))
             NewEventModal.set_field(self, 'Тип мероприятия', data.get('event_type'))
-            NewEventModal.set_field(self, 'Тип одновременных работ', data.get('works_type'))
+            NewEventModal.set_field(self, 'Тип одновременных работ', data.get('works_type'), alter_field_name='Тип работ')
             NewEventModal.set_field(self, 'Функциональный план', data.get('plan'))
             NewEventModal.set_field(self, 'Готовность', data.get('ready'))
             NewEventModal.fill_field(self, 'Комментарий', data.get('comment'))
@@ -128,7 +129,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                 NewEventModal.check_option(self, 'Кросс-функциональное мероприятие')
             if data.get('is_need_attention'):
                 NewEventModal.check_option(self, 'Требует повышенного внимания')
-            completed_data = NewEventModal.get_event_data(self)
+            completed_data = NewEventModal.get_event_data(self) if check else None
             NewEventModal.save_event(self)
             time.sleep(Vars.PKM_API_WAIT_TIME)
             return completed_data

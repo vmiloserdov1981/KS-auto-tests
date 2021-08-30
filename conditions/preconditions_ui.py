@@ -11,6 +11,8 @@ from api.api import ApiEu
 from pages.components.trees import Tree
 from pages.components.modals import ProjectModal
 from pages.main.new_po import NewPage
+from pages.components.modals import ChangePasswordModal
+from core import TimeoutException
 
 
 class PreconditionsFront(BasePage, ApiEu):
@@ -21,6 +23,16 @@ class PreconditionsFront(BasePage, ApiEu):
     def __init__(self, driver, project_uuid, login=None, password=None, token=None):
         BasePage.__init__(self, driver)
         ApiEu.__init__(self, login, password, project_uuid, token=token)
+
+    def change_expired_password(self, password, timeout=5):
+        change_modal = ChangePasswordModal(self.driver)
+        try:
+            self.find_element(change_modal.LOCATOR_CHANGE_PASS_BUTTON, time=timeout)
+        except TimeoutException:
+            return False
+        self.find_and_click(change_modal.LOCATOR_CHANGE_PASS_BUTTON)
+        change_modal.change_password(password, password)
+        return True
 
     @allure.title('Перейти к интерфейсу администратора')
     def login_as_admin(self, login, password, project, publication=Vars.PKM_ADMIN_PUBLICATION_NAME):

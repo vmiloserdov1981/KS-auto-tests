@@ -194,6 +194,10 @@ def get_workshop_base_data(driver):
             'dictionary_name': base_data['dictionary_4']['name'],
             'can_be_timed': False
         },
+        'indicator_5': {
+            'name': 'Якорь',
+            'type': 'Логический'
+        }
     }
 
     base_data['class_2']['indicators'] = {
@@ -354,11 +358,36 @@ def get_workshop_base_data(driver):
                 }
             }
         },
+        "gantt": {
+        "name": 'План мероприятий',
+        "class": base_data['class_1']['name'],
+        "start_indicator": base_data['class_1']['indicators']['indicator_1']['name'],
+        "end_indicator": base_data['class_1']['indicators']['indicator_2']['name'],
+        "duration_indicator": base_data['class_1']['indicators']['indicator_3']['name'],
+        "anchor_indicator": base_data['class_1']['indicators']['indicator_5']['name'],
+        "additional_indicators": [base_data['class_1']['indicators']['indicator_4']['name']],
+        "relations": {
+            0: {
+                "name": "Персонал мероприятия",
+                "class": base_data["class_1"]["relations"]["relation_3"]["name"],
+                "search_indicators": [],
+                "input_indicators": [
+                    base_data["class_1"]["relations"]["relation_3"]["indicators"]["indicator_1"]["name"]]
+            },
+            1: {
+                "name": "МТР мероприятия",
+                "class": base_data["class_1"]["relations"]["relation_2"]["name"],
+                "search_indicators": [],
+                "input_indicators": [
+                    base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_2"]["name"]]
+            }
+        }
+    },
         "model_period_type": "Месяц",
         "period_start_value": "Январь",
         "period_start_year": "2021",
         "periods_amount": "12",
-        "last_period": "декабрь 2021",
+        "last_period": "декабрь 2021"
     }
 
     return base_data

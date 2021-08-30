@@ -1,6 +1,5 @@
 from selenium.webdriver.common.by import By
 from core import BasePage
-import users
 from pages.components.modals import ProjectModal
 import allure
 import time
@@ -44,6 +43,17 @@ class LoginPage(BasePage):
         time.sleep(randint(2, 5))
         with allure.step(f'Клик на кнопку логина'):
             self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
+        from conditions.preconditions_ui import PreconditionsFront
+        change_password_modal = PreconditionsFront(self.driver, None)
+        is_pass_changed = change_password_modal.change_expired_password(password)
+        if is_pass_changed:
+            self.enter_login(login)
+            self.enter_pass(password)
+            # добавлена рандомная задержка для предотвращения одновременного логина при выполнении тестов параллельно
+            time.sleep(randint(2, 5))
+            with allure.step(f'Клик на кнопку логина'):
+                self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
+
         if wait_main_page:
             with allure.step('Проверить переход на главную страницу'):
                 self.find_element((By.XPATH, "//ks-home"))

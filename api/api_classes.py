@@ -22,10 +22,10 @@ class ApiClasses(BaseApi):
         parent_uuid = None
         if parent_folder_name:
             parent_uuid = self.get_node_uuid(parent_folder_name, 'folder')
-        classes_nodes = self.api_get_classes_tree()
+        classes_nodes = self.api_get_classes_list(term_value=node_name)
         if parent_uuid:
             for node in classes_nodes:
-                if node.get('name') == node_name and node.get('type') == node_type and node.get('parentUuid') == parent_uuid:
+                if node.get('name') == node_name:
                     return True
                 else:
                     continue
@@ -37,6 +37,12 @@ class ApiClasses(BaseApi):
 
     def api_get_classes_tree(self):
         resp = self.post('{}classes/get-tree'.format(Vars.PKM_API_URL), self.token, {})
+        classes = resp.get('data') or []
+        return classes
+
+    def api_get_classes_list(self, term_value):
+        payload = {'term': term_value} if term_value else {}
+        resp = self.post('{}classes/get-list'.format(Vars.PKM_API_URL), self.token, payload)
         classes = resp.get('data') or []
         return classes
 

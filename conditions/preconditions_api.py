@@ -65,12 +65,9 @@ class ApiAdminPreconditions:
         self.dictionaries_api.check_test_folder(Vars.PKM_TEST_FOLDER_NAME)
 
     def check_workshop_folders(self):
-        '''
         current_date = self.classes_api.get_utc_date()
         unique_workshop_folder_name = self.classes_api.create_unique_folder_name(f'{Vars.PKM_WORKSHOP_TEST_FOLDER_NAME}_{current_date[0]}-{current_date[1]}-{current_date[2]}')
         os.environ["WORKSHOP_FOLDER_NAME"] = Vars.PKM_WORKSHOP_TEST_FOLDER_NAME = unique_workshop_folder_name
         self.model_api.check_test_folder(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
         self.classes_api.check_test_folder(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
         self.dictionaries_api.check_test_folder(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
-        '''
-        os.environ["WORKSHOP_FOLDER_NAME"] = Vars.PKM_WORKSHOP_TEST_FOLDER_NAME = 'workshop_20-08-2021_1'

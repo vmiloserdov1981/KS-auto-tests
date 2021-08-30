@@ -10,7 +10,7 @@ from pages.class_po import ClassPage
 @allure.severity(allure.severity_level.CRITICAL)
 @pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
-        'login': 'eu_user',
+        'login': 'eu_user3',
         'project': Vars.PKM_PROJECT_NAME,
         'tree_type': 'Классы',
         'name': 'Управление сущностями дерева классов'

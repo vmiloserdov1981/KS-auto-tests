@@ -164,24 +164,29 @@ class NewEventModal(Calendar, BasePage):
         return date
 
     def fill_field(self, field_name, text):
-        field_locator = (By.XPATH, f"//div[contains(@class, 'indicator-label') and text()=' {field_name} ']//following-sibling::input")
-        field = self.find_element(field_locator)
-        if field.get_attribute('value') != '':
-            field.clear()
-        else:
-            pass
-        field.send_keys(text)
+        if text:
+            field_locator = (By.XPATH, f"//div[contains(@class, 'indicator-label') and text()=' {field_name} ']//following-sibling::input")
+            field = self.find_element(field_locator)
+            if field.get_attribute('value') != '':
+                field.clear()
+            else:
+                pass
+            field.send_keys(text)
 
     def get_field_value(self, field_name):
         field_locator = (By.XPATH, f"//div[contains(@class, 'indicator-label') and text()=' {field_name} ']//following-sibling::input")
         field = self.find_element(field_locator)
         return field.get_attribute('value')
 
-    def set_field(self, field_name, option):
-        field_locator = (By.XPATH, f"//div[contains(@class, 'indicators-list-item') and ./div[text()=' {field_name} ']]//div[contains(@class, 'dropdown')]")
-        value_locator = (By.XPATH, f"//div[@class='content' and text()=' {option} ']")
-        self.find_and_click(field_locator)
-        self.find_and_click(value_locator)
+    def set_field(self, field_name, option, alter_field_name=None):
+        if option:
+            if not alter_field_name:
+                alter_field_name = field_name
+            #field_locator = (By.XPATH, f"//div[contains(@class, 'indicators-list-item') and ./div[text()=' {field_name} ']]//div[contains(@class, 'dropdown')]")
+            field_locator = (By.XPATH, f"//div[contains(@class, 'indicators-list-item') and ./div[text()=' {field_name} ' or text()=' {alter_field_name} ']]//div[contains(@class, 'dropdown')]")
+            value_locator = (By.XPATH, f"//div[@class='content' and text()=' {option} ']")
+            self.find_and_click(field_locator)
+            self.find_and_click(value_locator)
 
     def get_field_option(self, field_name):
         field_locator = (By.XPATH, f"//div[contains(@class, 'indicators-list-item') and ./div[text()=' {field_name} ']]//div[contains(@class, 'dropdown')]")
