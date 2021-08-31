@@ -370,14 +370,14 @@ def get_workshop_base_data(driver):
             0: {
                 "name": "Персонал мероприятия",
                 "class": base_data["class_1"]["relations"]["relation_3"]["name"],
-                "search_indicators": [],
+                "search_indicators": [base_data['class_4']['indicators']['indicator_1']['name']],
                 "input_indicators": [
                     base_data["class_1"]["relations"]["relation_3"]["indicators"]["indicator_1"]["name"]]
             },
             1: {
                 "name": "МТР мероприятия",
                 "class": base_data["class_1"]["relations"]["relation_2"]["name"],
-                "search_indicators": [],
+                "search_indicators": [base_data['class_3']['indicators']['indicator_1']['name']],
                 "input_indicators": [
                     base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_2"]["name"]]
             }

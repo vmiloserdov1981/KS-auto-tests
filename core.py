@@ -227,6 +227,11 @@ class BasePage:
         action = ActionChains(self.driver)
         action.drag_and_drop(element_1, element_2).perform()
 
+    def drag_and_drop_by_offset(self, locator, x_offset, y_offset):
+        element = self.find_element(locator)
+        action = ActionChains(self.driver)
+        action.drag_and_drop_by_offset(element, x_offset, y_offset).perform()
+
     def get_input_value(self, input_locator, return_empty=True, webelement=None, time=2):
         if not webelement:
             input_element = self.find_element(input_locator, time=time)

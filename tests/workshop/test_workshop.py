@@ -6,7 +6,7 @@ from pages.dictionary_po import DictionaryPage
 from pages.model_po import ModelPage
 from pages.table_po import TablePage
 from pages.object_po import ObjectPage
-from pages.gantt_po import GanttPage
+from pages.gantt_po import GanttPage, DiagramPage
 from tests.workshop.base_data_creator import get_workshop_base_data
 
 
@@ -26,8 +26,529 @@ def test_workshop(parametrized_login_admin_driver, parameters):
     model_page = ModelPage(parametrized_login_admin_driver)
     table_page = TablePage(parametrized_login_admin_driver)
     gantt_page = GanttPage(parametrized_login_admin_driver)
-    base_data = get_workshop_base_data(parametrized_login_admin_driver)
+    diagram_page = DiagramPage(parametrized_login_admin_driver)
+    #base_data = get_workshop_base_data(parametrized_login_admin_driver)
+    base_data = {
+    "class_1": {
+        "name": "Мероприятие_4",
+        "relations": {
+            "relation_1": {
+                "name": "Скважина мероприятия_4",
+                "target_class_name": "Скважина_4",
+            },
+            "relation_2": {
+                "name": "МТР мероприятия_4",
+                "target_class_name": "МТР_4",
+                "indicators": {
+                    "indicator_1": {
+                        "name": "График потребления, ед.",
+                        "type": "Число",
+                        "can_be_timed": True,
+                        "formula": {
+                            0: {
+                                "type": "function",
+                                "value": "ЕСЛИ",
+                                "arguments": {
+                                    0: {
+                                        0: {
+                                            "type": "function",
+                                            "value": "И",
+                                            "arguments": {
+                                                0: {
+                                                    0: {
+                                                        "type": "indicator",
+                                                        "value": "Дата начала",
+                                                    },
+                                                    1: {"type": "text", "value": ">="},
+                                                    2: {
+                                                        "type": "function",
+                                                        "value": "НАЧАЛО ПЕРИОДА",
+                                                    },
+                                                },
+                                                1: {
+                                                    0: {
+                                                        "type": "indicator",
+                                                        "value": "Дата начала",
+                                                    },
+                                                    1: {"type": "text", "value": "<"},
+                                                    2: {
+                                                        "type": "function",
+                                                        "value": "КОНЕЦ ПЕРИОДА",
+                                                    },
+                                                },
+                                            },
+                                        }
+                                    },
+                                    1: {
+                                        0: {"type": "indicator", "value": "Потребление"}
+                                    },
+                                    2: {0: {"type": "text", "value": "0"}},
+                                },
+                            }
+                        },
+                    },
+                    "indicator_2": {"name": "Потребление", "type": "Число"},
+                },
+            },
+            "relation_3": {
+                "name": "Персонал мероприятия_4",
+                "target_class_name": "Персонал_4",
+                "indicators": {
+                    "indicator_1": {
+                        "name": "Требуемая численность, чел.",
+                        "type": "Число",
+                    },
+                    "indicator_2": {
+                        "name": "График требуемой численности, чел.",
+                        "type": "Число",
+                        "formula": {
+                            0: {
+                                "type": "function",
+                                "value": "ЕСЛИ",
+                                "arguments": {
+                                    0: {
+                                        0: {
+                                            "type": "function",
+                                            "value": "И",
+                                            "arguments": {
+                                                0: {
+                                                    0: {
+                                                        "type": "function",
+                                                        "value": "КОНЕЦ ПЕРИОДА",
+                                                    },
+                                                    1: {"type": "text", "value": ">"},
+                                                    2: {
+                                                        "type": "indicator",
+                                                        "value": "Дата начала",
+                                                    },
+                                                },
+                                                1: {
+                                                    0: {
+                                                        "type": "function",
+                                                        "value": "НАЧАЛО ПЕРИОДА",
+                                                    },
+                                                    1: {"type": "text", "value": "<="},
+                                                    2: {
+                                                        "type": "indicator",
+                                                        "value": "Дата окончания",
+                                                    },
+                                                },
+                                            },
+                                        }
+                                    },
+                                    1: {
+                                        0: {
+                                            "type": "indicator",
+                                            "value": "Требуемая численность, чел.",
+                                        }
+                                    },
+                                    2: {0: {"type": "text", "value": "0"}},
+                                },
+                            }
+                        },
+                    },
+                },
+            },
+        },
+        "indicators": {
+            "indicator_1": {
+                "name": "Дата начала",
+                "type": "Дата",
+                "can_be_timed": False,
+            },
+            "indicator_2": {
+                "name": "Дата окончания",
+                "type": "Дата",
+                "can_be_timed": False,
+            },
+            "indicator_3": {
+                "name": "Длительность",
+                "type": "Число",
+                "can_be_timed": False,
+                "formula": {
+                    0: {"type": "indicator", "value": "Дата окончания"},
+                    1: {"type": "text", "value": "-"},
+                    2: {"type": "indicator", "value": "Дата начала"},
+                },
+            },
+            "indicator_4": {
+                "name": "Тип работ",
+                "type": "Справочник значений",
+                "dictionary_name": "Типы работ_4",
+                "can_be_timed": False,
+            },
+            "indicator_5": {"name": "Якорь", "type": "Логический"},
+        },
+    },
+    "class_2": {
+        "name": "Скважина_4",
+        "indicators": {
+            "indicator_1": {
+                "name": "Тип",
+                "type": "Справочник значений",
+                "dictionary_name": "Типы скважин (конструкция)_4",
+                "can_be_timed": False,
+            }
+        },
+    },
+    "class_3": {
+        "name": "МТР_4",
+        "indicators": {
+            "indicator_1": {
+                "name": "Тип",
+                "type": "Справочник значений",
+                "dictionary_name": "Типы МТР_4",
+                "can_be_timed": False,
+            },
+            "indicator_2": {
+                "name": "Нормативная стоимость, руб",
+                "type": "Число",
+                "format": "0,0.00",
+                "can_be_timed": False,
+            },
+            "indicator_3": {
+                "name": "Совокупный график потребности, ед.",
+                "type": "Число",
+                "can_be_timed": True,
+                "formula": {
+                    0: {"type": "indicator", "value": "График потребления, ед."}
+                },
+            },
+            "indicator_4": {
+                "name": "Совокупные затраты на МТР, руб.",
+                "type": "Число",
+                "can_be_timed": True,
+                "formula": {
+                    0: {"type": "indicator", "value": "Нормативная стоимость, руб"},
+                    1: {"type": "text", "value": "*"},
+                    2: {
+                        "type": "indicator",
+                        "value": "Совокупный график потребности, ед.",
+                    },
+                },
+            },
+        },
+    },
+    "class_4": {
+        "name": "Персонал_4",
+        "indicators": {
+            "indicator_1": {
+                "name": "Тип",
+                "type": "Справочник значений",
+                "dictionary_name": "Типы персонала_5",
+                "can_be_timed": False,
+            },
+            "indicator_2": {
+                "name": "Ставка, руб.",
+                "type": "Число",
+                "format": "0,0.00",
+                "can_be_timed": False,
+            },
+            "indicator_3": {
+                "name": "Совокупный график требуемой численности, чел.",
+                "type": "Число",
+                "can_be_timed": True,
+                "formula": {
+                    0: {
+                        "type": "indicator",
+                        "value": "График требуемой численности, чел.",
+                    }
+                },
+            },
+            "indicator_4": {
+                "name": "Совокупные затраты на персонал, руб.",
+                "type": "Число",
+                "format": "0,0",
+                "can_be_timed": True,
+                "formula": {
+                    0: {"type": "indicator", "value": "Ставка, руб."},
+                    1: {"type": "text", "value": "*"},
+                    2: {
+                        "type": "indicator",
+                        "value": "Совокупный график требуемой численности, чел.",
+                    },
+                },
+            },
+        },
+    },
+    "dictionary_1": {
+        "name": "Типы персонала_5",
+        "elements": {
+            0: "Бригады бурения",
+            1: "Бригады ТКРС",
+            2: "Вспомогательный",
+            3: "Управленческий",
+        },
+    },
+    "dictionary_2": {
+        "name": "Типы МТР_4",
+        "elements": {
+            0: "Долота",
+            1: "Обсадные трубы",
+            2: "Хим. реагенты",
+            3: "Топливо",
+            4: "ГСМ",
+            5: "Прочие",
+        },
+    },
+    "dictionary_3": {
+        "name": "Типы скважин (конструкция)_4",
+        "elements": {
+            0: "Вертикальная",
+            1: "Наклонно-направленная",
+            2: "Горизонтальная",
+        },
+    },
+    "dictionary_4": {
+        "name": "Типы работ_4",
+        "elements": {
+            0: "Бурение",
+            1: "ВМР (монтаж)",
+            2: "Вспомогательный",
+            3: "Управленческий",
+        },
+    },
+    "model": {
+        "name": "Планирование мероприятий_3",
+        "datasets": {0: {"name": "План"}},
+        "tables": {
+            0: {
+                "name": "Реестр персонала",
+                "entities": [
+                    {
+                        "name": "Настройка объекта",
+                        "entity_type": "Строки",
+                        "additional_action": (None, ["Персонал_4"]),
+                    },
+                    {
+                        "name": "Наборы данных",
+                        "entity_type": "Столбцы",
+                        "values": ["План"],
+                        "children": [
+                            {
+                                "name": "Показатели",
+                                "entity_type": "Столбцы",
+                                "values": ["Тип", "Ставка, руб."],
+                                "parent_entity_name": "Наборы данных",
+                            },
+                            {
+                                "name": "Показатели",
+                                "entity_type": "Столбцы",
+                                "values": [
+                                    "Совокупный график требуемой численности, чел."
+                                ],
+                                "children": [
+                                    {
+                                        "name": "Временные измерения",
+                                        "entity_type": "Столбцы",
+                                        "parent_entity_name": "Показатели",
+                                    }
+                                ],
+                                "parent_entity_name": "Наборы данных",
+                            },
+                        ],
+                    },
+                ],
+                "check_data": {
+                    "cols": [
+                        "План",
+                        "Ставка, руб.",
+                        "Тип",
+                        "Совокупный график требуемой численности, чел.",
+                        "январь 2021",
+                        "февраль 2021",
+                        "март 2021",
+                        "апрель 2021",
+                        "май 2021",
+                        "июнь 2021",
+                        "июль 2021",
+                        "август 2021",
+                        "сентябрь 2021",
+                        "октябрь 2021",
+                        "ноябрь 2021",
+                        "декабрь 2021",
+                    ]
+                },
+            },
+            1: {
+                "name": "Реестр МТР",
+                "entities": [
+                    {
+                        "name": "Настройка объекта",
+                        "entity_type": "Строки",
+                        "additional_action": None,
+                    },
+                    {
+                        "name": "Наборы данных",
+                        "entity_type": "Столбцы",
+                        "values": ["План"],
+                        "children": [
+                            {
+                                "name": "Показатели",
+                                "entity_type": "Столбцы",
+                                "values": ["Тип", "Нормативная стоимость, руб"],
+                                "parent_entity_name": "Наборы данных",
+                            },
+                            {
+                                "name": "Показатели",
+                                "entity_type": "Столбцы",
+                                "values": ["Совокупный график потребности, ед."],
+                                "children": [
+                                    {
+                                        "name": "Временные измерения",
+                                        "entity_type": "Столбцы",
+                                        "parent_entity_name": "Показатели",
+                                    }
+                                ],
+                                "parent_entity_name": "Наборы данных",
+                            },
+                        ],
+                    },
+                ],
+                "check_data": {
+                    "cols": [
+                        "План",
+                        "Нормативная стоимость, руб",
+                        "Тип",
+                        "Совокупный график потребности, ед.",
+                        "январь 2021",
+                        "февраль 2021",
+                        "март 2021",
+                        "апрель 2021",
+                        "май 2021",
+                        "июнь 2021",
+                        "июль 2021",
+                        "август 2021",
+                        "сентябрь 2021",
+                        "октябрь 2021",
+                        "ноябрь 2021",
+                        "декабрь 2021",
+                    ]
+                },
+            },
+            2: {
+                "name": "Расчет затрат",
+                "entities": [
+                    {
+                        "name": "Настройка объекта",
+                        "entity_type": "Строки",
+                        "additional_action": None,
+                        "children": [
+                            {
+                                "name": "Показатели",
+                                "entity_type": "Строки",
+                                "alter_parent_name": "Объекты класса",
+                                "values": ["Совокупные затраты на персонал, руб."],
+                                "parent_entity_name": "Объекты класса",
+                            }
+                        ],
+                    },
+                    {
+                        "name": "Настройка объекта",
+                        "entity_type": "Строки",
+                        "additional_action": None,
+                        "children": [
+                            {
+                                "name": "Показатели",
+                                "entity_type": "Строки",
+                                "alter_parent_name": "Объекты класса",
+                                "values": ["Совокупные затраты на МТР, руб."],
+                                "parent_entity_name": "Объекты класса",
+                            }
+                        ],
+                    },
+                    {
+                        "name": "Наборы данных",
+                        "values": ["План"],
+                        "entity_type": "Столбцы",
+                        "children": [
+                            {
+                                "name": "Временные измерения",
+                                "entity_type": "Столбцы",
+                                "parent_entity_name": "Наборы данных",
+                            }
+                        ],
+                    },
+                ],
+                "check_data": {
+                    "cols": [
+                        "План",
+                        "январь 2021",
+                        "февраль 2021",
+                        "март 2021",
+                        "апрель 2021",
+                        "май 2021",
+                        "июнь 2021",
+                        "июль 2021",
+                        "август 2021",
+                        "сентябрь 2021",
+                        "октябрь 2021",
+                        "ноябрь 2021",
+                        "декабрь 2021",
+                    ]
+                },
+            },
+        },
+        "gantt": {
+            "name": "План мероприятий",
+            "class": "Мероприятие_4",
+            "start_indicator": "Дата начала",
+            "end_indicator": "Дата окончания",
+            "duration_indicator": "Длительность",
+            "anchor_indicator": "Якорь",
+            "additional_indicators": ["Тип работ"],
+            "relations": {
+                0: {
+                    "name": "Персонал мероприятия",
+                    "class": "Персонал мероприятия_4",
+                    "search_indicators": None,
+                    "input_indicators": ["Требуемая численность, чел."],
+                },
+                1: {
+                    "name": "МТР мероприятия",
+                    "class": "МТР мероприятия_4",
+                    "search_indicators": None,
+                    "input_indicators": ["Потребление"],
+                },
+            },
+        },
+        "model_period_type": "Месяц",
+        "period_start_value": "Январь",
+        "period_start_year": "2021",
+        "periods_amount": "12",
+        "last_period": "декабрь 2021",
+    },
+}
+    base_data['model']['diagrams'] = {
+            0: {
+                "name": "Справочники. Навигация",
+                "build_action": [
+                    diagram_page.build_workshop_diagram_1,
+                    {
+                        0: {
+                            "related_entity_type": "Таблица данных",
+                            "related_entity_model": base_data["model"]["name"],
+                            "related_table_name": base_data["model"]["tables"][0]["name"],
+                            "entity_order": 1
+                        },
+                        1: {"related_entity_type": "Таблица данных",
+                            "related_entity_model": base_data["model"]["name"],
+                            "related_table_name": base_data["model"]["tables"][1]["name"],
+                            "entity_order": 2
+                            }
+                    }
+                ]
+            },
+            1: {"name": "Главное меню",
+                "build_action": [
+                    diagram_page.build_workshop_diagram_1
+                ]
+                }
+        }
+    base_data['model']['gantt']['relations'][0]['search_indicators'] = [base_data['class_4']['indicators']['indicator_1']['name']]
+    base_data['model']['gantt']['relations'][1]['search_indicators'] = [base_data['class_3']['indicators']['indicator_1']['name']]
 
+    '''
     with allure.step('Создать тестовые справочники'):
         with allure.step(f'Создать справочник {base_data["dictionary_1"]["name"]}'):
             dictionary_page.create_dictionary(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dictionary_1"]["name"])
@@ -341,6 +862,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
     with allure.step(f'Создать таблицу {base_data["model"]["tables"][2]["name"]}'):
         table_page.build_table(base_data["model"]["name"], base_data["model"]["tables"][2]["name"], base_data["model"]["tables"][2]['entities'], check_data=base_data["model"]["tables"][2]['check_data'])
 
+        
     with allure.step("Создать диаграмму Ганта"):
         gantt_page.create_gantt(base_data['model']['name'], base_data['model']['gantt']['name'])
 
@@ -376,3 +898,9 @@ def test_workshop(parametrized_login_admin_driver, parameters):
 
     with allure.step('Проверить отображение созданного мероприятия в дереве'):
         gantt_page.tree.wait_child_node(base_data['model']['name'], event_data['event_name'])
+    '''
+    dictionary_page.tree.switch_to_tree('Модели')
+    gantt_page.tree.expand_node(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
+
+    with allure.step(f"Создать диаграмму {base_data['model']['diagrams'][0]['name']}"):
+        diagram_page.build_diagram(base_data['model']['name'], base_data['model']['diagrams'][0]["name"], base_data['model']['diagrams'][0]["build_action"])
