@@ -37,7 +37,7 @@ def test_password_recovery(driver, parameters):
         profile_page.header.logout()
 
     with allure.step(f'Войти в систему с логином {target_user_login} и новым паролем'):
-        login_page.login(target_user_login, new_pass, wait_main_page=False)
+        login_page.login(target_user_login, new_pass, wait_main_page=False, check_password_expiration=False)
 
     with allure.step('Нажать кнопку смены временного пароля'):
         change_pass_modal.accept_changing()
@@ -48,8 +48,8 @@ def test_password_recovery(driver, parameters):
     with allure.step(f'Попробовать войти в систему с логином {target_user_login} и новым паролем'):
         login_page.login(target_user_login, new_pass, wait_main_page=False)
 
-    with allure.step('Проверить отображение уведомления "Неверный пароль"'):
-        login_page.wait_server_error(error_text='Неверный пароль')
+    with allure.step('Проверить недоступность логина'):
+        users_page.not_find_element(users_page.sidebar.LOCATOR_SIDEBAR, timeout=5)
 
     with allure.step(f'Войти в систему с логином {target_user_login} и старым паролем'):
         login_page.login(target_user_login, target_user_pass)

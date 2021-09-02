@@ -104,6 +104,12 @@ class BasePage:
             dom_html = self.find_element(dom_locator).get_attribute('innerHTML')
         raise AssertionError('Превышено количество попыток ожидания стабильности страницы')
 
+    def not_find_element(self, locator, timeout=10):
+        try:
+            self.find_element(locator, time=timeout)
+        except TimeoutException:
+            return True
+
     def is_element_disappearing(self, locator, time=10, wait_display=True):
         if wait_display:
             try:
@@ -245,9 +251,9 @@ class BasePage:
 
     def wait_server_error(self, timeout=10, error_text=None):
         if error_text:
-            locator = (By.XPATH, f"//div[contains(@class, 'notification-container') and .='{error_text}']//div[contains(@class, 'notification-simple')]")
+            locator = (By.XPATH, f"//div[contains(@class, 'notification-container') and .='{error_text}']")
         else:
-            locator = (By.XPATH, "//div[contains(@class, 'notification-container') and .='Ошибка сервера']//div[contains(@class, 'notification-simple')]")
+            locator = (By.XPATH, "//div[contains(@class, 'notification-container') and .='Ошибка сервера']")
 
         assert self.is_element_disappearing(locator, time=timeout, wait_display=True), 'Сообщение с ошибкой сервера не исчезает'
 
