@@ -218,7 +218,7 @@ class NewTree(BasePage):
 
     @staticmethod
     def context_option_locator_creator(option_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'context-menu-body')]//div[@class='context-menu-item-title' and .=' {option_name} ']")
+        locator = (By.XPATH, f"(//div[contains(@class, 'context-menu-body')]//div[@class='context-menu-item-title' and .=' {option_name} '])[last()]")
         return locator
 
     @staticmethod
