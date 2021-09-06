@@ -42,6 +42,8 @@ class PreconditionsFront(BasePage, ApiEu):
         main_page = NewPage(self.driver)
         with allure.step('Перейти на сайт по адресу {}'.format(Vars.PKM_MAIN_URL)):
             login_page.go_to_site()
+        with allure.step('Включиить логирование истории запросов'):
+            self.driver.execute_script("window.requestHistoryEnabled = true")
         with allure.step('Войти в систему'):
             login_page.login(login, password)
         if publication:

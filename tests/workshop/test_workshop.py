@@ -7,6 +7,7 @@ from pages.model_po import ModelPage
 from pages.table_po import TablePage
 from pages.object_po import ObjectPage
 from pages.gantt_po import GanttPage, DiagramPage
+from pages.dashboard_po import DashboardPage
 from tests.workshop.base_data_creator import get_workshop_base_data
 
 
@@ -27,7 +28,9 @@ def test_workshop(parametrized_login_admin_driver, parameters):
     table_page = TablePage(parametrized_login_admin_driver)
     gantt_page = GanttPage(parametrized_login_admin_driver)
     diagram_page = DiagramPage(parametrized_login_admin_driver)
+    dashboard_page = DashboardPage(parametrized_login_admin_driver)
     #base_data = get_workshop_base_data(parametrized_login_admin_driver)
+    dashboards_api = dashboard_page.api_creator.get_api_dashboards()
     base_data = {
     "class_1": {
         "name": "Мероприятие_4",
@@ -548,6 +551,15 @@ def test_workshop(parametrized_login_admin_driver, parameters):
     base_data['model']['gantt']['relations'][0]['search_indicators'] = [base_data['class_4']['indicators']['indicator_1']['name']]
     base_data['model']['gantt']['relations'][1]['search_indicators'] = [base_data['class_3']['indicators']['indicator_1']['name']]
 
+    base_data["dashboards"] = {
+        0: {
+            "name": dashboards_api.create_unique_dashboard_name("Меню")
+        },
+        1: {
+            "name": dashboards_api.create_unique_dashboard_name("Справочники")
+        }
+    }
+
     '''
     with allure.step('Создать тестовые справочники'):
         with allure.step(f'Создать справочник {base_data["dictionary_1"]["name"]}'):
@@ -904,3 +916,12 @@ def test_workshop(parametrized_login_admin_driver, parameters):
 
     with allure.step(f"Создать диаграмму {base_data['model']['diagrams'][0]['name']}"):
         diagram_page.build_diagram(base_data['model']['name'], base_data['model']['diagrams'][0]["name"], base_data['model']['diagrams'][0]["build_action"])
+
+    with allure.step(f'Перейти к дереву дашбордов'):
+        dashboard_page.tree.switch_to_tree('Интерфейсы')
+
+    with allure.step(f'Создать дашборд {base_data["dashboards"][0]["name"]}'):
+        dashboard_page.create_dashboard(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dashboards"][0]["name"])
+
+    with allure.step(f'Создать дашборд {base_data["dashboards"][1]["name"]}'):
+        dashboard_page.create_dashboard(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dashboards"][1]["name"])

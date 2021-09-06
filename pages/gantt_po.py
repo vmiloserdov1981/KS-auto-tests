@@ -266,17 +266,28 @@ class DiagramPage(EntityPage):
         table_dropdown_locator = (By.XPATH, "//div[contains(@class, 'form-col') and .//div[.=' Поиск по сущности ']]//ks-dropdown")
         entity_option_locator = (By.XPATH, f"//div[contains(@class, 'single-dropdown-item') and .= ' {entity_name} ']")
         sync_name_checkbox_locator = (By.XPATH, "//div[contains(@class, 'checkbox-label') and .='Синхронизировать название']")
+        action_block_dropdown_locator = (By.XPATH, "(//div[contains(@class, 'format-title') and .=' Взаимодействие '])[1]")
+        add_action_button_locator = (By.XPATH, "//div[.='Взаимодействия' and contains(@class, 'interact-title-container')]//fa-icon[@icon='plus']")
+        action_dropdown_locator = (By.XPATH, "//ks-dropdown[@ng-reflect-placeholder='Выберите взаимодействие']")
+        action_option_locator = (By.XPATH, f"//div[contains(@class, 'single-dropdown-item') and .= ' Клик ']")
 
-        self.find_and_click(entity_locator)
-        self.find_and_click(relation_block_dropdown_locator)
-        self.find_and_click(entity_type_dropdown_locator)
-        self.find_and_click(entity_type_dropdown_option_locator)
-        self.find_and_enter(model_input_locator, entity_model)
-        self.find_and_click(self.dropdown_value_locator_creator(entity_model))
-        self.find_and_click(table_dropdown_locator)
-        self.find_and_click(entity_option_locator)
-        self.find_and_click(sync_name_checkbox_locator)
-        self.find_and_click(relation_block_dropdown_locator)
+        with allure.step('Привязать сущность к фигуре'):
+            self.find_and_click(entity_locator)
+            self.find_and_click(relation_block_dropdown_locator)
+            self.find_and_click(entity_type_dropdown_locator)
+            self.find_and_click(entity_type_dropdown_option_locator)
+            self.find_and_enter(model_input_locator, entity_model)
+            self.find_and_click(self.dropdown_value_locator_creator(entity_model))
+            self.find_and_click(table_dropdown_locator)
+            self.find_and_click(entity_option_locator)
+            self.find_and_click(sync_name_checkbox_locator)
+            self.find_and_click(relation_block_dropdown_locator)
+        with allure.step('Задать передачу сущности при клике'):
+            self.find_and_click(action_block_dropdown_locator)
+            self.find_and_click(add_action_button_locator)
+            self.find_and_click(action_dropdown_locator)
+            self.find_and_click(action_option_locator)
+            self.find_and_click(action_block_dropdown_locator)
 
 
 

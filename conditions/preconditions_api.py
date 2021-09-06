@@ -2,6 +2,7 @@ from api.api_classes import ApiClasses
 from api.api_models import ApiModels
 from api.api_dictionaries import ApiDictionaries
 from api.api import ApiEu
+from api.api_dashboards import ApiDashboards
 from variables import PkmVars as Vars
 import users
 import os
@@ -50,6 +51,7 @@ class ApiAdminPreconditions:
         self.model_api = ApiModels(login, password, project_uuid, token=token, api_url=api_url)
         self.classes_api = ApiClasses(login, password, project_uuid, token=token, api_url=api_url)
         self.dictionaries_api = ApiDictionaries(login, password, project_uuid, token=token, api_url=api_url)
+        self.dashboards_api = ApiDashboards(login, password, project_uuid, token=token, api_url=api_url)
 
     def prepare_data(self):
         print('Check all autotest folders')
@@ -74,3 +76,4 @@ class ApiAdminPreconditions:
         self.dictionaries_api.check_test_folder(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
         '''
         os.environ["WORKSHOP_FOLDER_NAME"] = Vars.PKM_WORKSHOP_TEST_FOLDER_NAME = 'workshop_30-08-2021_1'
+        self.dashboards_api.check_test_folder(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)

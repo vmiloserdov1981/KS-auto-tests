@@ -229,3 +229,9 @@ class AttachmentsCreator:
             name='logs',
             attachment_type=allure.attachment_type.JSON
         )
+        history = json.dumps(self.driver.execute_script("return window.getRequestsHistory();"))
+        allure.attach(
+            history,
+            name='history',
+            attachment_type=allure.attachment_type.JSON
+        )
