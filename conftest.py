@@ -12,11 +12,23 @@ from conditions.clean_factory import delete as delete_entity
 import time
 
 
+class CustomDriver(webdriver.Chrome):
+    def refresh(self):
+        self.execute_script('window.clearRequestsHistory()')
+        super().refresh()
+
+
+class CustomRemoteDriver(webdriver.Remote):
+    def refresh(self):
+        super().refresh()
+        self.execute_script('window.window.requestHistoryEnabled = true')
+
+
 def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, project_name=None, token=None):
     if name is None:
         name = 'autotest'
     if os.getenv('IS_LOCAL') == 'true':
-        driver = webdriver.Chrome(ChromeDriverManager().install())
+        driver = CustomDriver(ChromeDriverManager().install())
     else:
         ip = os.getenv('SELENOID_IP', '127.0.0.1')
         ip = f'http://{ip}:4444/wd/hub'
@@ -34,7 +46,7 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, projec
             "service-startup-timeout": '5m',
             "goog:loggingPrefs": {'browser': 'ALL'}
         }
-        driver = webdriver.Remote(
+        driver = CustomRemoteDriver(
             command_executor=ip,
             desired_capabilities=capabilities)
     driver.test_data = {'to_delete': []}
@@ -217,6 +229,21 @@ class AttachmentsCreator:
             self.attach_data()
             self.driver.quit()
 
+    @staticmethod
+    def convert_history(network_history: list):
+        result = {}
+        count = 0
+        for i in network_history:
+            current = {
+                'url': i.get('request').get('url'),
+                'status': i.get('response').get('status'),
+                'request_body': i.get('request').get('body'),
+                'response_body': i.get('response').get('body')
+            }
+            result[count] = current
+            count += 1
+        return json.dumps(result)
+
     def attach_data(self):
         allure.attach(
             self.driver.get_screenshot_as_png(),
@@ -229,7 +256,7 @@ class AttachmentsCreator:
             name='logs',
             attachment_type=allure.attachment_type.JSON
         )
-        history = json.dumps(self.driver.execute_script("return window.getRequestsHistory();"))
+        history = self.convert_history(self.driver.execute_script("return window.getRequestsHistory();"))
         allure.attach(
             history,
             name='history',

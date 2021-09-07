@@ -194,11 +194,14 @@ class DiagramPage(EntityPage):
         self.tree = NewTree(driver)
         self.modal = Modals(driver)
 
-    def create_diagram(self, model_name, diagram_name):
+    def create_diagram(self, parent_name, diagram_name, from_model=True):
         with allure.step(f'Создать диаграмму {diagram_name}'):
-            self.find_and_context_click(self.tree.node_locator_creator(model_name), time=20)
-            self.hover_over_element(self.tree.context_option_locator_creator('Создать'))
-            self.find_and_click(self.tree.submenu_option_locator_creator('Диаграмма'))
+            self.find_and_context_click(self.tree.node_locator_creator(parent_name), time=20)
+            if from_model:
+                self.hover_over_element(self.tree.context_option_locator_creator('Создать'))
+                self.find_and_click(self.tree.submenu_option_locator_creator('Диаграмма'))
+            else:
+                self.find_and_click(self.tree.context_option_locator_creator('Создать диаграмму'))
         with allure.step(f'Укзать название диаграммы {diagram_name} и создать ее'):
             self.modal.enter_and_save(diagram_name)
         with allure.step(f'Проверить отображение диаграммы {diagram_name} в дереве выбранной'):
@@ -206,13 +209,13 @@ class DiagramPage(EntityPage):
         with allure.step(f'Проверить переход на страницу диаграммы'):
             self.find_element(self.LOCATOR_DIAGRAM)
 
-    def build_diagram(self, model_name, diagram_name, build_action):
+    def build_diagram(self, model_name, diagram_name, build_action, from_model=True):
         with allure.step("Создать диаграмму"):
-            self.create_diagram(model_name, diagram_name)
+            self.create_diagram(model_name, diagram_name, from_model=from_model)
         with allure.step("Построить диаграмму"):
             build_action[0](build_action[1])
 
-    def build_workshop_diagram_1(self, entities_data: dict):
+    def build_workshop_dictionaries_diagram(self, entities_data: dict):
         """
         entities_data = {
             0: {
@@ -230,16 +233,32 @@ class DiagramPage(EntityPage):
         prev_diagram_html = self.get_element_html(self.LOCATOR_DIAGRAM)
         with allure.step("Добавить фигуру 1"):
             self.find_and_click(set_figure_locator)
-            self.wait_element_changing(prev_diagram_html, self.LOCATOR_DIAGRAM, time=3, ignore_timeout=True)
-            prev_diagram_html = self.get_element_html(self.LOCATOR_DIAGRAM)
+            self.wait_stable_page(3)
+            # self.wait_element_changing(prev_diagram_html, self.LOCATOR_DIAGRAM, time=5, ignore_timeout=True)
+            # prev_diagram_html = self.get_element_html(self.LOCATOR_DIAGRAM)
             self.drag_and_drop_by_offset(diagram_figure_locator, -300, 0)
-            self.wait_element_changing(prev_diagram_html, self.LOCATOR_DIAGRAM, time=3, ignore_timeout=True)
+            self.wait_stable_page(3)
+            # self.wait_element_changing(prev_diagram_html, self.LOCATOR_DIAGRAM, time=5, ignore_timeout=True)
         with allure.step("Добавить фигуру 2"):
             self.find_and_click(set_figure_locator)
         with allure.step("Настроить фигуру 1"):
             self.set_entity(entities_data[0])
         with allure.step("Настроить фигуру 2"):
             self.set_entity(entities_data[1])
+
+    def build_workshop_menu_diagram(self, *args):
+        set_figure_locator = (By.XPATH, "//a//*[local-name()='rect' and @ry]")
+        diagram_figure_locator = (By.XPATH,
+                                  "//div[contains(@class, 'geDiagramContainer')]//*[local-name()='g']//*[local-name()='rect' and @ry]")
+        prev_diagram_html = self.get_element_html(self.LOCATOR_DIAGRAM)
+        with allure.step("Добавить фигуру 1"):
+            self.find_and_click(set_figure_locator)
+            self.wait_element_changing(prev_diagram_html, self.LOCATOR_DIAGRAM, time=3, ignore_timeout=True)
+            prev_diagram_html = self.get_element_html(self.LOCATOR_DIAGRAM)
+            self.drag_and_drop_by_offset(diagram_figure_locator, -300, 0)
+            self.wait_element_changing(prev_diagram_html, self.LOCATOR_DIAGRAM, time=3, ignore_timeout=True)
+        with allure.step("Добавить фигуру 2"):
+            self.find_and_click(set_figure_locator)
 
     def set_entity(self, entity_data):
         """
@@ -288,14 +307,3 @@ class DiagramPage(EntityPage):
             self.find_and_click(action_dropdown_locator)
             self.find_and_click(action_option_locator)
             self.find_and_click(action_block_dropdown_locator)
-
-
-
-
-
-
-
-
-
-
-"//a//*[local-name()='rect' and @ry]"

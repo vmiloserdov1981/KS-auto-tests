@@ -9,6 +9,11 @@ import time
 
 
 class DashboardPage(EntityPage):
+    LOCATOR_DASHBOARD_SETTINGS_BUTTON = (By.XPATH, "//ks-button[.//*[local-name()='svg' and @data-icon='cog']]")
+    LOCATOR_DASHBOARD_ADD_INPUT_EVENT_BUTTON = (By.XPATH, "//pkm-dashboard-settings-group[@ng-reflect-group-title='Входящие события']//fa-icon[.//*[local-name()='svg' and @data-icon='plus']]")
+    LOCATOR_SAVE_DASHBOARD_SETTINGS_BUTTON = (By.XPATH, "//pkm-dashboard-side-panel//button[.=' Сохранить ' or .='Сохранить']")
+    LOCATOR_DASHBOARD_RELATED_ENTITY_DROPDOWN_LOCATOR = (By.XPATH, "//pkm-dashboard-settings-group[@ng-reflect-group-title='Связанная сущность']")
+
     def __init__(self, driver):
         super().__init__(driver)
         self.tree = Tree(driver)
@@ -30,3 +35,35 @@ class DashboardPage(EntityPage):
             self.tree.wait_selected_node_name(dashboard_name)
         with allure.step(f'Проверить переход на страницу вновь соданного дашборда'):
             self.wait_page_title(dashboard_name)
+
+    def set_single_input_event_dropdown(self, dropdown_name, dropdown_value):
+        dropdown_locator = (By.XPATH, f"//div[contains(@class, 'form-col') and .//div[.='{dropdown_name}']]//ks-dropdown")
+        option_locator = (By.XPATH, f"//div[@class='single-dropdown-item' and .=' {dropdown_value} ']")
+        self.find_and_click(dropdown_locator)
+        self.find_and_click(option_locator)
+
+    def set_multiple_input_event_dropdown(self, dropdown_name, dropdown_values):
+        dropdown_locator = (By.XPATH, f"//div[@class='form-col' and .//div[.='{dropdown_name}']]//ks-dropdown")
+        self.find_and_click(dropdown_locator)
+        for dropdown_value in dropdown_values:
+            option_locator = (By.XPATH, f"//div[@class='multiple-dropdown-item' and .=' {dropdown_value} ']")
+            self.find_and_click(option_locator)
+        self.find_and_click(dropdown_locator)
+
+    def set_menu_dashboard(self, menu_diagram_name):
+        self.find_and_click(self.LOCATOR_DASHBOARD_SETTINGS_BUTTON)
+        self.find_and_click(self.LOCATOR_DASHBOARD_ADD_INPUT_EVENT_BUTTON)
+        self.set_single_input_event_dropdown('Тип события', 'Получение интерфейса')
+        self.set_single_input_event_dropdown('Действие', 'Получить')
+        self.set_multiple_input_event_dropdown('Источник', ['Ячейка 0'])
+        self.find_and_click(self.modal.LOCATOR_SAVE_BUTTON)
+        self.find_and_click(self.LOCATOR_SAVE_DASHBOARD_SETTINGS_BUTTON)
+        self.find_and_click((By.XPATH, "//pkm-dashboard-cell"))
+        self.find_and_click(self.LOCATOR_DASHBOARD_RELATED_ENTITY_DROPDOWN_LOCATOR)
+        self.set_single_input_event_dropdown('Тип сущности', 'Диаграмма')
+        self.find_and_enter((By.XPATH, "//async-dropdown-search[@ng-reflect-placeholder='Диаграмма']//input"), menu_diagram_name)
+        self.find_and_click(self.dropdown_value_locator_creator(menu_diagram_name))
+        self.find_and_click(self.LOCATOR_SAVE_DASHBOARD_SETTINGS_BUTTON)
+
+
+

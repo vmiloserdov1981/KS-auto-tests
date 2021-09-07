@@ -192,3 +192,13 @@ class ApiModels(BaseApi):
         for model in models_list:
             if model.get('name') == model_name:
                 return model.get('uuid')
+
+    def create_unique_diagram_name(self, basename):
+        diagrams_list = self.post(f'{Vars.PKM_API_URL}diagrams/get-list', self.token, {'term': ''}).get('data')
+        diagrams_names = [i.get('name') for i in diagrams_list]
+        count = 0
+        new_name = basename
+        while new_name in diagrams_names:
+            count += 1
+            new_name = f"{basename}_{count}"
+        return new_name

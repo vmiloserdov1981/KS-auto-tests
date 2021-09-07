@@ -524,9 +524,9 @@ def test_workshop(parametrized_login_admin_driver, parameters):
 }
     base_data['model']['diagrams'] = {
             0: {
-                "name": "Справочники. Навигация",
+                "name": model_page.api_creator.get_api_models().create_unique_diagram_name("Справочники. Навигация"),
                 "build_action": [
-                    diagram_page.build_workshop_diagram_1,
+                    diagram_page.build_workshop_dictionaries_diagram,
                     {
                         0: {
                             "related_entity_type": "Таблица данных",
@@ -542,9 +542,9 @@ def test_workshop(parametrized_login_admin_driver, parameters):
                     }
                 ]
             },
-            1: {"name": "Главное меню",
+            1: {"name": model_page.api_creator.get_api_models().create_unique_diagram_name("Главное меню"),
                 "build_action": [
-                    diagram_page.build_workshop_diagram_1
+                    diagram_page.build_workshop_menu_diagram, None
                 ]
                 }
         }
@@ -873,8 +873,10 @@ def test_workshop(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Создать таблицу {base_data["model"]["tables"][2]["name"]}'):
         table_page.build_table(base_data["model"]["name"], base_data["model"]["tables"][2]["name"], base_data["model"]["tables"][2]['entities'], check_data=base_data["model"]["tables"][2]['check_data'])
+    '''
+    dictionary_page.tree.switch_to_tree('Модели')
+    gantt_page.tree.expand_node(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
 
-        
     with allure.step("Создать диаграмму Ганта"):
         gantt_page.create_gantt(base_data['model']['name'], base_data['model']['gantt']['name'])
 
@@ -910,18 +912,21 @@ def test_workshop(parametrized_login_admin_driver, parameters):
 
     with allure.step('Проверить отображение созданного мероприятия в дереве'):
         gantt_page.tree.wait_child_node(base_data['model']['name'], event_data['event_name'])
-    '''
-    dictionary_page.tree.switch_to_tree('Модели')
-    gantt_page.tree.expand_node(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
 
     with allure.step(f"Создать диаграмму {base_data['model']['diagrams'][0]['name']}"):
         diagram_page.build_diagram(base_data['model']['name'], base_data['model']['diagrams'][0]["name"], base_data['model']['diagrams'][0]["build_action"])
+
+    with allure.step(f"Создать диаграмму {base_data['model']['diagrams'][1]['name']}"):
+        diagram_page.build_diagram(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data['model']['diagrams'][1]["name"], base_data['model']['diagrams'][1]["build_action"], from_model=False)
 
     with allure.step(f'Перейти к дереву дашбордов'):
         dashboard_page.tree.switch_to_tree('Интерфейсы')
 
     with allure.step(f'Создать дашборд {base_data["dashboards"][0]["name"]}'):
         dashboard_page.create_dashboard(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dashboards"][0]["name"])
+
+    with allure.step(f'Настроить дашборд {base_data["dashboards"][0]["name"]}'):
+        dashboard_page.set_menu_dashboard(base_data['model']['diagrams'][0]["name"])
 
     with allure.step(f'Создать дашборд {base_data["dashboards"][1]["name"]}'):
         dashboard_page.create_dashboard(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dashboards"][1]["name"])
