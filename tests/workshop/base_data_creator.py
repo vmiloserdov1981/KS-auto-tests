@@ -1,15 +1,18 @@
 from pages.class_po import ClassPage
 from pages.model_po import ModelPage
 from pages.table_po import TablePage
+from pages.gantt_po import DiagramPage
 
 
 def get_workshop_base_data(driver):
     class_page = ClassPage(driver)
     model_page = ModelPage(driver)
     table_page = TablePage(driver)
+    diagram_page = DiagramPage(driver)
     class_api = class_page.api_creator.get_api_classes()
     dictionaries_api = class_page.api_creator.get_api_dictionaries()
     models_api = model_page.api_creator.get_api_models()
+    dashboards_api = model_page.api_creator.get_api_dashboards()
     classes_tree_nodes = class_api.get_tree_nodes()
     dicts_tree_nodes = dictionaries_api.api_get_dicts_names()
 
@@ -370,16 +373,14 @@ def get_workshop_base_data(driver):
             0: {
                 "name": "Персонал мероприятия",
                 "class": base_data["class_1"]["relations"]["relation_3"]["name"],
-                "search_indicators": [base_data['class_4']['indicators']['indicator_1']['name']],
-                "input_indicators": [
-                    base_data["class_1"]["relations"]["relation_3"]["indicators"]["indicator_1"]["name"]]
+                "input_indicators": [base_data["class_1"]["relations"]["relation_3"]["indicators"]["indicator_1"]["name"]],
+                "search_indicators": [base_data['class_4']['indicators']['indicator_1']['name']]
             },
             1: {
                 "name": "МТР мероприятия",
                 "class": base_data["class_1"]["relations"]["relation_2"]["name"],
                 "search_indicators": [base_data['class_3']['indicators']['indicator_1']['name']],
-                "input_indicators": [
-                    base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_2"]["name"]]
+                "input_indicators": [base_data["class_1"]["relations"]["relation_2"]["indicators"]["indicator_2"]["name"]]
             }
         }
     },
@@ -388,6 +389,41 @@ def get_workshop_base_data(driver):
         "period_start_year": "2021",
         "periods_amount": "12",
         "last_period": "декабрь 2021"
+    }
+
+    base_data['model']['diagrams'] = {
+        0: {
+            "name": model_page.api_creator.get_api_models().create_unique_diagram_name("Справочники. Навигация"),
+            "build_action": [
+                diagram_page.build_workshop_dictionaries_diagram,
+                {
+                    0: {
+                        "related_entity_type": "Таблица данных",
+                        "related_entity_model": base_data["model"]["name"],
+                        "related_table_name": base_data["model"]["tables"][0]["name"],
+                        "entity_order": 1
+                    },
+                    1: {"related_entity_type": "Таблица данных",
+                        "related_entity_model": base_data["model"]["name"],
+                        "related_table_name": base_data["model"]["tables"][1]["name"],
+                        "entity_order": 2
+                        }
+                }
+            ]
+        },
+        1: {"name": model_page.api_creator.get_api_models().create_unique_diagram_name("Главное меню"),
+            "build_action": [
+                diagram_page.build_workshop_menu_diagram, None
+            ]
+            }
+    }
+    base_data["dashboards"] = {
+        0: {
+            "name": dashboards_api.create_unique_dashboard_name("Меню")
+        },
+        1: {
+            "name": dashboards_api.create_unique_dashboard_name("Справочники")
+        }
     }
 
     return base_data

@@ -287,7 +287,7 @@ class DiagramPage(EntityPage):
         sync_name_checkbox_locator = (By.XPATH, "//div[contains(@class, 'checkbox-label') and .='Синхронизировать название']")
         action_block_dropdown_locator = (By.XPATH, "(//div[contains(@class, 'format-title') and .=' Взаимодействие '])[1]")
         add_action_button_locator = (By.XPATH, "//div[.='Взаимодействия' and contains(@class, 'interact-title-container')]//fa-icon[@icon='plus']")
-        action_dropdown_locator = (By.XPATH, "//ks-dropdown[@ng-reflect-placeholder='Выберите взаимодействие']")
+        action_dropdown_locator = (By.XPATH, "//ks-dropdown[.//div[.=' Выберите взаимодействие ']]")
         action_option_locator = (By.XPATH, f"//div[contains(@class, 'single-dropdown-item') and .= ' Клик ']")
 
         with allure.step('Привязать сущность к фигуре'):

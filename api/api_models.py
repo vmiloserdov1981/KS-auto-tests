@@ -194,7 +194,7 @@ class ApiModels(BaseApi):
                 return model.get('uuid')
 
     def create_unique_diagram_name(self, basename):
-        diagrams_list = self.post(f'{Vars.PKM_API_URL}diagrams/get-list', self.token, {'term': ''}).get('data')
+        diagrams_list = self.post(f'{Vars.PKM_API_URL}diagrams/get-list', self.token, {'term': ''}).get('data') or []
         diagrams_names = [i.get('name') for i in diagrams_list]
         count = 0
         new_name = basename

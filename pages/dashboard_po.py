@@ -10,9 +10,9 @@ import time
 
 class DashboardPage(EntityPage):
     LOCATOR_DASHBOARD_SETTINGS_BUTTON = (By.XPATH, "//ks-button[.//*[local-name()='svg' and @data-icon='cog']]")
-    LOCATOR_DASHBOARD_ADD_INPUT_EVENT_BUTTON = (By.XPATH, "//pkm-dashboard-settings-group[@ng-reflect-group-title='Входящие события']//fa-icon[.//*[local-name()='svg' and @data-icon='plus']]")
+    LOCATOR_DASHBOARD_ADD_INPUT_EVENT_BUTTON = (By.XPATH, "//pkm-dashboard-settings-group[.//div[.='Входящие события']]//fa-icon[.//*[local-name()='svg' and @data-icon='plus']]")
     LOCATOR_SAVE_DASHBOARD_SETTINGS_BUTTON = (By.XPATH, "//pkm-dashboard-side-panel//button[.=' Сохранить ' or .='Сохранить']")
-    LOCATOR_DASHBOARD_RELATED_ENTITY_DROPDOWN_LOCATOR = (By.XPATH, "//pkm-dashboard-settings-group[@ng-reflect-group-title='Связанная сущность']")
+    LOCATOR_DASHBOARD_RELATED_ENTITY_DROPDOWN_LOCATOR = (By.XPATH, "//pkm-dashboard-settings-group[.//div[.='Связанная сущность']]")
 
     def __init__(self, driver):
         super().__init__(driver)
@@ -61,7 +61,7 @@ class DashboardPage(EntityPage):
         self.find_and_click((By.XPATH, "//pkm-dashboard-cell"))
         self.find_and_click(self.LOCATOR_DASHBOARD_RELATED_ENTITY_DROPDOWN_LOCATOR)
         self.set_single_input_event_dropdown('Тип сущности', 'Диаграмма')
-        self.find_and_enter((By.XPATH, "//async-dropdown-search[@ng-reflect-placeholder='Диаграмма']//input"), menu_diagram_name)
+        self.find_and_enter((By.XPATH, "//async-dropdown-search//input[@placeholder='Диаграмма']"), menu_diagram_name)
         self.find_and_click(self.dropdown_value_locator_creator(menu_diagram_name))
         self.find_and_click(self.LOCATOR_SAVE_DASHBOARD_SETTINGS_BUTTON)
 
