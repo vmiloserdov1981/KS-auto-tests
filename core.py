@@ -124,7 +124,7 @@ class BasePage:
             return True
         elif not wait_display:
             try:
-                element = self.find_element(locator, time=1)
+                element = self.find_element(locator, time=3)
             except TimeoutException:
                 return True
             try:

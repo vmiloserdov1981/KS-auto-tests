@@ -192,7 +192,7 @@ class NewTree(BasePage):
     LOCATOR_TREE_CLASS_BUTTON = (By.XPATH, "//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' Классы ']")
     LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[contains(@class, 'admin-tree__title')]")
     LOCATOR_TREE_ADD_ROOT_ENTITY = (By.XPATH, "//div[contains(@class, 'create-container')]//button[//*[local-name()='svg' and @data-icon='plus']]")
-    LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item selected')]/div[contains(@class, 'tree-item-title')]")
+    LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item') and contains(@class, 'selected')]/div[contains(@class, 'tree-item-title')]")
     DICTIONARIES_TREE_NAME = 'Справочники'
     LOCATOR_TREE_NODE = (By.XPATH, "(//pkm-tree-item[.//div[contains(@class, tree-item)]])[not(.//div[contains(@class, 'load')])]")
 
@@ -225,18 +225,6 @@ class NewTree(BasePage):
     def submenu_option_locator_creator(option_name):
         locator = (By.XPATH, f"//div[contains(@class, 'context-menu-submenu')]//div[@class='context-menu-item' and .=' {option_name} ']")
         return locator
-
-    def children_elements_generator(self, parent_name):
-        target_depth = None
-        for item in self.elements_generator(self.LOCATOR_TREE_NODE):
-            if item.text == parent_name:
-                start_depth = int(item.get_attribute('ng-reflect-depth'))
-                target_depth = str(start_depth + 1)
-                continue
-            if target_depth and target_depth == item.get_attribute('ng-reflect-depth'):
-                yield item
-            elif target_depth and target_depth != item.get_attribute('ng-reflect-depth'):
-                break
 
     @antistale
     def children_node_locator_creator(self, parent_node_name, children_node_name=None):
@@ -327,7 +315,7 @@ class NewTree(BasePage):
         if arrow.get_attribute('data-icon') == 'angle-right':
             arrow.click()
         if arrow.get_attribute('data-icon') == 'angle-down':
-            names = [i.text for i in self.children_elements_generator(parent_node_name)]
+            names = [i.text for i in self.elements_generator(self.children_node_locator_creator(parent_node_name))]
             return names
         return []
 

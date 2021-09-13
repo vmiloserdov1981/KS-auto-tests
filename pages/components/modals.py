@@ -526,7 +526,7 @@ class TagModal(BasePage):
 class TableObjectsSetModal(Modals):
     #LOCATOR_TYPE_DROPDOWN = (By.XPATH, "(//ks-dropdown//div[contains(@class, 'dropdown')])[1]")
     LOCATOR_TYPE_DROPDOWN = (By.XPATH, "//div[contains(@class, 'modal-window')]//ks-dropdown[1]")
-    LOCATOR_OBJECTS_DROPDOWN = (By.XPATH, "//async-dropdown-pagination[@ng-reflect-name='objects']")
+    LOCATOR_OBJECTS_DROPDOWN = (By.XPATH, "(//div[contains(@class, 'modal-window-content content-padding')]//div[contains(@class, 'form-col')])[2]//async-dropdown-pagination")
     LOCATOR_CHECK_ALL_CHECKBOX = (By.XPATH, "//ks-checkbox[@label='Выбрать все']//div[contains(@class, 'checkbox-container')]")
     LOCATOR_CHECK_ALL_OPTION = (By.XPATH, "//div[contains(@class, 'multi-select__item') and contains(@class, 'check-all')]")
 
@@ -543,7 +543,8 @@ class TableObjectsSetModal(Modals):
         if type_dropdown_value != 'Объекты':
             self.select_type('Объекты')
         self.find_and_click(self.LOCATOR_OBJECTS_DROPDOWN)
-        for checkbox in self.elements_generator((By.XPATH, "//div[contains(@class, 'dropdown-item')]//ks-checkbox[@ng-reflect-value='false']")):
+        objects_checkbox_locator = (By.XPATH, "(//div[contains(@class, 'dropdown-item')]//div[contains(@class, 'checkbox-container')])[not(contains(@class, 'checkbox-selected'))]")
+        for checkbox in self.elements_generator(objects_checkbox_locator):
             # self.scroll_to_element(checkbox)
             checkbox.click()
         self.find_and_click(self.LOCATOR_SAVE_BUTTON)
