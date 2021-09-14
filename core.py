@@ -188,6 +188,7 @@ class BasePage:
     def find_and_context_click(self, locator, time=10):
         element = self.find_element(locator, time)
         self.scroll_to_element(element)
+        self.hover_over_element(locator)
         action_chains = ActionChains(self.driver)
         return action_chains.context_click(element).perform()
 
