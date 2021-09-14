@@ -192,7 +192,8 @@ class NewTree(BasePage):
     LOCATOR_TREE_CLASS_BUTTON = (By.XPATH, "//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' Классы ']")
     LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[contains(@class, 'admin-tree__title')]")
     LOCATOR_TREE_ADD_ROOT_ENTITY = (By.XPATH, "//div[contains(@class, 'create-container')]//button[//*[local-name()='svg' and @data-icon='plus']]")
-    LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item') and contains(@class, 'selected')]/div[contains(@class, 'tree-item-title')]")
+    #LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item') and contains(@class, 'selected')]//div[contains(@class, 'tree-item-title')]")
+    LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item') and contains(@class, 'selected')]")
     DICTIONARIES_TREE_NAME = 'Справочники'
     LOCATOR_TREE_NODE = (By.XPATH, "(//pkm-tree-item[.//div[contains(@class, tree-item)]])[not(.//div[contains(@class, 'load')])]")
 

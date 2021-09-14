@@ -57,7 +57,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
                 dictionary_page.create_dict_element(base_data["dictionary_4"]["elements"][element])
 
     with allure.step(f'Перейти к дереву классов'):
-        class_page.tree.switch_to_tree('Классы')
+        dictionary_page.tree.switch_to_tree('Классы')
 
     with allure.step(f'Создать класс {base_data["class_1"]["name"]}'):
         class_page.create_class(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["class_1"]["name"])
@@ -397,3 +397,4 @@ def test_workshop(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Создать дашборд {base_data["dashboards"][1]["name"]}'):
         dashboard_page.create_dashboard(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME, base_data["dashboards"][1]["name"])
+    fin = 1
