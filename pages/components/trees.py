@@ -208,7 +208,8 @@ class NewTree(BasePage):
 
     @staticmethod
     def node_locator_creator(node_name):
-        locator = (By.XPATH, f"(//div[contains(@class, 'tree-item-title') and .='{node_name}'])[last()]")
+        #locator = (By.XPATH, f"(//div[contains(@class, 'tree-item-title') and .='{node_name}'])[last()]")
+        locator = (By.XPATH, f"(//div[contains(@class, 'tree-item') and .//div[contains(@class, 'tree-item-title') and .='{node_name}']])[last()]")
         return locator
 
     @staticmethod
@@ -229,7 +230,7 @@ class NewTree(BasePage):
 
     @antistale
     def children_node_locator_creator(self, parent_node_name, children_node_name=None):
-        parent_locator = (By.XPATH, f"(//div[@class='tree-item' and ./div[contains(@class, 'tree-item-title') and .='{parent_node_name}']])[last()]")
+        parent_locator = self.node_locator_creator(parent_node_name)
         parent_node = self.find_element(parent_locator)
         parent_uuid = parent_node.get_attribute('test-uuid')
         assert parent_uuid, 'Не удалось получить uuid родительской ноды'

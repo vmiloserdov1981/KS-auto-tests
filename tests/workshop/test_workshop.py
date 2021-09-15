@@ -154,12 +154,6 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         with allure.step('Заполнить показатель тестовыми данными'):
             class_page.set_indicator(base_data["class_1"]["relations"]["relation_3"]["indicators"]["indicator_2"])
 
-    with allure.step(f'Перейти к дереву классов'):
-        class_page.tree.switch_to_tree('Классы')
-
-    with allure.step(f'Развернуть тестовую папку {Vars.PKM_WORKSHOP_TEST_FOLDER_NAME}'):
-        class_page.tree.expand_node(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
-
     with allure.step(f'Перейти к классу {base_data["class_2"]["name"]} через дерево'):
         class_page.tree.select_node(base_data["class_2"]["name"])
 
@@ -325,15 +319,6 @@ def test_workshop(parametrized_login_admin_driver, parameters):
     object_page.create_object('2', base_data['model']['name'], base_data['class_2']['name'])
     object_page.create_object('3', base_data['model']['name'], base_data['class_3']['name'])
     object_page.create_object('4', base_data['model']['name'], base_data['class_4']['name'])
-
-    with allure.step(f'Перейти к дереву моделей'):
-        class_page.tree.switch_to_tree('Модели')
-
-    with allure.step('развернуть папку автотестов'):
-        model_page.tree.expand_node(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
-
-    with allure.step("раскрыть модель"):
-        model_page.tree.expand_node(base_data['model']['name'])
 
     with allure.step(f'Создать таблицу {base_data["model"]["tables"][0]["name"]}'):
         table_page.build_table(base_data["model"]["name"], base_data["model"]["tables"][0]["name"], base_data["model"]["tables"][0]['entities'], check_data=base_data["model"]["tables"][0]['check_data'])

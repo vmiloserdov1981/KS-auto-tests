@@ -148,8 +148,6 @@ class ClassPage(EntityPage):
             self.modal.enter_and_save(indicator_name)
 
         with allure.step(f'Проверить переход на страницу вновь соданного показателя'):
-            # Баг PKM-7172. удалить следующую строку после исправления
-            self.find_and_click(self.list_element_creator(self.INDICATORS_LIST_NAME, indicator_name))
             self.wait_page_title(indicator_name.upper())
 
         if with_check:
