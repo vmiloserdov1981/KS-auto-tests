@@ -31,14 +31,8 @@ class DictionaryPage(EntityPage):
 
     def rename_title(self, title_name):
         self.find_and_click(self.LOCATOR_CHANGE_TITLE_BUTTON)
-        name_input = (By.XPATH, "//div[contains(@class, 'modal-window-content')]//input")
-        title_input = self.find_element(name_input)
-        title_input.send_keys(Keys.CONTROL + "a")
-        title_input.send_keys(Keys.DELETE)
-        title_input.send_keys(title_name)
-        self.find_and_click(self.modal.LOCATOR_SAVE_BUTTON)
-        actual_title_name = (self.get_element_text(self.LOCATOR_DICTIONARY_PAGE_TITLE))
-        assert actual_title_name == title_name.upper()
+        self.modal.enter_and_save(title_name, clear_input=True)
+        self.wait_page_title(title_name.upper())
         time.sleep(2)
 
     def wait_page_title(self, page_title: str, timeout: int = 10):
