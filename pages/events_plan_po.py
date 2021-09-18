@@ -65,8 +65,8 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
         for selected_version in self.elements_generator(selected_version_locator):
             if selected_version.text.split('\n')[0] != version_name:
                 selected_version.click()
+                time.sleep(2)
         self.close_versions_list()
-        time.sleep(2)
 
     @antistale
     def is_event_exists(self, event_name):
@@ -134,110 +134,8 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             time.sleep(Vars.PKM_API_WAIT_TIME)
             return completed_data
 
-    def events_generator_screens(self, names_only=False):
-        # перебирает мероприятия поэкранно, менее стабильный, но более быстрый
-        last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
-        prelast_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()-1]")
-        rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
-        stop_gen = False
-
-        # скролл в начало диаграммы
-        self.scroll_to_gantt_top()
-        time.sleep(5)
-
-        # Перебор мероприятий
-        while not stop_gen:
-            try:
-                self.find_element(rows_locator, time=5)
-            except TimeoutException:
-                stop_gen = True
-                yield None
-
-            if not stop_gen:
-                time.sleep(3)
-                rows = self.driver.find_elements(*rows_locator)
-                for row in rows:
-                    if '\n' in row.text:
-                        if names_only:
-                            row_text = row.text
-                            row_name = row_text.split('\n')[1]
-                            yield row_name
-                        else:
-                            yield row
-
-                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
-                try:
-                    self.find_element(scroll_area, time=2)
-                except TimeoutException:
-                    stop_gen = True
-
-            if not stop_gen:
-                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
-                scrollbar = self.find_element(scroll_area, time=2)
-                start_height = self.driver.execute_script("return arguments[0].clientHeight", scrollbar)
-                cell_height = self.driver.execute_script("return arguments[0].clientHeight",
-                                                         self.find_element(last_row_locator))
-                step = ((start_height // cell_height) + 0) * cell_height
-                delta = start_height % step
-                total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
-                new_height = 0
-                while True:
-                    # last screen actions
-
-                    if new_height + step + start_height > total_height:
-                        if new_height + start_height + (cell_height * 2) - delta < total_height:
-                            row = self.find_element(prelast_row_locator)
-                        else:
-                            row = self.find_element(last_row_locator)
-                        self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
-                                                   row)
-                        if names_only:
-                            row_text = row.text
-                            row_name = row_text.split('\n')[1]
-                            yield row_name
-                        else:
-                            yield row
-
-                        while new_height + cell_height + start_height <= total_height:
-                            last_row = self.find_element(last_row_locator)
-                            self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar,
-                                                       cell_height)
-                            try:
-                                self.wait_element_replacing(last_row, last_row_locator, time=3)
-                            except TimeoutException:
-                                pass
-                            new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
-                            self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
-                                                       last_row)
-                            if names_only:
-                                last_row_text = last_row.text
-                                last_row_name = last_row_text.split('\n')[1]
-                                yield last_row_name
-                            else:
-                                yield last_row
-                        stop_gen = True
-                        break
-
-                    # Scroll down
-                    last_row = self.find_element(last_row_locator)
-                    self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, step)
-                    new_height = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
-                    try:
-                        self.wait_element_replacing(last_row, last_row_locator, time=3)
-                    except TimeoutException:
-                        pass
-                    rows = self.driver.find_elements(*rows_locator)
-                    for row in rows:
-                        if '\n' in row.text:
-                            if names_only:
-                                row_text = row.text
-                                row_name = row_text.split('\n')[1]
-                                yield row_name
-                            else:
-                                yield row
-
-    def events_generator_debug(self, names_only=False):
-        # Новый
+    def events_generator(self, names_only=False):
+        # Самый актуальный
         # перебирает мероприятия построчно в соответствии с подгрузкой ганта
         last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
         rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
@@ -277,47 +175,49 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                 scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
                 scrollbar = self.find_element(scroll_area, time=2)
                 total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
+                gantt = self.find_element((By.XPATH, "//pkm-gantt-diagram"))
                 last_row = self.find_element(last_row_locator)
                 cell_height = self.driver.execute_script("return arguments[0].clientHeight", last_row) + 1
-                last_target_row_html = last_row_html = last_row.get_attribute('innerHTML')
-                last_row_top = self.driver.execute_script("return arguments[0].offsetTop", last_row)
+                last_target_row_html = last_row.get_attribute('innerHTML')
+                target_row_top = self.driver.execute_script("return arguments[0].offsetTop", last_row)
                 screen_height = self.driver.execute_script("return arguments[0].offsetHeight", scrollbar)
-                target_row_top = last_row_top
-                # построчный перебор
-                while last_row_top + cell_height <= total_height and not stop_gen:
-                    self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, cell_height)
-                    self.wait_element_changing(last_row_html, last_row_locator, time=2, ignore_timeout=True)
-                    last_row = self.find_element(last_row_locator)
-                    scrollbar = self.find_element(scroll_area, time=2)
-                    scroll_top = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
-                    screen_height_range = range(scroll_top, scroll_top + screen_height+cell_height)
+                scroll_top = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
+                screen_height_range = range(scroll_top, scroll_top + screen_height + cell_height)
 
-                    while target_row_top in screen_height_range:
+
+                # построчный перебор
+                while not stop_gen:
+                    if target_row_top in screen_height_range:
                         target_row_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@style, 'top: {target_row_top}px')]")
                         try:
-                            target_row = self.find_element(target_row_locator, time=2)
+                            target_row = self.find_element(target_row_locator, time=5)
                         except TimeoutException:
-                            stop_gen = True
                             break
-                        if last_target_row_html != target_row.get_attribute('innerHTML'):
+                        if target_row.get_attribute('innerHTML') != last_target_row_html:
                             self.scroll_to_element(target_row)
                             if names_only:
                                 yield target_row.text
                             else:
                                 yield target_row
-                        last_target_row_html = self.find_element(target_row_locator).get_attribute('innerHTML')
                         target_row_top += cell_height
-                    last_row_top = self.driver.execute_script("return arguments[0].offsetTop", last_row)
-                    last_row_html = last_row.get_attribute('innerHTML')
+                        if target_row_top >= total_height - 2:
+                            break
+                        last_target_row_html = target_row.get_attribute('innerHTML')
+                        self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, cell_height)
+                    else:
+                        self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, cell_height)
+                        time.sleep(3)
 
-                    if last_row_top + cell_height >= total_height:
+                    if target_row_top + cell_height + cell_height >= total_height - 2:
                         time.sleep(5)
-                        scrollbar = self.find_element(scroll_area, time=2)
-                        total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
+                    scrollbar = self.find_element(scroll_area, time=2)
+                    scroll_top = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
+                    screen_height_range = range(scroll_top, scroll_top + screen_height + cell_height)
+                    total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
                 break
 
-    def events_generator(self, names_only=False):
-        # Эксперимент
+    def events_generator_old(self, names_only=False):
+        # Первый вариант
         # перебирает мероприятия построчно в соответствии с подгрузкой ганта
         last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
         rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
@@ -366,11 +266,11 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                 scroll_top = self.driver.execute_script("return arguments[0].scrollTop", scrollbar)
                 screen_height_range = range(scroll_top, scroll_top + screen_height + cell_height)
 
-
                 # построчный перебор
                 while not stop_gen:
                     if target_row_top in screen_height_range:
-                        target_row_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@style, 'top: {target_row_top}px')]")
+                        target_row_locator = (By.XPATH,
+                                              f"//div[contains(@class, 'gantt_row') and contains(@style, 'top: {target_row_top}px')]")
                         try:
                             target_row = self.find_element(target_row_locator, time=2)
                         except TimeoutException:
@@ -395,73 +295,8 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
                             stop_gen = True
                 break
 
-
-
-    def events_generator_last(self, names_only=False):
-        # отрефакторенный
-        # перебирает мероприятия построчно, стабильный но менее быстрый
-        last_row_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')][last()]")
-        rows_locator = (By.XPATH, "//div[contains(@class, 'gantt_row')]")
-        stop_gen = False
-
-        # скролл в начало диаграммы
-        self.scroll_to_gantt_top()
-        time.sleep(5)
-
-        # Перебор мероприятий которые уже отрисованы
-        while not stop_gen:
-            try:
-                self.find_element(rows_locator, time=10)
-            except TimeoutException:
-                stop_gen = True
-                yield None
-
-            if not stop_gen:
-                time.sleep(3)
-                rows = self.driver.find_elements(*rows_locator)
-                for row in rows:
-                    if row.text == '':
-                        self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);",
-                                                   row)
-                    if names_only:
-                        yield row.text
-                    else:
-                        yield row
-                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
-                try:
-                    self.find_element(scroll_area, time=2)
-                except TimeoutException:
-                    stop_gen = True
-
-            # настройка построчного перебора
-            if not stop_gen:
-                scroll_area = (By.XPATH, "//div[contains(@class, 'gantt_ver_scroll')]")
-                scrollbar = self.find_element(scroll_area, time=2)
-                total_height = self.driver.execute_script("return arguments[0].scrollHeight", scrollbar)
-                last_row = self.find_element(last_row_locator)
-                cell_height = self.driver.execute_script("return arguments[0].clientHeight", last_row)
-                prelast_row_html = last_row.get_attribute('innerHTML')
-
-                # построчный перебор
-                while self.driver.execute_script("return arguments[0].offsetTop", last_row) + (
-                        cell_height * 2) < total_height:
-                    self.driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollbar, cell_height)
-                    self.wait_element_changing(last_row.get_attribute('innerHTML'), last_row_locator, time=2,
-                                               ignore_timeout=True)
-                    last_row = self.find_element(last_row_locator)
-                    last_row_html = last_row.get_attribute('innerHTML')
-
-                    # Защита от дублирования мероприятий
-                    if last_row_html != prelast_row_html:
-                        self.driver.execute_script("arguments[0].scrollIntoView(alignToTop=false);", last_row)
-                        if names_only:
-                            yield last_row.text
-                        else:
-                            yield last_row
-                    prelast_row_html = last_row_html
-                break
-
     def get_event(self, event_name, wait_timeout=1) -> WebElement:
+        # Нужен рефакторинг в связи с динамической подгрузкой ганта
         event_locator = (By.XPATH, f"//div[contains(@class, 'gantt_row') and contains(@aria-label, ' {event_name} ')]")
         try:
             target = self.find_element(event_locator, time=5)
@@ -544,8 +379,8 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             events = {}
 
             def add_in_group(item, dictionary, group_value):
-                if ' . ' in group_value:
-                    group_values = group_value.split(' . ')
+                if ' , ' in group_value:
+                    group_values = group_value.split(' , ')
                     for value in group_values:
                         if value in dictionary.keys():
                             dictionary[value].append(item)
@@ -631,7 +466,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             if type(ui_events) is dict:
                 self.compare_dicts(ui_events, api_events)
             else:
-                assert self.compare_lists(api_events, ui_events), f'Мероприятия в API и UI не совпадают. API - {len(api_events)} шт, UI - {len(ui_events) if type(ui_events) is list else "None"} шт \n ui_events: \n {ui_events}'
+                assert self.compare_lists(api_events, ui_events), f'Мероприятия в API и UI не совпадают. API - {len(api_events)} шт, UI - {len(ui_events) if type(ui_events) is list else "None"} шт \n ui_events: \n {ui_events} \n api_events: \n {api_events}'
 
     def set_grouping(self, group_value):
         self.find_and_click(self.LOCATOR_GROUPING_ICON)
@@ -641,6 +476,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             pass
         else:
             value.click()
+        time.sleep(3)
         self.find_and_click(self.LOCATOR_GROUPING_ICON)
 
     def unset_grouping(self, group_value):
@@ -651,6 +487,7 @@ class EventsPlan(NewEventModal, Modals, EuFilter):
             value.click()
         else:
             pass
+        time.sleep(3)
         self.find_and_click(self.LOCATOR_GROUPING_ICON)
 
     def get_grouping_value(self):
