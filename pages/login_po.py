@@ -9,7 +9,7 @@ from random import randint
 class LoginPage(BasePage):
     LOCATOR_PKM_LOGIN_FIELD = (By.XPATH, "//ks-input[@formcontrolname='login']//input")
     LOCATOR_PKM_PASS_FIELD = (By.XPATH, "//ks-input[@formcontrolname='password']//input")
-    LOCATOR_PKM_LOGIN_EU_BUTTON = (By.XPATH, "//ks-button[.='Войти']")
+    LOCATOR_PKM_LOGIN_EU_BUTTON = (By.XPATH, "//ks-button[.=' Войти ']")
     LOCATOR_PKM_LOGIN_TITLE = (By.XPATH, "//ks-login")
 
     def __init__(self, driver, url=None):
