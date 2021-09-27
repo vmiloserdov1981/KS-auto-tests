@@ -1,8 +1,7 @@
 from pages.components.entity_page import EntityPage
-from pages.components.trees import Tree
+from pages.components.trees import NewTree
 from pages.components.modals import Modals
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 import allure
 import time
 
@@ -16,10 +15,10 @@ class DictionaryPage(EntityPage):
 
     def __init__(self, driver):
         super().__init__(driver)
-        self.tree = Tree(driver)
+        self.tree = NewTree(driver)
         self.modal = Modals(driver)
 
-    def create_dictionary(self, parent_node:str, dict_name:str):
+    def create_dictionary(self, parent_node: str, dict_name: str):
         with allure.step(f'Создать справочник {dict_name}'):
             self.find_and_context_click(self.tree.node_locator_creator(parent_node))
             self.find_and_click(self.tree.context_option_locator_creator('Создать справочник'))
