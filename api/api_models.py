@@ -202,3 +202,13 @@ class ApiModels(BaseApi):
             count += 1
             new_name = f"{basename}_{count}"
         return new_name
+
+    def create_unique_gantt_name(self, basename):
+        gantts_list = self.post(f'{Vars.PKM_API_URL}gantts/get-list', self.token, {'term': ''}).get('data') or []
+        gantts_names = [i.get('name') for i in gantts_list]
+        count = 0
+        new_name = basename
+        while new_name in gantts_names:
+            count += 1
+            new_name = f"{basename}_{count}"
+        return new_name

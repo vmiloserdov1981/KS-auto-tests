@@ -10,12 +10,16 @@ import allure
 
 class GanttPage(EntityPage):
     LOCATOR_CONSTRUCTOR_CLASS_INPUT = (By.XPATH, "//async-dropdown-search[@formcontrolname='classUuid']//input")
+    LOCATOR_ENTITY_PAGE_TITLE = (By.XPATH, "//div[contains(@class, 'gantt__header')]//div[contains(@class, 'title')]")
 
     def __init__(self, driver):
         super().__init__(driver)
         self.tree = NewTree(driver)
         self.modal = Modals(driver)
         self.events_plan_page = EventsPlan(driver)
+
+    def wait_page_title(self, page_title: str, timeout: int = 10):
+        self.wait_until_text_in_element(self.LOCATOR_ENTITY_PAGE_TITLE, page_title, time=timeout)
 
     def create_gantt(self, model_name, gantt_name):
         with allure.step(f'Создать диаграмму Ганта {gantt_name}'):
@@ -209,11 +213,12 @@ class DiagramPage(EntityPage):
         with allure.step(f'Проверить переход на страницу диаграммы'):
             self.find_element(self.LOCATOR_DIAGRAM)
 
-    def build_diagram(self, model_name, diagram_name, build_action, from_model=True):
+    def build_diagram(self, model_name, diagram_name, build_action=None, from_model=True):
         with allure.step("Создать диаграмму"):
             self.create_diagram(model_name, diagram_name, from_model=from_model)
-        with allure.step("Построить диаграмму"):
-            build_action[0](build_action[1])
+        if build_action:
+            with allure.step("Построить диаграмму"):
+                build_action[0](build_action[1])
 
     def build_workshop_dictionaries_diagram(self, entities_data: dict):
         """
@@ -242,11 +247,11 @@ class DiagramPage(EntityPage):
         with allure.step("Добавить фигуру 2"):
             self.find_and_click(set_figure_locator)
         with allure.step("Настроить фигуру 1"):
-            self.set_entity(entities_data[0])
+            self.set_table_entity(entities_data[0])
         with allure.step("Настроить фигуру 2"):
-            self.set_entity(entities_data[1])
+            self.set_table_entity(entities_data[1])
 
-    def build_workshop_menu_diagram(self, *args):
+    def build_workshop_menu_diagram(self, events_plan_dashboard: str, diagrams_dashboard: str):
         set_figure_locator = (By.XPATH, "//a//*[local-name()='rect' and @ry]")
         diagram_figure_locator = (By.XPATH,
                                   "//div[contains(@class, 'geDiagramContainer')]//*[local-name()='g']//*[local-name()='rect' and @ry]")
@@ -260,39 +265,104 @@ class DiagramPage(EntityPage):
         with allure.step("Добавить фигуру 2"):
             self.find_and_click(set_figure_locator)
 
-    def set_entity(self, entity_data):
+        with allure.step('Настроить фигуру 1'):
+            entity_1_data = {
+                        "related_dashboard_name": events_plan_dashboard,
+                        "entity_order": 1
+                    }
+            self.set_dashboard_entity(entity_1_data)
+
+        with allure.step('Настроить фигуру 2'):
+            entity_2_data = {
+                "related_dashboard_name": diagrams_dashboard,
+                "entity_order": 2
+            }
+            self.set_dashboard_entity(entity_2_data)
+
+    def expand_setting_dropdown(self, dropdown_name):
+        settings_dropdown_locator = (By.XPATH, f"//div[contains(@class, 'format-title') and .=' {dropdown_name} ']")
+        if 'caret-up' not in self.get_element_html(settings_dropdown_locator):
+            self.find_and_click(settings_dropdown_locator)
+
+    def set_dashboard_entity(self, entity_data):
+        """
+                entity_data = {
+                        "related_dashboard_name": "МТР"
+                        "entity_order": 1
+                    }
+        """
+        entity_name = entity_data.get('related_dashboard_name')
+        entity_order = entity_data.get('entity_order')
+
+        assert entity_name
+        assert entity_order
+
+        entity_locator = (By.XPATH, f"(//div[contains(@class, 'geDiagramContainer')]//*[local-name()='g']//*[local-name()='rect' and @ry])[{entity_order}]")
+        entity_type_dropdown_locator = (By.XPATH, "//div[contains(@class, 'ks-dropdown-placeholder') and .= ' Тип сущности ']")
+        entity_type_dropdown_option_locator = (By.XPATH, f"//div[contains(@class, 'single-dropdown-item') and .= ' Интерфейс ']")
+        dashboard_input_locator = (By.XPATH, "//div[contains(@class, 'form-col') and .//div[.='Поиск по сущности']]//input")
+        sync_name_checkbox_locator = (By.XPATH, "//div[contains(@class, 'checkbox-label') and .='Синхронизировать название']")
+        add_interaction_button_locator = (By.XPATH, "//div[.='Взаимодействия' and contains(@class, 'interact-title-container')]//fa-icon[@icon='plus']")
+        interaction_dropdown_locator = (By.XPATH, "//ks-dropdown[.//div[.=' Выберите взаимодействие ']]")
+        interaction_option_locator = (By.XPATH, f"//div[contains(@class, 'single-dropdown-item') and .= ' Клик ']")
+        add_action_button_locator = (By.XPATH, "//div[.='Действия' and contains(@class, 'add-interaction-item')]//fa-icon[@icon='plus']")
+        action_dropdown_locator = (By.XPATH, "//ks-dropdown[.//div[.=' Выберите действие ']]")
+        action_option_locator = (By.XPATH, f"//div[contains(@class, 'single-dropdown-item') and .= ' Передать сущность ']")
+        save_interaction_button_locator = (By.XPATH, "//div[contains(@class, 'SidebarContainer')]//button[.=' Сохранить']")
+
+        with allure.step('Привязать сущность к фигуре'):
+            self.find_and_click(entity_locator)
+            self.expand_setting_dropdown('Связь с сущностью')
+            self.find_and_click(entity_type_dropdown_locator)
+            self.find_and_click(entity_type_dropdown_option_locator)
+            self.find_and_enter(dashboard_input_locator, entity_name)
+            self.find_and_click(self.dropdown_value_locator_creator(entity_name))
+            self.find_and_click(sync_name_checkbox_locator)
+
+        with allure.step('Задать передачу сущности при клике'):
+            self.expand_setting_dropdown('Взаимодействие')
+            self.find_and_click(add_interaction_button_locator)
+            self.find_and_click(interaction_dropdown_locator)
+            self.find_and_click(interaction_option_locator)
+            self.find_and_click(add_action_button_locator)
+            self.find_and_click(action_dropdown_locator)
+            self.find_and_click(action_option_locator)
+            self.find_and_click(save_interaction_button_locator)
+
+            time.sleep(3)
+
+    def set_table_entity(self, entity_data):
         """
         entity_data = {
-                "related_entity_type": "Таблица данных",
                 "related_entity_model": "Модель",
                 "related_table_name": "МТР"
                 "entity_order": 1
             }
         """
-        entity_type = entity_data.get('related_entity_type')
         entity_model = entity_data.get('related_entity_model')
         entity_name = entity_data.get('related_table_name')
         entity_order = entity_data.get('entity_order')
-        assert entity_type
         assert entity_model
         assert entity_name
         assert entity_order
         entity_locator = (By.XPATH, f"(//div[contains(@class, 'geDiagramContainer')]//*[local-name()='g']//*[local-name()='rect' and @ry])[{entity_order}]")
-        relation_block_dropdown_locator = (By.XPATH, "//div[contains(@class, 'format-title') and .=' Связь с сущностью ']")
         entity_type_dropdown_locator = (By.XPATH, "//div[contains(@class, 'ks-dropdown-placeholder') and .= ' Тип сущности ']")
-        entity_type_dropdown_option_locator = (By.XPATH, f"//div[contains(@class, 'single-dropdown-item') and .= ' {entity_type} ']")
+        entity_type_dropdown_option_locator = (By.XPATH, f"//div[contains(@class, 'single-dropdown-item') and .= ' Таблица данных ']")
         model_input_locator = (By.XPATH, "//div[contains(@class, 'form-col') and .//div[.='Поиск модели']]//input")
         table_dropdown_locator = (By.XPATH, "//div[contains(@class, 'form-col') and .//div[.=' Поиск по сущности ']]//ks-dropdown")
         entity_option_locator = (By.XPATH, f"//div[contains(@class, 'single-dropdown-item') and .= ' {entity_name} ']")
         sync_name_checkbox_locator = (By.XPATH, "//div[contains(@class, 'checkbox-label') and .='Синхронизировать название']")
-        action_block_dropdown_locator = (By.XPATH, "(//div[contains(@class, 'format-title') and .=' Взаимодействие '])[1]")
-        add_action_button_locator = (By.XPATH, "//div[.='Взаимодействия' and contains(@class, 'interact-title-container')]//fa-icon[@icon='plus']")
-        action_dropdown_locator = (By.XPATH, "//ks-dropdown[.//div[.=' Выберите взаимодействие ']]")
-        action_option_locator = (By.XPATH, f"//div[contains(@class, 'single-dropdown-item') and .= ' Клик ']")
+        add_interaction_button_locator = (By.XPATH, "//div[.='Взаимодействия' and contains(@class, 'interact-title-container')]//fa-icon[@icon='plus']")
+        add_action_button_locator = (By.XPATH, "//div[.='Действия' and contains(@class, 'add-interaction-item')]//fa-icon[@icon='plus']")
+        interaction_dropdown_locator = (By.XPATH, "//ks-dropdown[.//div[.=' Выберите взаимодействие ']]")
+        action_dropdown_locator = (By.XPATH, "//ks-dropdown[.//div[.=' Выберите действие ']]")
+        interaction_option_locator = (By.XPATH, f"//div[contains(@class, 'single-dropdown-item') and .= ' Клик ']")
+        action_option_locator = (By.XPATH, f"//div[contains(@class, 'single-dropdown-item') and .= ' Передать сущность ']")
+        save_interaction_button_locator = (By.XPATH, "//div[contains(@class, 'SidebarContainer')]//button[.=' Сохранить']")
 
         with allure.step('Привязать сущность к фигуре'):
             self.find_and_click(entity_locator)
-            self.find_and_click(relation_block_dropdown_locator)
+            self.expand_setting_dropdown('Связь с сущностью')
             self.find_and_click(entity_type_dropdown_locator)
             self.find_and_click(entity_type_dropdown_option_locator)
             self.find_and_enter(model_input_locator, entity_model)
@@ -300,10 +370,14 @@ class DiagramPage(EntityPage):
             self.find_and_click(table_dropdown_locator)
             self.find_and_click(entity_option_locator)
             self.find_and_click(sync_name_checkbox_locator)
-            self.find_and_click(relation_block_dropdown_locator)
         with allure.step('Задать передачу сущности при клике'):
-            self.find_and_click(action_block_dropdown_locator)
+            self.expand_setting_dropdown('Взаимодействие')
+            self.find_and_click(add_interaction_button_locator)
+            self.find_and_click(interaction_dropdown_locator)
+            self.find_and_click(interaction_option_locator)
             self.find_and_click(add_action_button_locator)
             self.find_and_click(action_dropdown_locator)
             self.find_and_click(action_option_locator)
-            self.find_and_click(action_block_dropdown_locator)
+            self.find_and_click(save_interaction_button_locator)
+
+        time.sleep(3)

@@ -1,14 +1,12 @@
 from pages.class_po import ClassPage
 from pages.model_po import ModelPage
 from pages.table_po import TablePage
-from pages.gantt_po import DiagramPage
 
 
 def get_workshop_base_data(driver):
     class_page = ClassPage(driver)
     model_page = ModelPage(driver)
     table_page = TablePage(driver)
-    diagram_page = DiagramPage(driver)
     class_api = class_page.api_creator.get_api_classes()
     dictionaries_api = class_page.api_creator.get_api_dictionaries()
     models_api = model_page.api_creator.get_api_models()
@@ -362,7 +360,7 @@ def get_workshop_base_data(driver):
             }
         },
         "gantt": {
-        "name": 'План мероприятий',
+        "name": models_api.create_unique_gantt_name('План мероприятий'),
         "class": base_data['class_1']['name'],
         "start_indicator": base_data['class_1']['indicators']['indicator_1']['name'],
         "end_indicator": base_data['class_1']['indicators']['indicator_2']['name'],
@@ -394,36 +392,27 @@ def get_workshop_base_data(driver):
     base_data['model']['diagrams'] = {
         0: {
             "name": model_page.api_creator.get_api_models().create_unique_diagram_name("Справочники. Навигация"),
-            "build_action": [
-                diagram_page.build_workshop_dictionaries_diagram,
-                {
-                    0: {
-                        "related_entity_type": "Таблица данных",
-                        "related_entity_model": base_data["model"]["name"],
-                        "related_table_name": base_data["model"]["tables"][0]["name"],
-                        "entity_order": 1
-                    },
-                    1: {"related_entity_type": "Таблица данных",
-                        "related_entity_model": base_data["model"]["name"],
-                        "related_table_name": base_data["model"]["tables"][1]["name"],
-                        "entity_order": 2
-                        }
-                }
-            ]
+            "entities_data": {
+                0: {
+                    "related_entity_type": "Таблица данных",
+                    "related_entity_model": base_data['model']['name'],
+                    "related_table_name": base_data['model']['tables'][0]['name'],
+                    "entity_order": 1,
+                },
+                1: {
+                    "related_entity_type": "Таблица данных",
+                    "related_entity_model": base_data['model']['name'],
+                    "related_table_name": base_data['model']['tables'][1]['name'],
+                    "entity_order": 2,
+                },
+            },
         },
-        1: {"name": model_page.api_creator.get_api_models().create_unique_diagram_name("Главное меню"),
-            "build_action": [
-                diagram_page.build_workshop_menu_diagram, None
-            ]
-            }
+        1: {"name": model_page.api_creator.get_api_models().create_unique_diagram_name("Главное меню")}
     }
     base_data["dashboards"] = {
-        0: {
-            "name": dashboards_api.create_unique_dashboard_name("Меню")
-        },
-        1: {
-            "name": dashboards_api.create_unique_dashboard_name("Справочники")
-        }
+        0: {"name": dashboards_api.create_unique_dashboard_name("Меню")},
+        1: {"name": dashboards_api.create_unique_dashboard_name("Справочники")},
+        2: {"name": dashboards_api.create_unique_dashboard_name("План мероприятий")}
     }
 
     return base_data

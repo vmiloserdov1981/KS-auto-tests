@@ -74,3 +74,4 @@ class ApiAdminPreconditions:
         self.classes_api.check_test_folder(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
         self.dictionaries_api.check_test_folder(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
         self.dashboards_api.check_test_folder(Vars.PKM_WORKSHOP_TEST_FOLDER_NAME)
+        # os.environ["WORKSHOP_FOLDER_NAME"] = Vars.PKM_WORKSHOP_TEST_FOLDER_NAME = 'workshop_15-09-2021_5'
