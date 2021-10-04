@@ -1,4 +1,4 @@
-from pages.components.entity_page import EntityPage
+from pages.components.entity_page import NewEntityPage
 from pages.components.trees import NewTree
 from pages.components.modals import Modals
 from selenium.webdriver.common.by import By
@@ -7,7 +7,7 @@ import time
 import allure
 
 
-class ClassPage(EntityPage):
+class ClassPage(NewEntityPage):
     LOCATOR_ADD_FORMULA_INDICATOR_BUTTON = (By.XPATH, "//pkm-indicator-formula-field//fa-icon[@icon='plus']")
     LOCATOR_FX_FORMULA_BUTTON = (By.XPATH, "//pkm-indicator-formula-field//div[@class='icon-button' and .='fx']")
     LOCATOR_ADD_FORMULA_INDICATOR_FIELD = (By.XPATH, "//pkm-indicator-formula-field//input")
@@ -84,7 +84,7 @@ class ClassPage(EntityPage):
             self.find_and_click(self.tree.context_option_locator_creator('Создать класс'))
             self.tree.modal.enter_and_save(class_name)
         with allure.step(f'Проверить переход на страницу вновь соданного класса'):
-            self.wait_page_title(class_name.upper())
+            self.wait_page_title(class_name)
         with allure.step(f'Проверить отображение класса {class_name} в дереве классов выбранным'):
             self.tree.wait_selected_node_name(class_name)
         if with_check:

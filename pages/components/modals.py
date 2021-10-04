@@ -524,9 +524,8 @@ class TagModal(BasePage):
 
 
 class TableObjectsSetModal(Modals):
-    #LOCATOR_TYPE_DROPDOWN = (By.XPATH, "(//ks-dropdown//div[contains(@class, 'dropdown')])[1]")
     LOCATOR_TYPE_DROPDOWN = (By.XPATH, "//div[contains(@class, 'modal-window')]//ks-dropdown[1]")
-    LOCATOR_OBJECTS_DROPDOWN = (By.XPATH, "(//div[contains(@class, 'modal-window-content content-padding')]//div[contains(@class, 'form-col')])[2]//async-dropdown-pagination//fa-icon")
+    LOCATOR_OBJECTS_INPUT = (By.XPATH, "(//div[contains(@class, 'modal-window-content content-padding')]//div[contains(@class, 'form-col')])[2]//async-dropdown-pagination//input")
     LOCATOR_CHECK_ALL_CHECKBOX = (By.XPATH, "//ks-checkbox[@label='Выбрать все']//div[contains(@class, 'checkbox-container')]")
     LOCATOR_CHECK_ALL_OPTION = (By.XPATH, "//div[contains(@class, 'multi-select__item') and contains(@class, 'check-all')]")
 
@@ -542,12 +541,12 @@ class TableObjectsSetModal(Modals):
         type_dropdown_value = self.get_element_text(self.LOCATOR_TYPE_DROPDOWN)
         if type_dropdown_value != 'Объекты':
             self.select_type('Объекты')
-        self.find_and_click(self.LOCATOR_OBJECTS_DROPDOWN)
+        self.find_and_click(self.LOCATOR_OBJECTS_INPUT)
         objects_checkbox_locator = (By.XPATH, "(//div[contains(@class, 'dropdown-overlay__items-list')]//div[contains(@class, 'dropdown-overlay__item')])[.//div[contains(@class, 'checkbox-container') and not(contains(@class, 'checkbox-selected'))]]")
         for checkbox in self.elements_generator(objects_checkbox_locator):
             checkbox.click()
         time.sleep(1)
-        self.find_and_click(self.LOCATOR_OBJECTS_DROPDOWN)
+        self.find_and_click(self.LOCATOR_MODAL_TITLE)
         self.find_and_click(self.LOCATOR_SAVE_BUTTON)
         time.sleep(2)
 

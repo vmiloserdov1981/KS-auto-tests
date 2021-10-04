@@ -48,26 +48,24 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение обновленного имени класса на странице класса'):
-        class_page.wait_page_title(new_class_name.upper())
+        class_page.wait_page_title(new_class_name)
 
     with allure.step('Проверить отображение обновленного имени справочника в дереве'):
         assert class_page.tree.get_selected_node_name() == new_class_name
 
     with allure.step(f'Переименовать класс "{new_class_name}" на "{class_name}" в дереве'):
-        title_html = class_page.find_element(class_page.LOCATOR_ENTITY_PAGE_TITLE).get_attribute('innerHTML')
         class_page.tree.rename_node(new_class_name, class_name)
 
     with allure.step(f'Проверить изменение названия класса на странице класса'):
-        #assert class_page.get_entity_page_title(prev_title_html=title_html) == class_name.upper()
-        pass
+        class_page.wait_page_title(class_name)
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение обновленного имени класса на странице класса'):
-        class_page.wait_page_title(class_name.upper())
+        class_page.wait_page_title(class_name)
 
-    with allure.step('Проверить отображение обновленного имени справочника в дереве'):
+    with allure.step('Проверить отображение обновленного имени класса в дереве'):
         assert class_page.tree.get_selected_node_name() == class_name
 
     with allure.step(f'Создать новый показатель класса "{indicator_1}" через дерево '):

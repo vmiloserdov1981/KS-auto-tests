@@ -26,12 +26,12 @@ class DictionaryPage(EntityPage):
         with allure.step(f'Проверить отображение справочника {dict_name} в дереве справочников выбранным'):
             self.tree.wait_selected_node_name(dict_name, timeout=20)
         with allure.step(f'Проверить переход на страницу вновь соданного справочника'):
-            self.wait_page_title(dict_name.upper())
+            self.wait_page_title(dict_name)
 
     def rename_title(self, title_name):
         self.find_and_click(self.LOCATOR_CHANGE_TITLE_BUTTON)
         self.modal.enter_and_save(title_name, clear_input=True)
-        self.wait_page_title(title_name.upper())
+        self.wait_page_title(title_name)
         time.sleep(2)
 
     def wait_page_title(self, page_title: str, timeout: int = 10):
