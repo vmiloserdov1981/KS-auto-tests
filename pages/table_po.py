@@ -247,8 +247,12 @@ class TablePage(EntityPage):
 
     @staticmethod
     def get_cell_style_value(style_name: str, cell: WebElement):
-        styles = cell.get_attribute('style')
-        style_value = styles.split(f'{style_name}: ')[1].split(';')[0]
+        styles = [i.strip() for i in cell.get_attribute('style').split(';') if i.strip() != '']
+        params = {}
+        for style in styles:
+            value = style.split(': ')
+            params[value[0]] = value[1]
+        style_value = params[style_name]
         int_value = int(style_value.split('px')[0])
         return int_value
 
