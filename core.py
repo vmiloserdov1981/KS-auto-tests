@@ -345,6 +345,13 @@ class BasePage:
         is_checked = self.driver.execute_script("return arguments[0].checked;", input_element)
         return is_checked
 
+    def is_checkbox_checked(self, checkbox_locator: tuple, time=10):
+        checkbox_element = self.find_element(checkbox_locator, time=time)
+        if 'checkbox-selected' in checkbox_element.get_attribute('class'):
+            return True
+        else:
+            return False
+
     @antistale
     def get_element_html(self, locator):
         element = self.find_element(locator)

@@ -2,6 +2,7 @@ from core import BasePage, antistale, retry
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from pages.components.modals import Modals
+from pages.components.entity_page import NewEntityPage
 import time
 
 
@@ -336,12 +337,13 @@ class NewTree(BasePage):
         if arrow.get_attribute('ng-reflect-icon') == 'angle-down':
             arrow.click()
 
-    def select_node(self, node_name, title_check=True):
+    def select_node(self, node_name, wait_upper_title=False, title_check=True):
         self.find_and_click(self.node_locator_creator(node_name), time=20)
         self.wait_until_text_in_element(self.LOCATOR_SELECTED_NODE, node_name)
+        expected_name = node_name.upper() if wait_upper_title else node_name
         if title_check:
-            page_title_locator = (By.XPATH, "//div[contains(@class, 'title-value')]")
-            self.wait_until_text_in_element(page_title_locator, node_name.upper())
+            page_title_locator = NewEntityPage.LOCATOR_ENTITY_PAGE_TITLE
+            self.wait_until_text_in_element(page_title_locator, expected_name)
         time.sleep(2)
 
     @antistale

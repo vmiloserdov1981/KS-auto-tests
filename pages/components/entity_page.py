@@ -258,13 +258,13 @@ class NewEntityPage(BasePage):
 
     @staticmethod
     def list_element_creator(list_name, element_name):
-        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{list_name}'] ]//div[contains(@class, 'list-item ') and .='{element_name}' or contains(@class, 'list-item ') and .=' {element_name} ']")
+        elements_xpath = NewEntityPage.list_elements_creator(list_name)[1]
+        locator = (By.XPATH, f"({elements_xpath})[.='{element_name}']")
         return locator
 
     @staticmethod
     def class_relation_link_locator_creator(relation_name):
-        locator = (By.XPATH,
-                   f"//div[@class='list' and .//div[@class='title' and .='Связи'] ]//div[contains(@class, 'list-item')]//relation-arrow[.=' {relation_name} ']")
+        locator = (By.XPATH, f"(//div[contains(@class, 'container-table') and .//div[contains(@class, 'header__title') and .='Связи']]//div[contains(@class, 'content__row') and .//div[contains(@class, 'content__row_up-relation') and .='{relation_name}']])[1]")
         return locator
 
     @staticmethod
@@ -274,24 +274,18 @@ class NewEntityPage(BasePage):
 
     @staticmethod
     def list_elements_creator(list_name):
-        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and .='{list_name}'] ]//div[contains(@class, 'list-item ')]")
-        return locator
-
-    @staticmethod
-    def list_element_rename_button_creator(list_name, element_name):
-        element_xpath = EntityPage.list_element_creator(list_name, element_name)[1]
-        locator = (By.XPATH, element_xpath + "//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='edit']")
+        locator = (By.XPATH, f"//div[contains(@class, 'container-table') and .//div[contains(@class, 'header__title') and .='{list_name}']]//*[contains(@class, 'ks-page__entity-title')]")
         return locator
 
     @staticmethod
     def list_element_delete_button_creator(list_name, element_name):
-        element_xpath = EntityPage.list_element_creator(list_name, element_name)[1]
-        locator = (By.XPATH, element_xpath + "//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='trash']")
+        element_xpath = NewEntityPage.list_element_creator(list_name, element_name)[1]
+        locator = (By.XPATH, element_xpath + "/../..//fa-icon[./*[local-name()='svg'  and @data-icon='trash']]")
         return locator
 
     @staticmethod
     def dropdown_locator_creator(form_control_name):
-        locator = (By.XPATH, f"//pkm-dropdown[@formcontrolname='{form_control_name}']//div[contains(@class, 'dropdown')]")
+        locator = (By.XPATH, f"//ks-dropdown[@formcontrolname='{form_control_name}']//div[contains(@class, 'dropdown')]")
         return locator
 
     @staticmethod
@@ -301,23 +295,28 @@ class NewEntityPage(BasePage):
 
     @staticmethod
     def pkm_dropdown_actual_value_locator_creator(form_control_name):
-        locator = (By.XPATH, f"//pkm-dropdown[@formcontrolname='{form_control_name}']//div[contains(@class,'display-value-text')]")
+        locator = (By.XPATH, f"//ks-dropdown[@formcontrolname='{form_control_name}']//div[contains(@class,'display-value-text')]")
         return locator
 
     @staticmethod
     def input_locator_creator(form_control_name):
-        locator = (By.XPATH, f"//input[@formcontrolname='{form_control_name}']")
+        locator = (By.XPATH, f"//ks-input[@formcontrolname='{form_control_name}']//input")
+        return locator
+
+    @staticmethod
+    def checkbox_locator_creator(form_control_name):
+        locator = (By.XPATH, f"//ks-checkbox[@formcontrolname='{form_control_name}']//div[contains(@class, 'checkbox-container')]")
         return locator
 
     @staticmethod
     def add_entity_button_locator_creator(entity_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'list-header') and .='{entity_name}']//fa-icon[@icon='plus']")
+        locator = (By.XPATH, f"//div[contains(@class, 'header__buttons')]//ks-button[contains(@class, 'header__buttons_create') and .='{entity_name}']")
         return locator
 
     @staticmethod
     def list_element_edit_button_locator_creator(list_name, element_name):
-        element_xpath = EntityPage.list_element_creator(list_name, element_name)[1]
-        locator = (By.XPATH, element_xpath + "//div[contains(@class, 'list-item-buttons')]//fa-icon[@icon='pencil-alt']")
+        element_xpath = NewEntityPage.list_element_creator(list_name, element_name)[1]
+        locator = (By.XPATH, element_xpath + "/../..//fa-icon[./*[local-name()='svg'  and @data-icon='pencil-alt']]")
         return locator
 
     @staticmethod
@@ -334,7 +333,7 @@ class NewEntityPage(BasePage):
             title = self.get_element_text(self.LOCATOR_ENTITY_PAGE_TITLE, time=timeout)
         return title
 
-    def wait_page_title(self, page_title: str, timeout: int = 10):
+    def wait_page_title(self, page_title: str, timeout: int = 30):
         self.wait_until_text_in_element(self.LOCATOR_ENTITY_PAGE_TITLE, page_title, time=timeout)
 
     def rename_title(self, title_name):
@@ -437,3 +436,14 @@ class NewEntityPage(BasePage):
 
     def wait_stable_page(self, timeout=3):
         self.wait_element_stable(self.LOCATOR_PAGE_CONTENT, timeout)
+
+    def get_active_page_tab_name(self):
+        active_tab_locator = (By.XPATH, "//div[contains(@class, 'tab-title') and contains(@class, 'active')]")
+        active_tab_name = self.get_element_text(active_tab_locator)
+        return active_tab_name
+
+    def switch_to_tab(self, tab_name: str):
+        target_tab_locator = (By.XPATH, f"//div[contains(@class, 'tab-title') and .=' {tab_name} ']")
+        if 'active' not in self.find_element(target_tab_locator).get_attribute('class'):
+            self.find_and_click(target_tab_locator)
+

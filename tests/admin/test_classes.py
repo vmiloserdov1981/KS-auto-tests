@@ -97,6 +97,11 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
     with allure.step(f'Проверить отображение всех созданных показателей и связей класса на странице класса'):
         class_page.tree.select_node(class_name)
+
+        #убрать перезагрузку и раскрытие после исправления PKM-7889
+        parametrized_login_admin_driver.refresh()
+        class_page.tree.expand_node(class_name)
+
         assert class_page.compare_lists(class_page.get_class_indicators(), [indicator_1['indicator_name'], indicator_2['indicator_name']]), 'Некорректный список показателей класса'
         assert class_page.get_class_dimensions() is None, 'Некорректный список измерений класса'
         assert class_page.compare_lists(class_page.get_class_relations(), [relation_1['relation_name'], relation_2['relation_name']]), 'Некорректный список связей класса'
@@ -131,12 +136,12 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
         relation_1['relation_name'] = relation_1_name = new_relation_name
 
     with allure.step(f'Проверить переименование связи на странице класса'):
-        #assert class_page.get_class_relations() == [relation_1['relation_name'], relation_2['relation_name']]
-        pass
+        class_page.find_element(class_page.class_relation_link_locator_creator(relation_1['relation_name']))
+        assert class_page.compare_lists(class_page.get_class_relations(), [relation_1['relation_name'], relation_2['relation_name']])
 
     with allure.step(f'Проверить переименование связи на странице связи'):
         class_page.select_relation(relation_1['relation_name'])
-        class_page.wait_page_title(relation_1['relation_name'].upper())
+        class_page.wait_page_title(relation_1['relation_name'])
 
     with allure.step(f'Переименовать связь на странице связи'):
         relation_1_name += '_2'
@@ -169,7 +174,7 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
     with allure.step(f'Проверить переименование показателя "{indicator_name}" на странице показателя'):
         class_page.find_and_click(class_page.list_element_creator(class_page.INDICATORS_LIST_NAME, indicator_1['indicator_name']))
-        class_page.wait_page_title(indicator_1['indicator_name'].upper())
+        class_page.wait_page_title(indicator_1['indicator_name'])
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -177,12 +182,11 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
     with allure.step(f'Проверить отображение всех созданных показателей и связей класса в дереве'):
         expected_children = [indicator_1['indicator_name'], indicator_2['indicator_name'], relation_1['relation_name'], relation_2['relation_name']]
         actual_children = class_page.tree.get_node_children_names(class_name)
-        assert expected_children == actual_children, f'Некорректный список дочерних элементов класса {class_name}'
+        assert class_page.compare_lists(actual_children, expected_children), f'Некорректный список дочерних элементов класса {class_name}'
 
     with allure.step(f'Проверить отображение всех созданных показателей и связей класса на странице класса'):
         class_page.tree.select_node(class_name)
         assert class_page.compare_lists(class_page.get_class_indicators(), [indicator_1['indicator_name'], indicator_2['indicator_name']]), 'Некорректный список показателей класса'
-        assert class_page.get_class_dimensions() is None, 'Некорректный список измерений класса'
         assert class_page.compare_lists(class_page.get_class_relations(), [relation_1['relation_name'], relation_2['relation_name']]), 'Некорректный список связей класса'
 
     indicator_name = indicator_1['indicator_name']
@@ -210,7 +214,6 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
     with allure.step(f'Проверить отображение корректных показателей и связей класса на странице класса'):
         assert class_page.get_class_indicators() is None, 'Некорректный список показателей класса'
-        assert class_page.get_class_dimensions() is None, 'Некорректный список измерений класса'
         assert class_page.get_class_relations() == [relation_2['relation_name']], 'Некорректный список связей класса'
 
     with allure.step(f'Проверить отображение корректных показателей и связей класса в дереве'):
