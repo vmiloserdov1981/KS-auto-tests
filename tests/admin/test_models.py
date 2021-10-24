@@ -45,7 +45,7 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение обновленного имени модели на странице модели'):
-        model_page.wait_page_title(new_model_name.upper())
+        model_page.wait_page_title(new_model_name)
 
     with allure.step('Проверить отображение обновленного имени модели в дереве'):
         assert model_page.tree.get_selected_node_name() == new_model_name
@@ -54,13 +54,13 @@ def test_admin_models_control(parametrized_login_admin_driver, parameters):
         model_page.tree.rename_node(new_model_name, model_name)
 
     with allure.step(f'Проверить изменение названия модели на странице модели'):
-        model_page.wait_page_title(model_name.upper())
+        model_page.wait_page_title(model_name)
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение обновленного имени модели на странице модели'):
-        model_page.wait_page_title(model_name.upper())
+        model_page.wait_page_title(model_name)
 
     with allure.step('Проверить отображение обновленного имени модели в дереве'):
         assert model_page.tree.get_selected_node_name() == model_name
@@ -687,7 +687,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         parametrized_login_admin_driver.refresh()
 
     with allure.step(f'Проверить отображение актуального названия объекта на странице объекта'):
-        object_page.wait_page_title(object_1_name.upper())
+        object_page.wait_page_title(object_1_name)
 
     with allure.step(f'Проверить отображение актуального названия объекта в дереве'):
         object_page.wait_until_text_in_element(object_page.tree.LOCATOR_SELECTED_NODE, object_1_name)
@@ -697,7 +697,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         object_1_name += '_2'
 
     with allure.step(f'Проверить отображение актуального названия объекта на странице объекта'):
-        object_page.wait_page_title(object_1_name.upper())
+        object_page.wait_page_title(object_1_name)
 
     with allure.step(f'Открыть объект {object_2_name} через дерево'):
         object_page.tree.select_node(object_2_name)
@@ -870,7 +870,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         table_page.tree.wait_selected_node_name(new_table_name, timeout=20)
 
     with allure.step(f'Проверить отображение измененного названия таблицы на странице таблицы'):
-        table_page.wait_page_title(new_table_name.upper(), timeout=20)
+        table_page.wait_page_title(new_table_name, timeout=20)
 
     with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице'):
         actual_cells_data = table_page.get_table_data()

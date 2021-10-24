@@ -31,7 +31,7 @@ class Modals(BasePage):
 
     @staticmethod
     def checkbox_locator_creator(checkbox_name):
-        locator = (By.XPATH, f"//div[./label[.='{checkbox_name}']]//input[@type='checkbox']")
+        locator = (By.XPATH, f"//ks-checkbox[@label='{checkbox_name}']//div[contains(@class, 'checkbox-container')]")
         return locator
 
     def enter_and_save(self, name, clear_input=False):
@@ -70,12 +70,12 @@ class Modals(BasePage):
 
     def check_checkbox(self, checkbox_name):
         checkbox = self.find_element(self.checkbox_locator_creator(checkbox_name))
-        if not checkbox.is_selected():
+        if 'checkbox-selected' not in checkbox.get_attribute('class'):
             checkbox.click()
 
     def uncheck_checkbox(self, checkbox_name):
         checkbox = self.find_element(self.checkbox_locator_creator(checkbox_name))
-        if checkbox.is_selected():
+        if 'checkbox-selected' in checkbox.get_attribute('class'):
             checkbox.click()
 
 

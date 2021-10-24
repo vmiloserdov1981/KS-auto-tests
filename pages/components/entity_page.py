@@ -237,23 +237,23 @@ class NewEntityPage(BasePage):
 
     @staticmethod
     def add_list_element_button_creator(list_name):
-        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()='{list_name}'] ]//fa-icon[@icon='plus']")
+        locator = (By.XPATH, f"//div[contains(@class, 'container-table__header_buttons header') and .//div[contains(@class, 'header__title') and .='{list_name}']]//ks-button[.//*[local-name()='svg' and @data-icon='plus']]")
         return locator
 
     @staticmethod
     def list_sort_button_creator(list_name):
-        locator = (By.XPATH, f"//div[@class='list' and .//div[@class='title' and text()='{list_name}' or @class='title' and text()=' {list_name} '] ]//fa-icon[@icon='sort']")
+        locator = (By.XPATH, f"//div[contains(@class, 'container-table__header') and .//div[contains(@class, 'header__title') and .='{list_name}']]//ks-sorting//button")
         return locator
 
     @staticmethod
     def sort_type_button_creator(sort_type):
-        locator = (By.XPATH, f"//div[contains(@class, 'overlay-item') and ./div[.='{sort_type}']]")
+        locator = (By.XPATH, f"//div[contains(@class, 'ks-sort')]//div[contains(@class, 'item') and .='{sort_type}']")
         return locator
 
     @staticmethod
-    def sort_order_icon_creator(sort_type):
-        element_xpath = EntityPage.sort_type_button_creator(sort_type)[1]
-        locator = (By.XPATH, element_xpath + "//*[local-name()='svg' and contains(@data-icon, 'arrow-')]")
+    def sort_order_icon_creator(list_name):
+        element_xpath = NewEntityPage.list_sort_button_creator(list_name)[1]
+        locator = (By.XPATH, element_xpath + "//*[local-name()='svg' and contains(@data-icon, 'sort-amount-')]")
         return locator
 
     @staticmethod
