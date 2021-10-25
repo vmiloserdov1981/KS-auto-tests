@@ -23,8 +23,9 @@ class ModelPage(NewEntityPage):
     LOCATOR_MODEL_PERIOD_TIME = (By.XPATH, "//pkm-dropdown[@formcontrolname='timePeriod']")
     LOCATOR_MODEL_PERIOD_AMOUNT_INPUT = NewEntityPage.input_locator_creator('amount')
     LOCATOR_MODEL_PERIOD_START_YEAR = (By.XPATH, "//pkm-dropdown[@formcontrolname='year']")
-    LOCATOR_MODEL_SEARCH_TAG_INPUT = (By.XPATH, "//div[contains(@class, 'search-tag-field')]//input")
-    LOCATOR_MODEL_TAG = (By.XPATH, "//div[@class='list' and .//div[@class='title' and .='Теги'] ]//div[contains(@class, 'tag-item')]")
+    LOCATOR_MODEL_SEARCH_TAG_INPUT = (By.XPATH, "//div[contains(@class, 'model-tags__search')]//input")
+    LOCATOR_MODEL_TAG = (By.XPATH, "//ks-array-label-display//div[contains(@class, 'item ')]")
+    LOCATOR_ADD_TAG_BUTTON = (By.XPATH, "//div[contains(@class, 'create-tag')]")
 
     def __init__(self, driver):
         super().__init__(driver)
@@ -295,7 +296,7 @@ class ModelPage(NewEntityPage):
         try:
             self.find_and_click(found_value_locator, time=3)
         except TimeoutException:
-            self.find_element(self.LOCATOR_MODEL_SEARCH_TAG_INPUT).send_keys(Keys.ENTER)
+            self.find_and_click(self.LOCATOR_ADD_TAG_BUTTON)
         self.find_element(self.model_tag_locator_creator(tag_name))
         time.sleep(3)
 
@@ -303,7 +304,7 @@ class ModelPage(NewEntityPage):
         tag_locator = self.model_tag_locator_creator(tag_name)
         self.find_and_click(tag_locator)
         title_text = self.get_element_text(self.modal.LOCATOR_MODAL_TITLE)
-        assert title_text == f'Информация о теге {tag_name}', "Некорректный заголовок окна тега"
+        assert title_text == f'Информация о теге: {tag_name}', "Некорректный заголовок окна тега"
 
     def delete_tag(self, tag_name):
         tag_locator = self.model_tag_locator_creator(tag_name)

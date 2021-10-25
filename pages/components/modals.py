@@ -516,7 +516,7 @@ class PublicationsModal(BasePage):
 
 
 class TagModal(BasePage):
-    LOCATOR_LINKED_MODEL = (By.XPATH, "//div[contains(@class, 'linked-models-list')]//div[contains(@class, 'linked-models-list-item')]")
+    LOCATOR_LINKED_MODEL = (By.XPATH, "//div[contains(@class, 'modal-window')]//table//td")
 
     def get_linked_models(self):
         models = [element.text for element in self.elements_generator(self.LOCATOR_LINKED_MODEL, time=10)]
