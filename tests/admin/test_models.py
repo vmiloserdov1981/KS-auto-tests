@@ -343,13 +343,15 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
         model_page.set_model_period_type('День')
 
     with allure.step(f'Проверить корректное заполнение полей временного интервала'):
-        assert model_page.get_model_period_data() == {
+        actual_period_data = model_page.get_model_period_data()
+        expected_period_data = {
             "period_type": 'День',
             'period_start_value': '.'.join(expected_date),
             'period_start_year': None,
             'period_amount': None,
             'last_period': model_page.convert_date(expected_date)
         }
+        assert actual_period_data == expected_period_data
 
     with allure.step(f'Указать количество периодов {days_amount_period}'):
         model_page.set_period_amount(days_amount_period)

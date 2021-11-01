@@ -17,12 +17,13 @@ class ModelPage(NewEntityPage):
     SOLVERS_LIST_NAME = 'Поиск решения'
     TAGS_LIST_NAME = 'Теги'
 
-    LOCATOR_MODEL_PERIOD_DATEPICKER = (By.XPATH, f"//div[@class='list' and .//div[.='Временной интервал']]//input[contains(@class, 'datepicker-input')]")
-    LOCATOR_MODEL_PERIOD_SAVE_BUTTON = (By.XPATH, f"//div[@class='list' and .//div[.='Временной интервал']]//fa-icon[@icon='save']")
-    LOCATOR_MODEL_PERIOD_DELETE_BUTTON = (By.XPATH, f"//div[@class='list' and .//div[.='Временной интервал']]//fa-icon[@icon='trash']")
-    LOCATOR_MODEL_PERIOD_TIME = (By.XPATH, "//pkm-dropdown[@formcontrolname='timePeriod']")
-    LOCATOR_MODEL_PERIOD_AMOUNT_INPUT = NewEntityPage.input_locator_creator('amount')
-    LOCATOR_MODEL_PERIOD_START_YEAR = (By.XPATH, "//pkm-dropdown[@formcontrolname='year']")
+    LOCATOR_MODEL_PERIOD_DATEPICKER = (By.XPATH, f"//pkm-datepicker[@formcontrolname='date']//input")
+    LOCATOR_MODEL_PERIOD_SAVE_BUTTON = (By.XPATH, f"//div[contains(@class, 'time-measurement-body')]//button[.//*[local-name()='svg' and @data-icon='save']]")
+    LOCATOR_MODEL_PERIOD_DELETE_BUTTON = (By.XPATH, f"//div[contains(@class, 'time-measurement-body')]//button[.//*[local-name()='svg' and @data-icon='trash']]")
+    LOCATOR_MODEL_PERIOD_TIME = (By.XPATH, "//ks-dropdown[@formcontrolname='timePeriod']")
+    LOCATOR_MODEL_PERIOD_AMOUNT_INPUT = (By.XPATH, "//input[@formcontrolname='amount']")
+    LOCATOR_MODEL_PERIOD_START_YEAR = (By.XPATH, "//ks-dropdown[@formcontrolname='year']")
+    LOCATOR_MODEL_LAST_PERIOD = (By.XPATH, "//input[@formcontrolname='result']")
     LOCATOR_MODEL_SEARCH_TAG_INPUT = (By.XPATH, "//div[contains(@class, 'model-tags__search')]//input")
     LOCATOR_MODEL_TAG = (By.XPATH, "//ks-array-label-display//div[contains(@class, 'item ')]")
     LOCATOR_ADD_TAG_BUTTON = (By.XPATH, "//div[contains(@class, 'create-tag')]")
@@ -122,15 +123,15 @@ class ModelPage(NewEntityPage):
         return result if result != [] else None
 
     def get_model_period_type(self):
-        value = self.get_element_text((By.XPATH, "//pkm-dropdown[@formcontrolname='periodType']//div[contains(@class, 'display-value-text')]"), ignore_error=True, time=2)
-        return value
+        value = self.get_element_text((By.XPATH, "//ks-dropdown[@formcontrolname='periodType']//div[contains(@class, 'ks-dropdown-values')]"), ignore_error=True, time=2)
+        return value if value != 'Временной период' else None
 
     def get_model_period_amount(self):
         value = self.get_input_value(self.LOCATOR_MODEL_PERIOD_AMOUNT_INPUT, return_empty=False, time=2)
         return value
 
     def get_model_last_period(self):
-        value = self.get_input_value(self.input_locator_creator('result'), return_empty=False, time=2)
+        value = self.get_input_value(self.LOCATOR_MODEL_LAST_PERIOD, return_empty=False, time=2)
         return value
 
     def get_model_start_period(self):
