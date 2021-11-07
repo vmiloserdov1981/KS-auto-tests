@@ -23,3 +23,4 @@ pytest-xdist
 pytest-cov
 progress
 locust
+websocket-client
