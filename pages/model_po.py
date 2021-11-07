@@ -310,7 +310,7 @@ class ModelPage(NewEntityPage):
     def delete_tag(self, tag_name):
         tag_locator = self.model_tag_locator_creator(tag_name)
         tag_xpath = tag_locator[1]
-        tag_xpath = tag_xpath + "//fa-icon[@icon='times']"
+        tag_xpath = tag_xpath + "//fa-icon[@icon='faLightTimes']"
         delete_icon_locator = (By.XPATH, tag_xpath)
         self.find_and_click(delete_icon_locator)
         assert self.is_element_disappearing(tag_locator, wait_display=False), f'тег {tag_name} не исчезает из списка тегов'

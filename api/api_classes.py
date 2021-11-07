@@ -108,7 +108,8 @@ class ApiClasses(BaseApi):
 
         payload = {
             'name': class_name,
-            'type': 'class'
+            'type': 'class',
+            'parentUuid': None
         }
 
         if parent_uuid:
@@ -116,6 +117,34 @@ class ApiClasses(BaseApi):
         resp = self.post(f'{Vars.PKM_API_URL}classes/create-node', self.token, payload)
         resp['name'] = class_name
         return resp
+
+    def rename_class_node(self, class_node_uuid, class_name):
+        payload = {
+            'name': class_name,
+            'nodeUuid': class_node_uuid
+        }
+        resp = self.post(f'{Vars.PKM_API_URL}classes/update-node', self.token, payload)
+        return resp
+
+    def get_class_data(self, class_uuid):
+        payload = {
+            'uuids': [class_uuid],
+            'withRelations': True
+        }
+        resp = self.post(f'{Vars.PKM_API_URL}classes/get-by-ids', self.token, payload)
+        return resp
+
+    def get_class_name(self, class_uuid):
+        class_data = self.get_class_data(class_uuid)
+        name = class_data.get('data').get(class_uuid).get('name')
+        return name
+
+    def get_node_by_reference_uuid(self, reference_uuid):
+        nodes = self.api_get_classes_tree()
+        for node in nodes:
+            if node.get('referenceUuid') == reference_uuid:
+                return node
+        return {}
 
     def create_classes_relation_node(self, relation_name, parent_node_uuid, source_class_uuid, destination_class_uuid):
         payload = {

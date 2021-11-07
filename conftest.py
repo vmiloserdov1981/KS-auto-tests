@@ -10,6 +10,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 import json
 from conditions.clean_factory import delete as delete_entity
 import time
+from core import BaseApi, WS
 
 
 class CustomDriver(webdriver.Chrome):
@@ -59,6 +60,15 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, projec
     if maximize:
         driver.maximize_window()
     return driver
+
+
+def api_driver_init(login=None, project_uuid=None, token=None):
+    password = user.test_users.get(login)
+    api_driver = BaseApi(login, password, project_uuid=project_uuid, token=token)
+    api_driver.test_data = {'to_delete': []}
+    api_driver.is_test_failed = False
+    return api_driver
+
 
 
 # Фикстура для создания скриншотов при фейле теста
@@ -171,6 +181,25 @@ def parametrized_login_admin_driver(parameters):
                     time.sleep(10)
 
     driver.quit()
+
+
+@pytest.fixture()
+def api_driver(parameters):
+    """
+    parameters = {
+        'login': 'eu_user',
+        'project': 'Шельф. Приразломная',
+    }
+    """
+    project_name = parameters.get('project')
+    login = parameters.get('login')
+    token = ApiEuPreconditions.api_get_token(user.test_users[login].login, user.test_users[login].password, Vars.PKM_API_URL)
+    project_uuid = ApiEuPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
+    api_driver = api_driver_init(login=login, project_uuid=project_uuid, token=token)
+    api_driver.ws = WS(token, project_uuid=project_uuid)
+    yield api_driver
+    if api_driver.ws.connection:
+        api_driver.ws.close_connection()
 
 
 @pytest.fixture()

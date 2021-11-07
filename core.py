@@ -14,6 +14,8 @@ from datetime import timedelta
 from time import sleep
 import collections
 import os
+from websocket import create_connection
+from websocket import WebSocket
 
 
 def antistale(func):
@@ -438,7 +440,7 @@ class BaseApi:
         if project_uuid and not without_project:
             headers['x-project-uuid'] = project_uuid
         response = requests.post(url, data=json.dumps(payload), headers=headers)
-        if response.status_code in range(200, 300) and response.text is not None:
+        if response.status_code in range(200, 300) and response.text is not None and '"error"' not in response.text:
             return json.loads(response.text)
         else:
             raise AssertionError(f'Ошибка при получении ответа сервера:\n запрос: {url} \n payload: {payload} \n headers: {headers} \n Ответ: {response.status_code}, {response.text}')
@@ -495,20 +497,24 @@ class BaseApi:
         end_month = start_month + offset
         if end_month > 12:
             year_add = end_month // 12
-            month_add = (end_month % 12) - 1
-            start_month += month_add
-            start_year += year_add
+            target_month = (end_month % 12) - 1
+            target_year = start_year + year_add
         else:
-            start_month += offset - 1
+            target_month = start_month + offset - 1
+            target_year = start_year
 
-        if start_month < 10:
-            start_month = f'0{start_month}'
+        if target_month == 0:
+            target_month = 12
+            target_year -= 1
+
+        if target_month < 10:
+            target_month = f'0{target_month}'
         else:
-            start_month = str(start_month)
+            target_month = str(target_month)
 
-        start_year = str(start_year)
+        target_year = str(target_year)
 
-        result = [start_month, start_year]
+        result = [target_month, target_year]
         return result
 
     @staticmethod
@@ -584,3 +590,42 @@ class BaseApi:
                 else:
                     dictionary[i] = [item]
         return dictionary
+
+class WS:
+
+    def __init__(self, token, project_uuid=None, ws_timeout=20):
+        self.token = token
+        self.project_uuid = project_uuid
+        self.ws_timeout = ws_timeout
+        self.connection: WebSocket = None
+
+    def create_connection(self):
+        uri = f"wss://pkm.andersenlab.com/ws/?token={self.token}"
+        if self.project_uuid:
+            uri += f'&projectUuid={self.project_uuid}'
+        self.connection = create_connection(uri, timeout=self.ws_timeout)
+        return self.connection
+
+    def close_connection(self):
+        if self.connection:
+            self.connection.close()
+
+    def send_message(self, message: dict):
+        self.connection.send(json.dumps(message))
+
+    def response_by_subject_generator(self, subject, subject_type):
+        start_time = datetime.now()
+        delta = datetime.now() - start_time
+        while delta.seconds <= self.ws_timeout:
+            message = json.loads(self.connection.recv())
+            if message.get('subject') == subject and message.get('type') == subject_type:
+                yield message.get('message')
+            delta = datetime.now() - start_time
+
+    def ws_wait_updated_node_name(self, node_name, node_uuid):
+        for resp in self.response_by_subject_generator('classes_tree_updated', 'updated'):
+            if resp.get('nodeUpdated').get('name') == node_name and resp.get('nodeUpdated').get('nodeUuid') == node_uuid:
+                return True
+
+
+

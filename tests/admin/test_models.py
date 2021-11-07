@@ -422,7 +422,8 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
     expected_period_data['last_period'] = f'{model_api.get_mounth_name_by_number(feature_month[0])} {feature_month[1]}'.lower()
 
     with allure.step(f'Проверить корректное заполнение полей временного интервала'):
-        assert model_page.get_model_period_data() == expected_period_data
+        actual_period_data = model_page.get_model_period_data()
+        assert actual_period_data == expected_period_data
 
     with allure.step(f'Сохранить временной интервал'):
         model_page.save_model_period()

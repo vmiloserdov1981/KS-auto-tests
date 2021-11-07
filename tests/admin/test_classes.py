@@ -97,11 +97,6 @@ def test_admin_classes_entities_control(parametrized_login_admin_driver, paramet
 
     with allure.step(f'Проверить отображение всех созданных показателей и связей класса на странице класса'):
         class_page.tree.select_node(class_name)
-
-        #убрать перезагрузку и раскрытие после исправления PKM-7889
-        parametrized_login_admin_driver.refresh()
-        class_page.tree.expand_node(class_name)
-
         assert class_page.compare_lists(class_page.get_class_indicators(), [indicator_1['indicator_name'], indicator_2['indicator_name']]), 'Некорректный список показателей класса'
         assert class_page.get_class_dimensions() is None, 'Некорректный список измерений класса'
         assert class_page.compare_lists(class_page.get_class_relations(), [relation_1['relation_name'], relation_2['relation_name']]), 'Некорректный список связей класса'
