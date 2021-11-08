@@ -1,3 +1,5 @@
+import time
+
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 import requests
@@ -16,6 +18,8 @@ import collections
 import os
 from websocket import create_connection
 from websocket import WebSocket
+from websocket._exceptions import WebSocketTimeoutException
+from concurrent.futures import ThreadPoolExecutor
 
 
 def antistale(func):
@@ -591,20 +595,21 @@ class BaseApi:
                     dictionary[i] = [item]
         return dictionary
 
+
 class WS:
 
     def __init__(self, token, project_uuid=None, ws_timeout=20):
         self.token = token
         self.project_uuid = project_uuid
         self.ws_timeout = ws_timeout
-        self.connection: WebSocket = None
+        self.connection: WebSocket = self.create_connection()
 
     def create_connection(self):
         uri = f"wss://pkm.andersenlab.com/ws/?token={self.token}"
         if self.project_uuid:
             uri += f'&projectUuid={self.project_uuid}'
-        self.connection = create_connection(uri, timeout=self.ws_timeout)
-        return self.connection
+        ws_client = create_connection(uri, timeout=self.ws_timeout)
+        return ws_client
 
     def close_connection(self):
         if self.connection:
@@ -617,15 +622,46 @@ class WS:
         start_time = datetime.now()
         delta = datetime.now() - start_time
         while delta.seconds <= self.ws_timeout:
-            message = json.loads(self.connection.recv())
+            try:
+                message = json.loads(self.connection.recv())
+            except WebSocketTimeoutException:
+                break
             if message.get('subject') == subject and message.get('type') == subject_type:
                 yield message.get('message')
             delta = datetime.now() - start_time
 
-    def ws_wait_updated_node_name(self, node_name, node_uuid):
-        for resp in self.response_by_subject_generator('classes_tree_updated', 'updated'):
-            if resp.get('nodeUpdated').get('name') == node_name and resp.get('nodeUpdated').get('nodeUuid') == node_uuid:
-                return True
+    @staticmethod
+    def ws_checking(check_data: dict):
+        """
+        check_data = {
+            'ws_check_function': ('some_ws_check_function', (), {}),
+            'action_function': ('some_function', (), {})
+        }
+        """
+
+        result = {}
+        futures = {}
+
+        with ThreadPoolExecutor() as executor:
+            for check_function in check_data:
+                function = check_data.get(check_function)[0]
+                try:
+                    args = check_data.get(check_function)[1]
+                except IndexError:
+                    args = ()
+                try:
+                    kwargs = check_data.get(check_function)[2]
+                except IndexError:
+                    kwargs = {}
+
+                futures[check_function] = executor.submit(function, *args, **kwargs)
+
+            for field in check_data:
+                result[field] = futures[field].result()
+
+            return result
+
+
 
 
 

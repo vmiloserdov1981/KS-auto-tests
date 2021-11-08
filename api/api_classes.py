@@ -118,13 +118,33 @@ class ApiClasses(BaseApi):
         resp['name'] = class_name
         return resp
 
-    def rename_class_node(self, class_node_uuid, class_name):
+    def rename_class_node(self, class_node_uuid, class_name, ws=None):
         payload = {
             'name': class_name,
             'nodeUuid': class_node_uuid
         }
         resp = self.post(f'{Vars.PKM_API_URL}classes/update-node', self.token, payload)
+        if ws:
+            self.ws_wait_updated_node_name(ws, class_name, class_node_uuid)
+            '''
+            check_data = {
+                'ws_check_function': (self.ws_wait_updated_node_name, (ws, class_name, class_node_uuid)),
+                'action_function': (self.post, (f'{Vars.PKM_API_URL}classes/update-node', self.token, payload))
+            }
+            result = ws.ws_checking(check_data)
+            assert result.get('ws_check_function') is True
+            return result.get('action_function')
+            '''
         return resp
+
+    @staticmethod
+    def ws_wait_updated_node_name(ws, node_name, node_uuid):
+        resps = []
+        for resp in ws.response_by_subject_generator('classes_tree_updated', 'updated'):
+            resps.append(resp)
+            if resp.get('nodeUpdated').get('name') == node_name and resp.get('nodeUpdated').get('uuid') == node_uuid:
+                return True
+        raise AssertionError(f'Не получено сообщение ws переименования ноды \n список полученых сообщений обновления нод дерева: {resps}')
 
     def get_class_data(self, class_uuid):
         payload = {

@@ -15,8 +15,8 @@ from api.api_classes import ApiClasses
     })])
 def test_api_classes_control(api_driver, parameters):
     api = ApiClasses(api_driver.login, api_driver.password, api_driver.project_uuid, token=api_driver.token)
-    api_driver.ws.create_connection()
     socket = api_driver.ws
+    socket.ws_timeout = 30
 
     with allure.step(f'Создать уникальное название класса'):
         class_name = api.create_unique_class_name('API-класс')
@@ -31,10 +31,7 @@ def test_api_classes_control(api_driver, parameters):
         socket.send_message({'action': 'subscribe', 'subject': 'classes_tree_updated'})
 
     with allure.step(f'Переименовать класс {class_name}'):
-        api.rename_class_node(class_node_uuid, class_name)
-
-    with allure.step('Проверить получение WS'):
-        socket.ws_wait_updated_node_name(class_name, class_node_uuid)
+        api.rename_class_node(class_node_uuid, class_name, ws=socket)
 
     with allure.step(f'Проверить переименование класса {class_name}'):
         assert api.get_class_name(class_uuid) == class_name
