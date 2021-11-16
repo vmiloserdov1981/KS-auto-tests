@@ -36,7 +36,8 @@ class ModelPage(NewEntityPage):
 
     @staticmethod
     def datasets_list_value_locator_creator(dataset_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'container-table') and .//div[contains(@class, 'header__title') and .='Наборы данных']]//tr[contains(@class, 'entity__row') and .//td[contains(text(), ' {dataset_name} ')]]")
+        #locator = (By.XPATH, f"//div[contains(@class, 'container-table') and .//div[contains(@class, 'header__title') and .='Наборы данных']]//tr[contains(@class, 'entity__row') and .//td[contains(text(), ' {dataset_name} ')]]")
+        locator = (By.XPATH, f"//tr[.//span[contains(text(), '{dataset_name}')]]")
         return locator
 
     @staticmethod
@@ -114,10 +115,10 @@ class ModelPage(NewEntityPage):
 
         if names and names != []:
             for name in names:
-                if ' (По умолчанию)' not in name:
+                if '(По умолчанию)' not in name:
                     value = {'name': name, 'is_default': False}
                 else:
-                    value = {'name': name.split(' (По умолчанию)')[0], 'is_default': True}
+                    value = {'name': name.split('(По умолчанию)')[0], 'is_default': True}
                 result.append(value)
 
         return result if result != [] else None
@@ -162,9 +163,9 @@ class ModelPage(NewEntityPage):
 
         self.find_and_click(self.add_list_element_button_creator(self.DATASETS_LIST_NAME))
         if is_default is True and not is_first_dataset:
-            self.modal.check_checkbox('По умолчанию')
+            self.modal.check_checkbox('Использовать по умолчанию')
         elif is_default is False and not is_first_dataset:
-            self.modal.uncheck_checkbox('По умолчанию')
+            self.modal.uncheck_checkbox('Использовать по умолчанию')
         self.modal.enter_and_save(dataset_name)
 
     def sort_datasets(self, sort_type, sort_order):

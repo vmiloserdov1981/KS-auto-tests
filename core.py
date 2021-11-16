@@ -1,5 +1,3 @@
-import time
-
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 import requests
@@ -185,6 +183,12 @@ class BasePage:
             self.scroll_to_element(element)
         element.click()
 
+    @antistale
+    def find_and_double_click(self, locator, timeout=10):
+        element = self.find_element(locator, time=timeout)
+        action = ActionChains(self.driver)
+        action.double_click(element).perform()
+
     def find_and_click_by_offset(self, locator, x=0, y=0):
         elem = self.find_element(locator)
         action = ActionChains(self.driver)
@@ -198,7 +202,7 @@ class BasePage:
         action_chains = ActionChains(self.driver)
         return action_chains.context_click(element).perform()
 
-    def find_and_enter(self, locator, text, time=10):
+    def find_and_enter(self, locator, text, time=10, double_click=False):
         element = self.find_element(locator, time)
         element.send_keys(text)
         return element
