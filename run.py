@@ -33,7 +33,7 @@ def run_all_tests():
     api_admin.prepare_data()
 
     print('run tests from red_group')
-    pytest.main([f"-n={quantity}", "-v", "-m", "red_label", "--alluredir=reports"])
+    pytest.main([f"-n={quantity}", "-v", "-m", "blue_label", "--alluredir=reports"])
 
 
 run_all_tests()
