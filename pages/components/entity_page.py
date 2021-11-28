@@ -274,7 +274,7 @@ class NewEntityPage(BasePage):
 
     @staticmethod
     def list_elements_creator(list_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'container-table') and .//div[contains(@class, 'header__title') and .='{list_name}']]//*[contains(@class, 'ks-page__entity-title')]")
+        locator = (By.XPATH, f"//div[contains(@class, 'container-table') and .//div[contains(@class, 'header__title') and .='{list_name}']]//*[contains(@class, 'ks-page__entity-title') or contains(@class, 'ks-page__title')]")
         return locator
 
     @staticmethod
@@ -304,8 +304,8 @@ class NewEntityPage(BasePage):
         return locator
 
     @staticmethod
-    def checkbox_locator_creator(form_control_name):
-        locator = (By.XPATH, f"//ks-checkbox[@formcontrolname='{form_control_name}']//div[contains(@class, 'checkbox-container')]")
+    def checkbox_locator_creator(form_control_name, label=None):
+        locator = (By.XPATH, f"//ks-checkbox[@formcontrolname='{form_control_name}' or @label='{label}']//div[contains(@class, 'checkbox-container')]")
         return locator
 
     @staticmethod

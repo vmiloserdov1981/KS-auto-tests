@@ -1,5 +1,5 @@
 from selenium.webdriver.common.by import By
-from core import BasePage
+from core import BasePage, Keys
 from pages.components.modals import ProjectModal
 import allure
 import time
@@ -41,8 +41,13 @@ class LoginPage(BasePage):
         self.enter_pass(password)
         # добавлена рандомная задержка для предотвращения одновременного логина при выполнении тестов параллельно
         time.sleep(randint(2, 5))
+        # вернуть клик на кнопку логина и убрать клик на enter после исправления PKM-8385
+        '''
         with allure.step(f'Клик на кнопку логина'):
             self.find_and_click(self.LOCATOR_PKM_LOGIN_EU_BUTTON)
+        '''
+        self.find_element(self.LOCATOR_PKM_PASS_FIELD).send_keys(Keys.ENTER)
+
         if check_password_expiration:
             from conditions.preconditions_ui import PreconditionsFront
             change_password_modal = PreconditionsFront(self.driver, None)
