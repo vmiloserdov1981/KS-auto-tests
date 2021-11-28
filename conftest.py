@@ -10,13 +10,26 @@ from webdriver_manager.chrome import ChromeDriverManager
 import json
 from conditions.clean_factory import delete as delete_entity
 import time
+from core import BaseApi, WS
+
+
+class CustomDriver(webdriver.Chrome):
+    def refresh(self):
+        self.execute_script('window.clearRequestsHistory()')
+        super().refresh()
+
+
+class CustomRemoteDriver(webdriver.Remote):
+    def refresh(self):
+        super().refresh()
+        self.execute_script('window.window.requestHistoryEnabled = true')
 
 
 def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, project_name=None, token=None):
     if name is None:
         name = 'autotest'
     if os.getenv('IS_LOCAL') == 'true':
-        driver = webdriver.Chrome(ChromeDriverManager().install())
+        driver = CustomDriver(ChromeDriverManager().install())
     else:
         ip = os.getenv('SELENOID_IP', '127.0.0.1')
         ip = f'http://{ip}:4444/wd/hub'
@@ -24,7 +37,7 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, projec
         timeout = os.getenv('TIMEOUT', '5m')
         capabilities = {
             "browserName": "chrome",
-            # "version": "83.0",
+            # "version": "93.0",
             "enableVNC": True,
             "enableVideo": enable_video,
             'videoName': f'{name}.mp4',
@@ -34,7 +47,7 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, projec
             "service-startup-timeout": '5m',
             "goog:loggingPrefs": {'browser': 'ALL'}
         }
-        driver = webdriver.Remote(
+        driver = CustomRemoteDriver(
             command_executor=ip,
             desired_capabilities=capabilities)
     driver.test_data = {'to_delete': []}
@@ -47,6 +60,15 @@ def driver_init(maximize=True, impl_wait=3, name=None, project_uuid=None, projec
     if maximize:
         driver.maximize_window()
     return driver
+
+
+def api_driver_init(login=None, project_uuid=None, token=None):
+    password = user.test_users.get(login)
+    api_driver = BaseApi(login, password, project_uuid=project_uuid, token=token)
+    api_driver.test_data = {'to_delete': []}
+    api_driver.is_test_failed = False
+    return api_driver
+
 
 
 # Фикстура для создания скриншотов при фейле теста
@@ -162,6 +184,25 @@ def parametrized_login_admin_driver(parameters):
 
 
 @pytest.fixture()
+def api_driver(parameters):
+    """
+    parameters = {
+        'login': 'eu_user',
+        'project': 'Шельф. Приразломная',
+    }
+    """
+    project_name = parameters.get('project')
+    login = parameters.get('login')
+    token = ApiEuPreconditions.api_get_token(user.test_users[login].login, user.test_users[login].password, Vars.PKM_API_URL)
+    project_uuid = ApiEuPreconditions.get_project_uuid_by_name_static(project_name, token) if project_name else None
+    api_driver = api_driver_init(login=login, project_uuid=project_uuid, token=token)
+    api_driver.ws = WS(token, project_uuid=project_uuid)
+    yield api_driver
+    if api_driver.ws.connection:
+        api_driver.ws.close_connection()
+
+
+@pytest.fixture()
 def driver(parameters):
     """
     parameters = {
@@ -217,6 +258,21 @@ class AttachmentsCreator:
             self.attach_data()
             self.driver.quit()
 
+    @staticmethod
+    def convert_history(network_history: list):
+        result = {}
+        count = 0
+        for i in network_history:
+            current = {
+                'url': i.get('request').get('url'),
+                'status': i.get('response').get('status'),
+                'request_body': i.get('request').get('body'),
+                'response_body': i.get('response').get('body')
+            }
+            result[count] = current
+            count += 1
+        return json.dumps(result)
+
     def attach_data(self):
         allure.attach(
             self.driver.get_screenshot_as_png(),
@@ -227,5 +283,11 @@ class AttachmentsCreator:
         allure.attach(
             logs,
             name='logs',
+            attachment_type=allure.attachment_type.JSON
+        )
+        history = self.convert_history(self.driver.execute_script("return window.getRequestsHistory();"))
+        allure.attach(
+            history,
+            name='history',
             attachment_type=allure.attachment_type.JSON
         )

@@ -1,8 +1,7 @@
 from pages.components.entity_page import EntityPage
-from pages.components.trees import Tree
+from pages.components.trees import NewTree
 from pages.components.modals import Modals
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 import allure
 import time
 
@@ -16,10 +15,10 @@ class DictionaryPage(EntityPage):
 
     def __init__(self, driver):
         super().__init__(driver)
-        self.tree = Tree(driver)
+        self.tree = NewTree(driver)
         self.modal = Modals(driver)
 
-    def create_dictionary(self, parent_node:str, dict_name:str):
+    def create_dictionary(self, parent_node: str, dict_name: str):
         with allure.step(f'Создать справочник {dict_name}'):
             self.find_and_context_click(self.tree.node_locator_creator(parent_node))
             self.find_and_click(self.tree.context_option_locator_creator('Создать справочник'))
@@ -27,18 +26,12 @@ class DictionaryPage(EntityPage):
         with allure.step(f'Проверить отображение справочника {dict_name} в дереве справочников выбранным'):
             self.tree.wait_selected_node_name(dict_name, timeout=20)
         with allure.step(f'Проверить переход на страницу вновь соданного справочника'):
-            self.wait_page_title(dict_name.upper())
+            self.wait_page_title(dict_name)
 
     def rename_title(self, title_name):
         self.find_and_click(self.LOCATOR_CHANGE_TITLE_BUTTON)
-        name_input = (By.XPATH, "//div[contains(@class, 'modal-window-content')]//input")
-        title_input = self.find_element(name_input)
-        title_input.send_keys(Keys.CONTROL + "a")
-        title_input.send_keys(Keys.DELETE)
-        title_input.send_keys(title_name)
-        self.find_and_click(self.modal.LOCATOR_SAVE_BUTTON)
-        actual_title_name = (self.get_element_text(self.LOCATOR_DICTIONARY_PAGE_TITLE))
-        assert actual_title_name == title_name.upper()
+        self.modal.enter_and_save(title_name, clear_input=True)
+        self.wait_page_title(title_name)
         time.sleep(2)
 
     def wait_page_title(self, page_title: str, timeout: int = 10):

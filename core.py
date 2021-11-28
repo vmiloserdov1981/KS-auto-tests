@@ -14,6 +14,10 @@ from datetime import timedelta
 from time import sleep
 import collections
 import os
+from websocket import create_connection
+from websocket import WebSocket
+from websocket._exceptions import WebSocketTimeoutException
+from concurrent.futures import ThreadPoolExecutor
 
 
 def antistale(func):
@@ -104,6 +108,12 @@ class BasePage:
             dom_html = self.find_element(dom_locator).get_attribute('innerHTML')
         raise AssertionError('Превышено количество попыток ожидания стабильности страницы')
 
+    def not_find_element(self, locator, timeout=10):
+        try:
+            self.find_element(locator, time=timeout)
+        except TimeoutException:
+            return True
+
     def is_element_disappearing(self, locator, time=10, wait_display=True):
         if wait_display:
             try:
@@ -118,7 +128,7 @@ class BasePage:
             return True
         elif not wait_display:
             try:
-                element = self.find_element(locator, time=1)
+                element = self.find_element(locator, time=3)
             except TimeoutException:
                 return True
             try:
@@ -173,6 +183,12 @@ class BasePage:
             self.scroll_to_element(element)
         element.click()
 
+    @antistale
+    def find_and_double_click(self, locator, timeout=10):
+        element = self.find_element(locator, time=timeout)
+        action = ActionChains(self.driver)
+        action.double_click(element).perform()
+
     def find_and_click_by_offset(self, locator, x=0, y=0):
         elem = self.find_element(locator)
         action = ActionChains(self.driver)
@@ -182,10 +198,11 @@ class BasePage:
     def find_and_context_click(self, locator, time=10):
         element = self.find_element(locator, time)
         self.scroll_to_element(element)
+        self.hover_over_element(locator)
         action_chains = ActionChains(self.driver)
         return action_chains.context_click(element).perform()
 
-    def find_and_enter(self, locator, text, time=10):
+    def find_and_enter(self, locator, text, time=10, double_click=False):
         element = self.find_element(locator, time)
         element.send_keys(text)
         return element
@@ -227,6 +244,11 @@ class BasePage:
         action = ActionChains(self.driver)
         action.drag_and_drop(element_1, element_2).perform()
 
+    def drag_and_drop_by_offset(self, locator, x_offset, y_offset):
+        element = self.find_element(locator)
+        action = ActionChains(self.driver)
+        action.drag_and_drop_by_offset(element, x_offset, y_offset).perform()
+
     def get_input_value(self, input_locator, return_empty=True, webelement=None, time=2):
         if not webelement:
             input_element = self.find_element(input_locator, time=time)
@@ -238,12 +260,19 @@ class BasePage:
         else:
             return value if value != '' else None
 
-    def wait_server_error(self, timeout=10):
-        assert self.is_element_disappearing(self.LOCATOR_SERVER_ERROR_NOTIFICATION, time=timeout, wait_display=True), 'Сообщение с ошибкой сервера не исчезает'
+    def wait_server_error(self, timeout=10, error_text=None):
+        if error_text:
+            locator = (By.XPATH, f"//div[contains(@class, 'notification-container') and .='{error_text}']")
+        else:
+            locator = (By.XPATH, "//div[contains(@class, 'notification-container') and .='Ошибка сервера']")
+
+        assert self.is_element_disappearing(locator, time=timeout, wait_display=True), 'Сообщение с ошибкой сервера не исчезает'
 
     @staticmethod
     def compare_lists(list_a: list, list_b: list) -> bool:
-        return collections.Counter(list_a) == collections.Counter(list_b)
+        list_a_collection = collections.Counter(list_a)
+        list_b_collection = collections.Counter(list_b)
+        return list_a_collection == list_b_collection
 
     @staticmethod
     def compare_dicts_lists(list_a: list, list_b: list) -> None:
@@ -295,7 +324,7 @@ class BasePage:
                 dictionary[group_value] = [item]
         return dictionary
 
-    def elements_generator(self, locator, time=5, wait=None):
+    def elements_generator(self, locator, time=5, wait=None, scroll_to_element=False):
         if wait:
             sleep(wait)
         try:
@@ -304,6 +333,8 @@ class BasePage:
             return None
         elements = self.driver.find_elements(*locator)
         for element in elements:
+            if scroll_to_element:
+                self.scroll_to_element(element)
             yield element
 
     def is_element_clickable(self, locator):
@@ -323,6 +354,13 @@ class BasePage:
         input_element = self.find_element(input_locator, time=time)
         is_checked = self.driver.execute_script("return arguments[0].checked;", input_element)
         return is_checked
+
+    def is_checkbox_checked(self, checkbox_locator: tuple, time=10):
+        checkbox_element = self.find_element(checkbox_locator, time=time)
+        if 'checkbox-selected' in checkbox_element.get_attribute('class'):
+            return True
+        else:
+            return False
 
     @antistale
     def get_element_html(self, locator):
@@ -410,7 +448,7 @@ class BaseApi:
         if project_uuid and not without_project:
             headers['x-project-uuid'] = project_uuid
         response = requests.post(url, data=json.dumps(payload), headers=headers)
-        if response.status_code in range(200, 300) and response.text is not None:
+        if response.status_code in range(200, 300) and response.text is not None and '"error"' not in response.text:
             return json.loads(response.text)
         else:
             raise AssertionError(f'Ошибка при получении ответа сервера:\n запрос: {url} \n payload: {payload} \n headers: {headers} \n Ответ: {response.status_code}, {response.text}')
@@ -467,20 +505,24 @@ class BaseApi:
         end_month = start_month + offset
         if end_month > 12:
             year_add = end_month // 12
-            month_add = (end_month % 12) - 1
-            start_month += month_add
-            start_year += year_add
+            target_month = (end_month % 12) - 1
+            target_year = start_year + year_add
         else:
-            start_month += offset - 1
+            target_month = start_month + offset - 1
+            target_year = start_year
 
-        if start_month < 10:
-            start_month = f'0{start_month}'
+        if target_month == 0:
+            target_month = 12
+            target_year -= 1
+
+        if target_month < 10:
+            target_month = f'0{target_month}'
         else:
-            start_month = str(start_month)
+            target_month = str(target_month)
 
-        start_year = str(start_year)
+        target_year = str(target_year)
 
-        result = [start_month, start_year]
+        result = [target_month, target_year]
         return result
 
     @staticmethod
@@ -556,3 +598,74 @@ class BaseApi:
                 else:
                     dictionary[i] = [item]
         return dictionary
+
+
+class WS:
+
+    def __init__(self, token, project_uuid=None, ws_timeout=20):
+        self.token = token
+        self.project_uuid = project_uuid
+        self.ws_timeout = ws_timeout
+        self.connection: WebSocket = self.create_connection()
+
+    def create_connection(self):
+        uri = f"wss://pkm.andersenlab.com/ws/?token={self.token}"
+        if self.project_uuid:
+            uri += f'&projectUuid={self.project_uuid}'
+        ws_client = create_connection(uri, timeout=self.ws_timeout)
+        return ws_client
+
+    def close_connection(self):
+        if self.connection:
+            self.connection.close()
+
+    def send_message(self, message: dict):
+        self.connection.send(json.dumps(message))
+
+    def response_by_subject_generator(self, subject, subject_type):
+        start_time = datetime.now()
+        delta = datetime.now() - start_time
+        while delta.seconds <= self.ws_timeout:
+            try:
+                message = json.loads(self.connection.recv())
+            except WebSocketTimeoutException:
+                break
+            if message.get('subject') == subject and message.get('type') == subject_type:
+                yield message.get('message')
+            delta = datetime.now() - start_time
+
+    @staticmethod
+    def ws_checking(check_data: dict):
+        """
+        check_data = {
+            'ws_check_function': ('some_ws_check_function', (), {}),
+            'action_function': ('some_function', (), {})
+        }
+        """
+
+        result = {}
+        futures = {}
+
+        with ThreadPoolExecutor() as executor:
+            for check_function in check_data:
+                function = check_data.get(check_function)[0]
+                try:
+                    args = check_data.get(check_function)[1]
+                except IndexError:
+                    args = ()
+                try:
+                    kwargs = check_data.get(check_function)[2]
+                except IndexError:
+                    kwargs = {}
+
+                futures[check_function] = executor.submit(function, *args, **kwargs)
+
+            for field in check_data:
+                result[field] = futures[field].result()
+
+            return result
+
+
+
+
+

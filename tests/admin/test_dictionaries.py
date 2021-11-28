@@ -43,7 +43,7 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение обновленного имени справочника на странице справочника'):
-        dictionary_page.wait_page_title(new_dict_name.upper())
+        dictionary_page.wait_page_title(new_dict_name)
 
     with allure.step('Проверить отображение обновленного имени справочника в дереве'):
         assert dictionary_page.tree.get_selected_node_name() == new_dict_name
@@ -52,13 +52,13 @@ def test_admin_dictionaries_entities_control(parametrized_login_admin_driver, pa
         dictionary_page.tree.rename_node(new_dict_name, dict_name)
 
     with allure.step(f'Проверить изменение названия справочника на странице справочника'):
-        dictionary_page.wait_page_title(dict_name.upper())
+        dictionary_page.wait_page_title(dict_name)
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение обновленного имени справочника на странице справочника'):
-        dictionary_page.wait_page_title(dict_name.upper())
+        dictionary_page.wait_page_title(dict_name)
 
     with allure.step('Проверить отображение обновленного имени справочника в дереве'):
         assert dictionary_page.tree.get_selected_node_name() == dict_name

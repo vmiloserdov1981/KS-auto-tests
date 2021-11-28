@@ -2,6 +2,7 @@ from core import BasePage, antistale, retry
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from pages.components.modals import Modals
+from pages.components.entity_page import NewEntityPage
 import time
 
 
@@ -192,7 +193,8 @@ class NewTree(BasePage):
     LOCATOR_TREE_CLASS_BUTTON = (By.XPATH, "//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' Классы ']")
     LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[contains(@class, 'admin-tree__title')]")
     LOCATOR_TREE_ADD_ROOT_ENTITY = (By.XPATH, "//div[contains(@class, 'create-container')]//button[//*[local-name()='svg' and @data-icon='plus']]")
-    LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item selected')]/div[contains(@class, 'tree-item-title')]")
+    #LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item') and contains(@class, 'selected')]//div[contains(@class, 'tree-item-title')]")
+    LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item') and contains(@class, 'selected')]")
     DICTIONARIES_TREE_NAME = 'Справочники'
     LOCATOR_TREE_NODE = (By.XPATH, "(//pkm-tree-item[.//div[contains(@class, tree-item)]])[not(.//div[contains(@class, 'load')])]")
 
@@ -207,7 +209,8 @@ class NewTree(BasePage):
 
     @staticmethod
     def node_locator_creator(node_name):
-        locator = (By.XPATH, f"(//div[contains(@class, 'tree-item-title') and .='{node_name}'])[last()]")
+        #locator = (By.XPATH, f"(//div[contains(@class, 'tree-item-title') and .='{node_name}'])[last()]")
+        locator = (By.XPATH, f"(//div[contains(@class, 'tree-item') and .//div[contains(@class, 'tree-item-title') and .='{node_name}']])[last()]")
         return locator
 
     @staticmethod
@@ -218,7 +221,7 @@ class NewTree(BasePage):
 
     @staticmethod
     def context_option_locator_creator(option_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'context-menu-body')]//div[@class='context-menu-item-title' and .=' {option_name} ']")
+        locator = (By.XPATH, f"(//div[contains(@class, 'context-menu-body')]//div[contains(@class, 'context-menu-item') and .//div[contains(@class, 'context-menu-item-title') and .=' {option_name} ']])[last()]")
         return locator
 
     @staticmethod
@@ -226,21 +229,9 @@ class NewTree(BasePage):
         locator = (By.XPATH, f"//div[contains(@class, 'context-menu-submenu')]//div[@class='context-menu-item' and .=' {option_name} ']")
         return locator
 
-    def children_elements_generator(self, parent_name):
-        target_depth = None
-        for item in self.elements_generator(self.LOCATOR_TREE_NODE):
-            if item.text == parent_name:
-                start_depth = int(item.get_attribute('ng-reflect-depth'))
-                target_depth = str(start_depth + 1)
-                continue
-            if target_depth and target_depth == item.get_attribute('ng-reflect-depth'):
-                yield item
-            elif target_depth and target_depth != item.get_attribute('ng-reflect-depth'):
-                break
-
     @antistale
     def children_node_locator_creator(self, parent_node_name, children_node_name=None):
-        parent_locator = (By.XPATH, f"(//div[@class='tree-item' and ./div[contains(@class, 'tree-item-title') and .='{parent_node_name}']])[last()]")
+        parent_locator = self.node_locator_creator(parent_node_name)
         parent_node = self.find_element(parent_locator)
         parent_uuid = parent_node.get_attribute('test-uuid')
         assert parent_uuid, 'Не удалось получить uuid родительской ноды'
@@ -327,7 +318,7 @@ class NewTree(BasePage):
         if arrow.get_attribute('data-icon') == 'angle-right':
             arrow.click()
         if arrow.get_attribute('data-icon') == 'angle-down':
-            names = [i.text for i in self.children_elements_generator(parent_node_name)]
+            names = [i.text for i in self.elements_generator(self.children_node_locator_creator(parent_node_name))]
             return names
         return []
 
@@ -346,11 +337,13 @@ class NewTree(BasePage):
         if arrow.get_attribute('ng-reflect-icon') == 'angle-down':
             arrow.click()
 
-    def select_node(self, node_name):
+    def select_node(self, node_name, wait_upper_title=False, title_check=True):
         self.find_and_click(self.node_locator_creator(node_name), time=20)
         self.wait_until_text_in_element(self.LOCATOR_SELECTED_NODE, node_name)
-        page_title_locator = (By.XPATH, "//div[contains(@class, 'title-value')]")
-        self.wait_until_text_in_element(page_title_locator, node_name.upper())
+        expected_name = node_name.upper() if wait_upper_title else node_name
+        if title_check:
+            page_title_locator = NewEntityPage.LOCATOR_ENTITY_PAGE_TITLE
+            self.wait_until_text_in_element(page_title_locator, expected_name)
         time.sleep(2)
 
     @antistale

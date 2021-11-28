@@ -22,10 +22,10 @@ class ApiClasses(BaseApi):
         parent_uuid = None
         if parent_folder_name:
             parent_uuid = self.get_node_uuid(parent_folder_name, 'folder')
-        classes_nodes = self.api_get_classes_tree()
+        classes_nodes = self.api_get_classes_list(term_value=node_name)
         if parent_uuid:
             for node in classes_nodes:
-                if node.get('name') == node_name and node.get('type') == node_type and node.get('parentUuid') == parent_uuid:
+                if node.get('name') == node_name:
                     return True
                 else:
                     continue
@@ -37,6 +37,12 @@ class ApiClasses(BaseApi):
 
     def api_get_classes_tree(self):
         resp = self.post('{}classes/get-tree'.format(Vars.PKM_API_URL), self.token, {})
+        classes = resp.get('data') or []
+        return classes
+
+    def api_get_classes_list(self, term_value):
+        payload = {'term': term_value} if term_value else {}
+        resp = self.post('{}classes/get-list'.format(Vars.PKM_API_URL), self.token, payload)
         classes = resp.get('data') or []
         return classes
 
@@ -102,7 +108,8 @@ class ApiClasses(BaseApi):
 
         payload = {
             'name': class_name,
-            'type': 'class'
+            'type': 'class',
+            'parentUuid': None
         }
 
         if parent_uuid:
@@ -110,6 +117,54 @@ class ApiClasses(BaseApi):
         resp = self.post(f'{Vars.PKM_API_URL}classes/create-node', self.token, payload)
         resp['name'] = class_name
         return resp
+
+    def rename_class_node(self, class_node_uuid, class_name, ws=None):
+        payload = {
+            'name': class_name,
+            'nodeUuid': class_node_uuid
+        }
+        resp = self.post(f'{Vars.PKM_API_URL}classes/update-node', self.token, payload)
+        if ws:
+            self.ws_wait_updated_node_name(ws, class_name, class_node_uuid)
+            '''
+            check_data = {
+                'ws_check_function': (self.ws_wait_updated_node_name, (ws, class_name, class_node_uuid)),
+                'action_function': (self.post, (f'{Vars.PKM_API_URL}classes/update-node', self.token, payload))
+            }
+            result = ws.ws_checking(check_data)
+            assert result.get('ws_check_function') is True
+            return result.get('action_function')
+            '''
+        return resp
+
+    @staticmethod
+    def ws_wait_updated_node_name(ws, node_name, node_uuid):
+        resps = []
+        for resp in ws.response_by_subject_generator('classes_tree_updated', 'updated'):
+            resps.append(resp)
+            if resp.get('nodeUpdated').get('name') == node_name and resp.get('nodeUpdated').get('uuid') == node_uuid:
+                return True
+        raise AssertionError(f'Не получено сообщение ws переименования ноды \n список полученых сообщений обновления нод дерева: {resps}')
+
+    def get_class_data(self, class_uuid):
+        payload = {
+            'uuids': [class_uuid],
+            'withRelations': True
+        }
+        resp = self.post(f'{Vars.PKM_API_URL}classes/get-by-ids', self.token, payload)
+        return resp
+
+    def get_class_name(self, class_uuid):
+        class_data = self.get_class_data(class_uuid)
+        name = class_data.get('data').get(class_uuid).get('name')
+        return name
+
+    def get_node_by_reference_uuid(self, reference_uuid):
+        nodes = self.api_get_classes_tree()
+        for node in nodes:
+            if node.get('referenceUuid') == reference_uuid:
+                return node
+        return {}
 
     def create_classes_relation_node(self, relation_name, parent_node_uuid, source_class_uuid, destination_class_uuid):
         payload = {

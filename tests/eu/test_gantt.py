@@ -611,6 +611,8 @@ def test_eu_group_gantt_events(parametrized_login_driver, parameters):
         assert events_plan.get_grouping_value() == group_values[1]
 
     with allure.step(f'Проверить что на диаграме отображаются все мероприятия плана, сгруппированные по значению "{group_values[1]}"'):
+        #убрать обновление страницы после исправления бага PKM-7543
+        parametrized_login_driver.refresh()
         events_plan.check_plan_events(k6_plan_uuid, versions[1], login, filter_set=filter_set, group_by=group_values[1])
 
     with allure.step(f'Выйти из системы'):

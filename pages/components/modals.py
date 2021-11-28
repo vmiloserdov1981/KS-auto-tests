@@ -8,9 +8,9 @@ from selenium.common.exceptions import TimeoutException
 
 
 class Modals(BasePage):
-    LOCATOR_NAME_INPUT = (By.XPATH, "//pkm-modal-window//input")
-    LOCATOR_CLASS_INPUT = (By.XPATH, "//input[@placeholder='Выберите класс']")
-    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()='Сохранить' or text()=' Сохранить ']")
+    LOCATOR_NAME_INPUT = (By.XPATH, "//pkm-modal-window//*[local-name()='input' or local-name()='textarea']")
+    LOCATOR_CLASS_INPUT = (By.XPATH, "//input[@placeholder='Выберите класс' or @placeholder='Введите название класса']")
+    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()='Сохранить' or text()=' Сохранить ' or text()=' Добавить ']")
     LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()=' Создать ']")
     LOCATOR_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class,'notification-type-error') and text()='Ошибка сервера']")
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]")
@@ -31,7 +31,7 @@ class Modals(BasePage):
 
     @staticmethod
     def checkbox_locator_creator(checkbox_name):
-        locator = (By.XPATH, f"//div[./label[.='{checkbox_name}']]//input[@type='checkbox']")
+        locator = (By.XPATH, f"//ks-checkbox[@label='{checkbox_name}']//div[contains(@class, 'checkbox-container')]")
         return locator
 
     def enter_and_save(self, name, clear_input=False):
@@ -70,12 +70,12 @@ class Modals(BasePage):
 
     def check_checkbox(self, checkbox_name):
         checkbox = self.find_element(self.checkbox_locator_creator(checkbox_name))
-        if not checkbox.is_selected():
+        if 'checkbox-selected' not in checkbox.get_attribute('class'):
             checkbox.click()
 
     def uncheck_checkbox(self, checkbox_name):
         checkbox = self.find_element(self.checkbox_locator_creator(checkbox_name))
-        if checkbox.is_selected():
+        if 'checkbox-selected' in checkbox.get_attribute('class'):
             checkbox.click()
 
 
@@ -133,7 +133,7 @@ class Calendar(BasePage, BaseApi):
 class NewEventModal(Calendar, BasePage):
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]")
     LOCATOR_START_DATE_FIELD = (By.XPATH, "//*[contains (text(), 'Дата начала*')]//..//input")
-    LOCATOR_EVENT_NAME_FIELD = (By.XPATH, "//input[@id='title']")
+    LOCATOR_EVENT_NAME_FIELD = (By.XPATH, "//div[contains(@class, 'modal-window-container')]//div[.='Название*']//input[@id='title']")
     LOCATOR_EVENT_START_DATE_FIELD = (By.XPATH, f"//div[@class='form-col' and .//*[.='Дата начала*']]//input")
     LOCATOR_EVENT_END_DATE_FIELD = (By.XPATH, f"//div[@class='form-col' and .//*[.='Дата окончания']]//input")
     LOCATOR_EVENT_DURATION_FIELD = (By.XPATH, f"//pkm-gant-diagram-task-duration//input[@formcontrolname='days']")
@@ -164,24 +164,29 @@ class NewEventModal(Calendar, BasePage):
         return date
 
     def fill_field(self, field_name, text):
-        field_locator = (By.XPATH, f"//div[contains(@class, 'indicator-label') and text()=' {field_name} ']//following-sibling::input")
-        field = self.find_element(field_locator)
-        if field.get_attribute('value') != '':
-            field.clear()
-        else:
-            pass
-        field.send_keys(text)
+        if text:
+            field_locator = (By.XPATH, f"//div[contains(@class, 'indicator-label') and text()=' {field_name} ']//following-sibling::input")
+            field = self.find_element(field_locator)
+            if field.get_attribute('value') != '':
+                field.clear()
+            else:
+                pass
+            field.send_keys(text)
 
     def get_field_value(self, field_name):
         field_locator = (By.XPATH, f"//div[contains(@class, 'indicator-label') and text()=' {field_name} ']//following-sibling::input")
         field = self.find_element(field_locator)
         return field.get_attribute('value')
 
-    def set_field(self, field_name, option):
-        field_locator = (By.XPATH, f"//div[contains(@class, 'indicators-list-item') and ./div[text()=' {field_name} ']]//div[contains(@class, 'dropdown')]")
-        value_locator = (By.XPATH, f"//div[@class='content' and text()=' {option} ']")
-        self.find_and_click(field_locator)
-        self.find_and_click(value_locator)
+    def set_field(self, field_name, option, alter_field_name=None):
+        if option:
+            if not alter_field_name:
+                alter_field_name = field_name
+            #field_locator = (By.XPATH, f"//div[contains(@class, 'indicators-list-item') and ./div[text()=' {field_name} ']]//div[contains(@class, 'dropdown')]")
+            field_locator = (By.XPATH, f"//div[contains(@class, 'indicators-list-item') and ./div[text()=' {field_name} ' or text()=' {alter_field_name} ']]//div[contains(@class, 'dropdown')]")
+            value_locator = (By.XPATH, f"//div[@class='content' and text()=' {option} ']")
+            self.find_and_click(field_locator)
+            self.find_and_click(value_locator)
 
     def get_field_option(self, field_name):
         field_locator = (By.XPATH, f"//div[contains(@class, 'indicators-list-item') and ./div[text()=' {field_name} ']]//div[contains(@class, 'dropdown')]")
@@ -511,7 +516,7 @@ class PublicationsModal(BasePage):
 
 
 class TagModal(BasePage):
-    LOCATOR_LINKED_MODEL = (By.XPATH, "//div[contains(@class, 'linked-models-list')]//div[contains(@class, 'linked-models-list-item')]")
+    LOCATOR_LINKED_MODEL = (By.XPATH, "//div[contains(@class, 'modal-window')]//table//td")
 
     def get_linked_models(self):
         models = [element.text for element in self.elements_generator(self.LOCATOR_LINKED_MODEL, time=10)]
@@ -519,8 +524,8 @@ class TagModal(BasePage):
 
 
 class TableObjectsSetModal(Modals):
-    LOCATOR_TYPE_DROPDOWN = (By.XPATH, "(//ks-dropdown//div[contains(@class, 'dropdown')])[1]")
-    LOCATOR_OBJECTS_DROPDOWN = (By.XPATH, "//async-dropdown-pagination[@ng-reflect-name='objects']")
+    LOCATOR_TYPE_DROPDOWN = (By.XPATH, "//div[contains(@class, 'modal-window')]//ks-dropdown[1]")
+    LOCATOR_OBJECTS_INPUT = (By.XPATH, "(//div[contains(@class, 'modal-window-content content-padding')]//div[contains(@class, 'form-col')])[2]//async-dropdown-pagination//input")
     LOCATOR_CHECK_ALL_CHECKBOX = (By.XPATH, "//ks-checkbox[@label='Выбрать все']//div[contains(@class, 'checkbox-container')]")
     LOCATOR_CHECK_ALL_OPTION = (By.XPATH, "//div[contains(@class, 'multi-select__item') and contains(@class, 'check-all')]")
 
@@ -536,10 +541,12 @@ class TableObjectsSetModal(Modals):
         type_dropdown_value = self.get_element_text(self.LOCATOR_TYPE_DROPDOWN)
         if type_dropdown_value != 'Объекты':
             self.select_type('Объекты')
-        self.find_and_click(self.LOCATOR_OBJECTS_DROPDOWN)
-        for checkbox in self.elements_generator((By.XPATH, "//div[contains(@class, 'dropdown-item')]//ks-checkbox[@ng-reflect-value='false']")):
-            # self.scroll_to_element(checkbox)
+        self.find_and_click(self.LOCATOR_OBJECTS_INPUT)
+        objects_checkbox_locator = (By.XPATH, "(//div[contains(@class, 'dropdown-overlay__items-list')]//div[contains(@class, 'dropdown-overlay__item')])[.//div[contains(@class, 'checkbox-container') and not(contains(@class, 'checkbox-selected'))]]")
+        for checkbox in self.elements_generator(objects_checkbox_locator):
             checkbox.click()
+        time.sleep(1)
+        self.find_and_click(self.LOCATOR_MODAL_TITLE)
         self.find_and_click(self.LOCATOR_SAVE_BUTTON)
         time.sleep(2)
 
@@ -570,6 +577,6 @@ class ChangePasswordModal(Modals):
         self.find_and_enter(self.LOCATOR_NEW_PASS_FIELD, new_pass)
         self.find_and_enter(self.LOCATOR_NEW_PASS_CONFIRM_FIELD, new_pass)
         self.find_and_click(self.LOCATOR_SAVE_BUTTON)
-        self.is_element_disappearing(self.LOCATOR_CHANGE_PASS_MODAL, time=25, wait_display=False)
+        assert self.is_element_disappearing(self.LOCATOR_CHANGE_PASS_MODAL, time=40, wait_display=False)
 
 
