@@ -25,10 +25,10 @@ def run_all_tests():
 
     quantity = os.getenv('QUANTITY', '5')
 
-    api_eu.prepare_data()
+    # api_eu.prepare_data()
 
-    print('run tests from green_group')
-    pytest.main([f"-n={quantity}", "-v", "-m", "green_label", "--alluredir=reports"])
+    # print('run tests from green_group')
+    # pytest.main([f"-n={quantity}", "-v", "-m", "green_label", "--alluredir=reports"])
 
     api_admin.prepare_data()
 

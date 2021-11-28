@@ -11,7 +11,7 @@ import pytest
 @allure.story('План мероприятий')
 @allure.title('Переключение планов в header')
 @allure.severity(allure.severity_level.CRITICAL)
-@pytest.mark.red_label
+# @pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user3',
         'get_last_k6_plan': True,

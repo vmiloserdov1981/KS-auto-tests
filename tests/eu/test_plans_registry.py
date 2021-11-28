@@ -15,7 +15,7 @@ from conditions.clean_factory import DatasetCreator
 @allure.story('Реестр интегрированных планов')
 @allure.title('Управление версиями ИП')
 @allure.severity(allure.severity_level.CRITICAL)
-@pytest.mark.red_label
+# @pytest.mark.red_label
 @pytest.mark.parametrize("parameters", [({
         'login': 'eu_user2',
         'get_last_k6_plan': True,
