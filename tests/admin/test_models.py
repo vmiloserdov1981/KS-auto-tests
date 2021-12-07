@@ -188,7 +188,7 @@ def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
         parametrized_login_admin_driver.refresh()
 
     with allure.step(f'Проверить сортировку наборов данных по дате (DESC) по умолчанию'):
-        api_datasets = api.get_datasets_names(model_uuid, 'createdAt', True)
+        api_datasets = api.get_datasets_names(model_uuid, group_value='createdAt', reverse=True)
         ui_datasets = model_page.get_model_datasets()
         assert api_datasets == ui_datasets, 'Некорректная сортировка по умолчанию'
 

@@ -7,7 +7,10 @@ from api.api_projects import ApiProjects
 
 token = ApiEuPreconditions.api_get_token(users.admin.login, users.admin.password, Vars.PKM_API_URL)
 project_api = ApiProjects(None, None, None, token=token)
-os.environ["PROJECT_NAME"] = Vars.PKM_PROJECT_NAME = project_api.get_last_k6_project_name()
+if not os.environ["PROJECT_NAME"]:
+    os.environ["PROJECT_NAME"] = Vars.PKM_PROJECT_NAME = project_api.get_last_k6_project_name()
+else:
+    Vars.PKM_PROJECT_NAME = os.environ["PROJECT_NAME"]
 project_uuid = ApiEuPreconditions.get_project_uuid_by_name_static(Vars.PKM_PROJECT_NAME, token)
 api_eu = ApiEuPreconditions(None, None, project_uuid, token=token)
 
