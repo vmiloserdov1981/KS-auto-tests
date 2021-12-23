@@ -19,7 +19,8 @@ class ProjectsPage(NewPage):
     def select_project(self, project_name):
         project_locator = (By.XPATH, f"//div[@routerlink='project-details' and .//div[@class='project__info-name' and .=' {project_name} ']]")
         self.find_and_click(project_locator)
-        self.wait_until_text_in_element_value(self.LOCATOR_PROJECT_NAME_INPUT, project_name)
+        selected_project_title_locator = (By.XPATH, "//div[contains(@class,'project-details')]//div[contains(@class, 'project-title')]")
+        self.wait_until_text_in_element(selected_project_title_locator, project_name)
 
     def select_publication(self, publication_name):
         pub_locator = (By.XPATH, f"//div[contains(@class, 'publication-view__name-container') and .//span[.='{publication_name}']]")

@@ -47,7 +47,7 @@ class ApiDictionaries(BaseApi):
             tree = self.get_dicts_tree()
         nodes = self.get_tree_nodes(tree=tree)
         dicts = nodes.get('dictionary')
-        return dicts
+        return dicts or []
 
     def create_unique_dict_name(self, basename, dicts_nodes=None, subname=None):
         if not dicts_nodes:
