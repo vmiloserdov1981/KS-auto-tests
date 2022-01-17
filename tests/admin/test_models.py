@@ -799,6 +799,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     class_node_uuid = template_data.get('class_data').get('nodeUuid')
     model_name = template_data.get('model_data').get('data')[0].get('name')
     model_node_uuid = template_data.get('model_data').get('nodeUuid')
+    model_uuid = template_data.get('model_data').get('referenceUuid')
     dataset_1_name = template_data.get('dataset_1_data').get('name')
     dataset_1_uuid = template_data.get('dataset_1_data').get('uuid')
     dataset_2_name = template_data.get('dataset_2_data').get('name')
@@ -831,6 +832,13 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Задать базовую структуру таблицы'):
         table_page.set_base_structure()
 
+    # Удалить принудительное указание сущностей после исправления PKM-8966
+    table_page.set_entity_values('Столбцы', 'Наборы данных', [dataset_1_name, dataset_2_name])
+    table_page.set_entity_values('Столбцы', 'Показатели', ['Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый'])
+
+    # Удалить ребилд после исправления PKM-9312
+    model_api.rebuild_model(model_uuid)
+
     with allure.step(f'Переключиться в режим просмотра таблицы'):
         table_page.switch_table_page_type('Таблица')
 
@@ -844,19 +852,20 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         expected_names = ['Набор_1', 'Набор_2', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый', 'Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый']
         assert actual_names == expected_names, 'Фактические объекты не совпадают с ожидаемыми'
 
+    '''
     expected_data = [
         {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
         {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
         {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'},
         {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'}
     ]
-
     with allure.step(f'Проверить расчет показателей созданных объектов по формуле'):
         table_page.wait_cells_value(expected_data)
+    '''
 
-    with allure.step(f'Проверить что в таблице заполнены только показатели объектов с формулами'):
+    with allure.step(f'Проверить ячейки таблицы не заполнены'):
         actual_data = table_page.get_table_data()
-        assert actual_data == expected_data, 'Таблица заполнена некорректно'
+        assert actual_data == [], 'Таблица заполнена'
 
     with allure.step(f'Заполнить ячейки тестовыми данными'):
         table_page.fill_cells(cells_fill_data)
@@ -872,7 +881,10 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     new_table_name = table_name + '_переименованная'
     
     with allure.step(f'Переименовать таблицу "{table_name}" на "{new_table_name}" на странице таблицы'):
-        table_page.rename_title(new_table_name)
+        # Вернуть переименование со страницы таблицы после исправления PKM-9313
+        # table_page.rename_title(new_table_name)
+        table_page.tree.rename_node(table_name, new_table_name)
+        table_page.wait_page_title(new_table_name, timeout=20)
 
     with allure.step(f'Проверить изменение названия таблицы в дереве'):
         table_page.tree.wait_selected_node_name(new_table_name, timeout=20)
@@ -899,6 +911,13 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Задать структуру таблицы c объектами класса "{class_name}"'):
         table_page.set_class_objects_structure(class_name)
 
+    # Удалить принудительное указание сущностей после исправления PKM-8966
+    table_page.set_entity_values('Столбцы', 'Наборы данных', [dataset_1_name, dataset_2_name])
+    table_page.set_entity_values('Столбцы', 'Показатели', ['Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый'])
+
+    with allure.step(f'Переключиться в режим настройки таблицы'):
+        table_page.switch_table_page_type('Настройки')
+
     with allure.step(f'Разрешить добавление объектов'):
         table_page.enable_objects_adding()
 
@@ -920,6 +939,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Проверить отображение объекта "{table_object_1_name}" в дереве'):
         assert table_page.tree.wait_child_node(model_name, table_object_2_name), f'Объект {table_object_2_name} не отображается в дереве'
 
+    '''
     new_objects_data = [
             {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
             {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
@@ -928,11 +948,12 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         ]
     with allure.step(f'Проверить расчет показателей новых объектов по формуле'):
         table_page.wait_cells_value(new_objects_data)
+    '''
 
     with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице (включая вновь созданные объекты)'):
-        new_expected_cells_data = expected_cells_data + new_objects_data
+        # new_expected_cells_data = expected_cells_data + new_objects_data
         actual_cells_data = table_page.get_table_data()
-        table_page.compare_dicts_lists(actual_cells_data, new_expected_cells_data)
+        table_page.compare_dicts_lists(actual_cells_data, expected_cells_data)
 
     incorrect_data = [
         {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1',
@@ -950,9 +971,6 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
          'value': 'Что-то'}
     ]
     new_cells_calc_data = [
-        {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
-        {'object_name': table_object_1_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'},
-        {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
         {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '1 111.33'},
         {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1', 'value': ''},
         {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2', 'value': ''}
@@ -965,8 +983,8 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Проверить расчет всех ячеек с показателями по формуле'):
         table_page.wait_cells_value(new_cells_calc_data)
-        new_cells_calc_data.pop(5)
-        new_cells_calc_data.pop(4)
+        new_cells_calc_data.pop(2)
+        new_cells_calc_data.pop(1)
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()

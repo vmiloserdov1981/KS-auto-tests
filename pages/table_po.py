@@ -1,4 +1,4 @@
-from pages.components.entity_page import EntityPage
+from pages.components.entity_page import NewEntityPage
 from pages.components.trees import NewTree
 from pages.components.modals import Modals, TableObjectsSetModal
 from selenium.webdriver.common.by import By
@@ -11,15 +11,16 @@ import allure
 import time
 
 
-class TablePage(EntityPage):
-    LOCATOR_TABLE_PAGE_TYPE_VALUE = (By.XPATH, "//div[contains(@class, 'form-row')]//div[@class='input-container']")
+class TablePage(NewEntityPage):
+    LOCATOR_TABLE_PAGE_TYPE_VALUE = (By.XPATH, "//ks-tabs-group[contains(@class, 'table__tabs')]//div[contains(@class, 'tab-title') and contains(@class, 'active')]")
     LOCATOR_TABLE_PAGE_TYPE_DROPDOWN = (By.XPATH, "//div[contains(@class, 'form-row')]//div[contains(@class, 'dropdown')]")
     LOCATOR_TABLE_COLUMN_TITLE = (By.XPATH, "//pkm-table-header-top//pkm-table-header-cell")
     LOCATOR_TABLE_ROW_TITLE = (By.XPATH, "//pkm-table-header-left//pkm-table-header-cell")
     LOCATOR_TABLE_CELL = (By.XPATH, "//pkm-table-cell")
-    LOCATOR_DELETE_TABLE_ENTITY_ICON = (By.XPATH, "//div[contains(@class, 'list-element-buttons')]//fa-icon[@icon='times']")
+    LOCATOR_DELETE_TABLE_ENTITY_ICON = (By.XPATH, "//div[contains(@class, 'structure-list__element-buttons')]//ks-button[.//*[local-name()='svg' and @data-icon='trash']]")
     LOCATOR_ADD_OBJECT_ICON = (By.XPATH, "//div[contains(@class, 'table-buttons')]//*[local-name()='svg' and @data-icon='plus']")
     LOCATOR_TABLE_SCROLL_ZONE = (By.XPATH, "//pkm-table-cells-container")
+    LOCATOR_ENTITY_PAGE_TITLE = (By.XPATH, "//div[contains(@class, 'ks-page__entity-title')]")
 
     def __init__(self, driver):
         super().__init__(driver)
@@ -39,19 +40,17 @@ class TablePage(EntityPage):
 
     @staticmethod
     def entity_expand_arrow_locator_creator(entity_type, entity_name):
-        block_xpath = TablePage.entity_block_locator_creator(entity_type, entity_name)[1]
-        locator = (By.XPATH, f"{block_xpath}//div[contains(@class, 'arrow-wrapper')]")
+        locator = (By.XPATH, f"//div[contains(@class, 'constructor-list') and .//div[contains(@class, 'constructor-list__header-title') and .=' {entity_type} ']]//div[contains(@class, 'structure-list__element') and .//div[contains(@class, 'ks__form-column-label') and .=' {entity_name} ']]//div[contains(@class, 'arrow-wrapper')]")
         return locator
 
     @staticmethod
     def entity_clear_button_locator_creator(entity_type, entity_name):
-        block_xpath = TablePage.entity_block_locator_creator(entity_type, entity_name)[1]
-        locator = (By.XPATH, f"{block_xpath}//div[contains(@class, 'ks-dropdown-times')]")
+        locator = (By.XPATH, f"//div[contains(@class, 'constructor-list') and .//div[contains(@class, 'constructor-list__header-title') and .=' {entity_type} ']]//div[contains(@class, 'structure-list__element') and .//div[contains(@class, 'ks__form-column-label') and .=' {entity_name} ']]//div[contains(@class, 'ks-dropdown-times')]")
         return locator
 
     @staticmethod
     def entity_sort_button_creator(entity_name):
-        locator = (By.XPATH, f"//div[contains(@class, 'structure-list-element') and .//div[.='{entity_name}']]//fa-icon[@icon='sort']")
+        locator = (By.XPATH, f"//div[contains(@class, 'structure-list__element') and .//div[contains(@class, 'ks__form-column-label') and .=' {entity_name} ']]//ks-button[.//*[local-name()='svg' and @data-icon='sort-amount-down']]")
         return locator
 
     @staticmethod
@@ -66,7 +65,7 @@ class TablePage(EntityPage):
 
     @staticmethod
     def displaying_option_checkbox_locator_creator(option_name: str):
-        locator = (By.XPATH, f"//pkm-constructor-settings//pkm-checkbox[.='{option_name}']//div[contains(@class, 'checkbox-container')]")
+        locator = (By.XPATH, f"//ks-constructor-settings//ks-checkbox[.='{option_name}']//div[contains(@class, 'checkbox-container')]")
         return locator
 
     def create_data_table(self, model_name, table_name):
@@ -77,7 +76,7 @@ class TablePage(EntityPage):
         with allure.step(f'Укзать название таблицы {table_name} и создать ее'):
             self.modal.enter_and_save(table_name)
         with allure.step(f'Проверить переход на страницу таблицы {table_name}'):
-            self.wait_until_text_in_element(self.LOCATOR_ENTITY_PAGE_TITLE, table_name.upper())
+            self.wait_until_text_in_element(self.LOCATOR_ENTITY_PAGE_TITLE, table_name)
         with allure.step(f'Подождать стабилизацию страницы сущности'):
             self.wait_stable_page()
         with allure.step(f'Проверить отображение таблицы {table_name} в режиме конструктора'):
@@ -89,10 +88,9 @@ class TablePage(EntityPage):
         self.wait_until_text_in_element(self.LOCATOR_TABLE_PAGE_TYPE_VALUE, page_type, time=5)
 
     def switch_table_page_type(self, page_type):
-        dropdown = self.find_element(self.LOCATOR_TABLE_PAGE_TYPE_DROPDOWN)
-        if 'focused' not in dropdown.get_attribute('class'):
-            dropdown.click()
-        self.find_and_click(self.dropdown_value_locator_creator(page_type))
+        target_type_button_locator = (By.XPATH, f"//ks-tabs-group[contains(@class, 'table__tabs')]//div[contains(@class, 'tab-title') and .=' {page_type} ']")
+        if 'active' not in self.find_element(target_type_button_locator).get_attribute('class'):
+            self.find_and_click(target_type_button_locator)
         self.wait_stable_page()
         self.wait_table_page_type(page_type)
 
@@ -103,12 +101,15 @@ class TablePage(EntityPage):
             self.find_and_click(clean_button_locator, time=1)
         except TimeoutException:
             self.find_and_click(expand_button_locator)
+        time.sleep(1)
         for value in values:
             value_locator = (By.XPATH, f"//div[contains(@class, 'multiple-dropdown-item') and .=' {value} ']")
             self.find_and_click(value_locator)
+            time.sleep(1)
+        time.sleep(2)
         self.find_and_click(expand_button_locator)
 
-    def set_entity(self, entity_data):
+    def set_entity_old(self, entity_data):
         """
         entity_data = {
             'name': 'some_name',
@@ -137,6 +138,61 @@ class TablePage(EntityPage):
                                                                                               parent_entity_name)
         entity_locator = self.table_entity_locator_creator(entity_name)
         self.drag_and_drop(entity_locator, drag_zone_locator)
+        if additional_action:
+            function = additional_action[0]
+            try:
+                args = additional_action[1]
+            except IndexError:
+                args = ()
+            try:
+                kwargs = additional_action[2]
+            except IndexError:
+                kwargs = {}
+            function(*args, **kwargs)
+            time.sleep(1)
+
+        if values:
+            self.set_entity_values(entity_type, entity_name, values)
+
+        if children:
+            for children_data in children:
+                children_data['parent_entity_name'] = entity_name if not children_data.get('alter_parent_name') else children_data.get('alter_parent_name')
+                self.set_entity(children_data)
+        time.sleep(2)
+
+    def set_entity(self, entity_data):
+        """
+        entity_data = {
+            'name': 'some_name',
+            'entity_type': 'Строки',
+            'parent_entity_name': None,
+            'additional_action': ('func', 'args', 'kwargs'),
+            'values': ['option_1', 'option_2']
+            'children': [
+                {'name': 'yo', 'entity_type': 'Строки', 'children': None, 'additional_action': None, 'alter_parent_name': 'changed_name'}
+            ]
+        }
+        """
+
+        entity_name = entity_data.get('name')
+        entity_type = entity_data.get('entity_type')
+        parent_entity_name = entity_data.get('parent_entity_name')
+        additional_action = entity_data.get('additional_action')
+        children = entity_data.get('children')
+        values = entity_data.get('values')
+
+        assert entity_name, 'Не указано название сущности'
+        assert entity_type, 'Не указан тип сущности'
+
+        if not parent_entity_name:
+            add_entity_button_locator = (By.XPATH, f"//div[contains(@class, 'constructor-list__header') and .//ks-switch[.=' {entity_type} ']]//ks-add-field-button")
+        else:
+            add_entity_button_locator = (By.XPATH, f"//div[contains(@class, 'structure-list__element') and .//div[contains(@class, 'ks__form-column-label') and .=' {parent_entity_name} ']]//ks-add-field-button")
+        entity_type_locator = (By.XPATH, f"//div[contains(@class, 'overlay-item') and .=' {entity_name} ']")
+
+        self.find_and_click(add_entity_button_locator)
+        self.find_and_click(entity_type_locator)
+
         if additional_action:
             function = additional_action[0]
             try:
@@ -208,8 +264,7 @@ class TablePage(EntityPage):
             entities = [('Строки', 'Объекты'), ('Столбцы', 'Наборы данных'), ('Столбцы', 'Показатели')]
             for i in entities:
                 sort_button_locator = self.entity_sort_button_creator(i[1])
-                sort_by_name_locator = (
-                By.XPATH, "//div[@class='overlay']//div[contains(@class, 'overlay-item') and .=' По названию, А - Я ']")
+                sort_by_name_locator = (By.XPATH, "//div[@class='overlay']//div[contains(@class, 'overlay-item') and .=' По названию, А - Я ']")
                 self.find_and_click(sort_button_locator)
                 time.sleep(1)
                 option = self.find_element(sort_by_name_locator)
@@ -459,15 +514,7 @@ class TablePage(EntityPage):
     @antistale
     def check_displaying_option(self, option_name: str):
         checkbox_locator = self.displaying_option_checkbox_locator_creator(option_name)
-        checkbox = self.find_element(checkbox_locator)
-        if "checkbox-selected" not in checkbox.get_attribute('class'):
-            self.find_and_click(checkbox_locator)
-
-    @antistale
-    def uncheck_displaying_option(self, option_name: str):
-        checkbox_locator = self.displaying_option_checkbox_locator_creator(option_name)
-        checkbox = self.find_element(checkbox_locator)
-        if "checkbox-selected" in checkbox.get_attribute('class'):
+        if "checkbox-icon_hidden" in self.get_element_html(checkbox_locator):
             self.find_and_click(checkbox_locator)
 
     def enable_objects_adding(self):

@@ -212,3 +212,7 @@ class ApiModels(BaseApi):
             count += 1
             new_name = f"{basename}_{count}"
         return new_name
+
+    def rebuild_model(self, model_uuid):
+        payload = {'full': True, 'uuid': model_uuid}
+        self.post(f'{Vars.PKM_API_URL}models-computer/rebuild', self.token, payload, ignore_error=True)

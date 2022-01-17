@@ -438,7 +438,7 @@ class BaseApi:
         else:
             raise AssertionError(f'Ошибка при получении ответа сервера: {response.status_code}, {response.text}')
 
-    def post(self, url, token, payload, without_project=False):
+    def post(self, url, token, payload, without_project=False, ignore_error=False):
         project_uuid = self.project_uuid
         if not project_uuid:
             project_uuid = os.getenv('PROJECT_UUID')
@@ -448,10 +448,13 @@ class BaseApi:
         if project_uuid and not without_project:
             headers['x-project-uuid'] = project_uuid
         response = requests.post(url, data=json.dumps(payload), headers=headers)
-        if response.status_code in range(200, 300) and response.text is not None and '"error"' not in response.text:
-            return json.loads(response.text)
+        if not ignore_error:
+            if response.status_code in range(200, 300) and response.text is not None and '"error"' not in response.text:
+                return json.loads(response.text)
+            else:
+                raise AssertionError(f'Ошибка при получении ответа сервера:\n запрос: {url} \n payload: {payload} \n headers: {headers} \n Ответ: {response.status_code}, {response.text}')
         else:
-            raise AssertionError(f'Ошибка при получении ответа сервера:\n запрос: {url} \n payload: {payload} \n headers: {headers} \n Ответ: {response.status_code}, {response.text}')
+            return json.loads(response.text)
 
     @staticmethod
     def get(url, params=None):
