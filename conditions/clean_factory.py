@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from api.api_models import ApiModels
 from api.api_classes import ApiClasses
+from api.api_bpms import ApiBpms
 import allure
 
 
@@ -29,6 +30,10 @@ class ClassNodeCreator(Creator):
 class ModelNodeCreator(Creator):
     def factory_method(self):
         return ModelNode(self.driver, self.uuid, self.delete_anyway)
+
+class BpmsNodeCreator(Creator):
+    def factory_method(self):
+        return BpmsNode(self.driver, self.uuid, self.delete_anyway)
 
 
 class FormulaEntityCreator(Creator):
@@ -68,6 +73,13 @@ class ModelNode(Product):
         with allure.step(f'Удалить модель'):
             api = ApiModels(None, None, self.driver.project_uuid, token=self.driver.token)
             api.delete_model_node(self.uuid)
+
+
+class BpmsNode(Product):
+    def delete_entity(self):
+        with allure.step(f'Удалить bpms'):
+            api = ApiBpms(None, None, self.driver.project_uuid, token=self.driver.token)
+            api.delete_bpms_node(self.uuid, force=self.force)
 
 
 class ClassNode(Product):

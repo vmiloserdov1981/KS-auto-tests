@@ -14,6 +14,7 @@ class PkmVars:
     PKM_BASE_DICTIONARY_NAME = 'Тестовый_справочник'
     PKM_BASE_CLASS_NAME = 'Тестовый_класс'
     PKM_BASE_MODEL_NAME = 'Тестовая_модель'
+    PKM_BASE_BPMS_NAME = 'Тестовый BPMS'
     PKM_RELATION_CLASS_NAME = 'Класс для связи'
     PKM_BASE_FOLDER_NAME = 'auto_folder-2'
     PKM_DEFAULT_TREE_TYPE = 'model'

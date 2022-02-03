@@ -667,8 +667,3 @@ class WS:
                 result[field] = futures[field].result()
 
             return result
-
-
-
-
-

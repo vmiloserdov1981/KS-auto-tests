@@ -8,6 +8,7 @@ from api.api_classes import ApiClasses
 from api.api_models import ApiModels
 from api.template_creator import TemplateCreator
 from api.api_dashboards import ApiDashboards
+from api.api_bpms import ApiBpms
 
 
 class ApiEu(BaseApi):
@@ -936,3 +937,6 @@ class ApiCreator(BaseApi):
 
     def get_api_dashboards(self):
         return ApiDashboards(self.login, self.password, self.project_uuid, token=self.token)
+
+    def get_api_bpms(self):
+        return ApiBpms(self.login, self.password, self.project_uuid, token=self.token)
