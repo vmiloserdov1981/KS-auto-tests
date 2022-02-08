@@ -357,7 +357,8 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
     start_event_name = "Начальное событие"
     finish_event_name = "Завершающее событие"
     start_task_name = "Начальная задача"
-    gate_name = "Шлюз процесса"
+    enter_gate_name = "Шлюз процесса (разделяющий)"
+    exit_gate_name = "Шлюз процесса (объединяющий)"
     gate_task_1_name = "Параллельная задача 1"
     gate_task_2_name = "Параллельная задача 2"
 
@@ -372,8 +373,7 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
         bpms_node_uuid = bpms_data.get('nodeUuid')
 
     with allure.step(f'Добавить бизнес процесс {bpms_name} в список на удаление в постусловиях'):
-        parametrized_login_admin_driver.test_data['to_delete'].append(
-            BpmsNodeCreator(parametrized_login_admin_driver, bpms_node_uuid, delete_anyway=True))
+        parametrized_login_admin_driver.test_data['to_delete'].append(BpmsNodeCreator(parametrized_login_admin_driver, bpms_node_uuid, delete_anyway=True))
 
     with allure.step(f'Развернуть тестовую папку {test_folder_name}'):
         tree.expand_node(test_folder_name)
@@ -390,8 +390,11 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
     with allure.step(f'Создать задачу шлюза {gate_task_2_name} в бизнес процессе {bpms_name}'):
         task_page.create_bpms_task(bpms_name, gate_task_2_name)
 
-    with allure.step(f'Создать шлюз {gate_name} в бизнес процессе {bpms_name}'):
-        gate_page.create_bpms_gate(bpms_name, gate_name)
+    with allure.step(f'Создать разделяющий шлюз {enter_gate_name} в бизнес процессе {enter_gate_name}'):
+        gate_page.create_bpms_gate(bpms_name, enter_gate_name)
+
+    with allure.step(f'Создать объединяющий шлюз {exit_gate_name} в бизнес процессе {enter_gate_name}'):
+        gate_page.create_bpms_gate(bpms_name, exit_gate_name)
 
     with allure.step(f'Создать завершающее событие {finish_event_name} в бизнес процессе {bpms_name}'):
         event_page.create_bpms_event(bpms_name, finish_event_name)
@@ -401,6 +404,7 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Настроить начальное событие'):
         start_event_data = {
+            'name': start_event_name,
             'event_type': 'Начальное',
             'system_event_type': 'Ручное/внешнее',
             'next_element_type': 'Задача',
@@ -413,6 +417,130 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Настроить завершающее событие'):
         finish_event_data = {
+            'name': finish_event_name,
             'event_type': 'Завершающее'
         }
         event_page.set_event(finish_event_data)
+
+    with allure.step(f'Перейти к задаче {start_task_name}'):
+        tree.select_node(start_task_name)
+
+    with allure.step('Настроить задачу'):
+        start_task_data = {
+                    'name': start_task_name,
+                    'execution_type': 'Один исполнитель',
+                    'task_executors': ['Иванов Андрей'],
+                    'next_element_type': 'Шлюз',
+                    'next_element_name': enter_gate_name,
+                    'completion_criteria': 'Ручное завершение'
+                }
+        task_page.set_task(start_task_data)
+
+    with allure.step(f'Перейти к шлюзу {enter_gate_name}'):
+        tree.select_node(enter_gate_name)
+
+    with allure.step('Настроить шлюз'):
+        enter_gate_data = {
+            'name': enter_gate_name,
+            'gate_type': 'Параллельный',
+            'next_elements': [
+                {
+                    'type': 'Задача',
+                    'name': gate_task_1_name
+                },
+                {
+                    'type': 'Задача',
+                    'name': gate_task_2_name
+                }
+            ]
+        }
+        gate_page.set_gate(enter_gate_data)
+
+    with allure.step(f'Перейти к задаче {gate_task_1_name}'):
+        tree.select_node(gate_task_1_name)
+
+    with allure.step('Настроить задачу'):
+        gate_task_1_data = {
+                    'name': gate_task_1_name,
+                    'execution_type': 'Один исполнитель',
+                    'task_executors': ['Иванов Андрей'],
+                    'next_element_type': 'Шлюз',
+                    'next_element_name': exit_gate_name,
+                    'completion_criteria': 'Ручное завершение'
+                }
+        task_page.set_task(gate_task_1_data)
+
+    with allure.step(f'Перейти к задаче {gate_task_2_name}'):
+        tree.select_node(gate_task_2_name)
+
+    with allure.step('Настроить задачу'):
+        gate_task_2_data = {
+                    'name': gate_task_2_name,
+                    'execution_type': 'Один исполнитель',
+                    'task_executors': ['Иванов Андрей'],
+                    'next_element_type': 'Шлюз',
+                    'next_element_name': exit_gate_name,
+                    'completion_criteria': 'Ручное завершение'
+                }
+        task_page.set_task(gate_task_2_data)
+
+        with allure.step(f'Перейти к шлюзу {exit_gate_name}'):
+            tree.select_node(exit_gate_name)
+
+        with allure.step('Настроить шлюз'):
+            exit_gate_data = {
+                'name': exit_gate_name,
+                'gate_type': 'Параллельный',
+                'next_elements': [
+                    {
+                        'type': 'Событие',
+                        'name': finish_event_name
+                    }
+                ]
+            }
+            gate_page.set_gate(exit_gate_data)
+
+        with allure.step('Обновить страницу'):
+            parametrized_login_admin_driver.refresh()
+
+        with allure.step(f'Перейти к начальному событию {start_event_name}'):
+            tree.select_node(start_event_name)
+
+        with allure.step(f'Проверить отображение события {start_event_name} с корректными настройками'):
+            assert event_page.get_event_page_data() == start_event_data
+
+        with allure.step(f'Перейти к задаче {start_task_name}'):
+            tree.select_node(start_task_name)
+
+        with allure.step(f'Проверить отображение задачи {start_task_name} с корректными настройками'):
+            assert task_page.get_task_page_data() == start_task_data
+
+        with allure.step(f'Перейти к шлюзу {enter_gate_name}'):
+            tree.select_node(enter_gate_name)
+
+        with allure.step(f'Проверить отображение шлюза {enter_gate_name} с корректными настройками'):
+            assert gate_page.get_gate_page_data() == enter_gate_data
+
+        with allure.step(f'Перейти к задаче {gate_task_1_name}'):
+            tree.select_node(gate_task_1_name)
+
+        with allure.step(f'Проверить отображение задачи {gate_task_1_name} с корректными настройками'):
+            assert task_page.get_task_page_data() == gate_task_1_data
+
+        with allure.step(f'Перейти к задаче {gate_task_2_name}'):
+            tree.select_node(gate_task_2_name)
+
+        with allure.step(f'Проверить отображение задачи {gate_task_2_name} с корректными настройками'):
+            assert task_page.get_task_page_data() == gate_task_2_data
+
+        with allure.step(f'Перейти к шлюзу {exit_gate_name}'):
+            tree.select_node(exit_gate_name)
+
+        with allure.step(f'Проверить отображение шлюза {exit_gate_name} с корректными настройками'):
+            assert gate_page.get_gate_page_data() == exit_gate_data
+
+        with allure.step(f'Перейти к событию {finish_event_name}'):
+            tree.select_node(finish_event_name)
+
+        with allure.step(f'Проверить отображение события {finish_event_name} с корректными настройками'):
+            assert event_page.get_event_page_data() == finish_event_data

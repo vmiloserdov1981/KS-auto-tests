@@ -348,7 +348,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             "period_type": 'День',
             'period_start_value': '.'.join(expected_date),
             'period_start_year': None,
-            'period_amount': None,
+            'period_amount': '1',
             'last_period': model_page.convert_date(expected_date)
         }
         assert actual_period_data == expected_period_data
@@ -409,7 +409,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             "period_type": 'Месяц',
             'period_start_value': current_mounth,
             'period_start_year': current_year,
-            'period_amount': None,
+            'period_amount': '1',
             'last_period': f'{current_mounth} {current_year}'.lower()
         }
         # Включить проверку после исправления PKM-9244
@@ -443,7 +443,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             "period_type": 'Год',
             'period_start_value': None,
             'period_start_year': current_year,
-            'period_amount': None,
+            'period_amount': '1',
             'last_period': current_year
         }
         # Включить проверку после исправления PKM-9244
@@ -881,10 +881,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     new_table_name = table_name + '_переименованная'
     
     with allure.step(f'Переименовать таблицу "{table_name}" на "{new_table_name}" на странице таблицы'):
-        # Вернуть переименование со страницы таблицы после исправления PKM-9313
-        # table_page.rename_title(new_table_name)
-        table_page.tree.rename_node(table_name, new_table_name)
-        table_page.wait_page_title(new_table_name, timeout=20)
+        table_page.rename_title(new_table_name)
 
     with allure.step(f'Проверить изменение названия таблицы в дереве'):
         table_page.tree.wait_selected_node_name(new_table_name, timeout=20)

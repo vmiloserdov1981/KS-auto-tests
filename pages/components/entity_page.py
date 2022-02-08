@@ -324,7 +324,7 @@ class NewEntityPage(BasePage):
         locator = (By.XPATH, f"//div[contains(@class, 'dropdown-item') and .='{value_name}' or contains(@class, 'dropdown-item') and .=' {value_name} ']")
         return locator
 
-    def get_entity_page_title(self, return_raw=False, prev_title_html: str = None, timeout=10):
+    def get_entity_page_title(self, return_raw=False, prev_title_html: str = None, timeout=10) -> str:
         if prev_title_html:
             self.wait_element_changing(prev_title_html, self.LOCATOR_ENTITY_PAGE_TITLE, time=5, ignore_timeout=True)
         if return_raw:
@@ -337,9 +337,11 @@ class NewEntityPage(BasePage):
         self.wait_until_text_in_element(self.LOCATOR_ENTITY_PAGE_TITLE, page_title, time=timeout)
 
     def rename_title(self, title_name):
-        self.find_and_click(self.LOCATOR_RENAME_TITLE_ICON)
-        self.modal.enter_and_save(title_name, clear_input=True)
-        self.wait_page_title(title_name)
+        current_name = self.get_entity_page_title()
+        if current_name != title_name:
+            self.find_and_click(self.LOCATOR_RENAME_TITLE_ICON)
+            self.modal.enter_and_save(title_name, clear_input=True)
+            self.wait_page_title(title_name)
 
     def get_list_elements_names(self, list_name, timeout=5):
         elements = [element.text for element in self.elements_generator(self.list_elements_creator(list_name), time=timeout)]
@@ -396,7 +398,7 @@ class NewEntityPage(BasePage):
         return sorted_result
 
     @antistale
-    def get_page_data_by_template(self, template):
+    def get_page_data_by_template(self, template) -> dict:
         """
         template = {
             'model_name': (self.get_entity_page_title, (), {"return_raw": True}),
