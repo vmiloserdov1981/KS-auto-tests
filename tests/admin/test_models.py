@@ -832,7 +832,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Задать базовую структуру таблицы'):
         table_page.set_base_structure()
 
-    # Удалить принудительное указание сущностей после исправления PKM-8966
+    # Удалить принудительное указание сущностей после исправления PKM-8966 и PKM-9767
     table_page.set_entity_values('Столбцы', 'Наборы данных', [dataset_1_name, dataset_2_name])
     table_page.set_entity_values('Столбцы', 'Показатели', ['Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый'])
 
@@ -863,7 +863,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         table_page.wait_cells_value(expected_data)
     '''
 
-    with allure.step(f'Проверить ячейки таблицы не заполнены'):
+    with allure.step(f'Проверить что ячейки таблицы не заполнены'):
         actual_data = table_page.get_table_data()
         assert actual_data == [], 'Таблица заполнена'
 
@@ -908,7 +908,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Задать структуру таблицы c объектами класса "{class_name}"'):
         table_page.set_class_objects_structure(class_name)
 
-    # Удалить принудительное указание сущностей после исправления PKM-8966
+    # Удалить принудительное указание сущностей после исправления PKM-8966 и PKM-9767
     table_page.set_entity_values('Столбцы', 'Наборы данных', [dataset_1_name, dataset_2_name])
     table_page.set_entity_values('Столбцы', 'Показатели', ['Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый'])
 

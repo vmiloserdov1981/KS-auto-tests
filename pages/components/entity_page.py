@@ -226,7 +226,7 @@ class EntityPage(BasePage):
 
 class NewEntityPage(BasePage):
     LOCATOR_ENTITY_PAGE_TITLE = (By.XPATH, "//div[contains(@class, 'entity__configuration-name')]")
-    LOCATOR_RENAME_TITLE_ICON = (By.XPATH, "//div[contains(@class, 'entity__configuration-name')]//fa-icon[.//*[local-name()='svg' and @data-icon='pen']]")
+    LOCATOR_RENAME_TITLE_ICON = (By.XPATH, "//div[contains(@class, 'entity__configuration-name') or contains(@class, 'table__title')]//fa-icon[.//*[local-name()='svg' and @data-icon='pen']]")
     #LOCATOR_TITLE_INPUT = (By.XPATH, "(//div[@class='page-title-container']//input)[1]")
     #LOCATOR_TITLE_CHECK_ICON = (By.XPATH, "//div[@class='page-title-container']//fa-icon[@icon='check']")
     LOCATOR_PAGE_CONTENT = (By.XPATH, "//div[contains(@class, 'router-outlet')]")

@@ -400,7 +400,7 @@ class TablePage(NewEntityPage):
 
             cell_left = self.get_cell_style_value('left', cell) + 1
             cell_top = self.get_cell_style_value('top', cell)
-            cell_value = cell.text
+            cell_value = cell.text.strip()
             if cell_value and cell_value != '':
                 cell_object = None
                 cell_dataset = None
@@ -477,8 +477,8 @@ class TablePage(NewEntityPage):
             editable_cell_locator = (By.XPATH, f"{cell_locator[1]}//div[@contenteditable='true']")
             self.find_and_click(cell_locator)
             action_chains = ActionChains(self.driver)
-            action_chains.send_keys(cell_data.get('value')).perform()
-            self.find_element(editable_cell_locator).send_keys(Keys.ENTER)
+            action_chains.send_keys(cell_data.get('value'), Keys.ENTER).perform()
+            #self.find_element(editable_cell_locator).send_keys(Keys.ENTER)
             time.sleep(5)
 
     def wait_cell_value(self, cell_data):
@@ -533,4 +533,3 @@ class TablePage(NewEntityPage):
             return True
         except TimeoutException:
             return False
-
