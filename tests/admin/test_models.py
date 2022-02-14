@@ -742,6 +742,9 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
 
+    with allure.step(f'Развернуть папку {test_folder_name}'):
+        object_page.tree.expand_node(test_folder_name)
+
     with allure.step(f'Проверить отсутствие удаленных объектов модели {model_name} в дереве'):
         actual_objects = object_page.tree.get_node_children_names(model_name)
         assert actual_objects == []
