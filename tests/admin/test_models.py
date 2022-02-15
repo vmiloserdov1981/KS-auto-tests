@@ -829,7 +829,6 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         table_page.tree.expand_node(test_folder_name)
 
     with allure.step(f'Создать таблицу данных {table_name}'):
-        time.sleep(10)
         table_page.create_data_table(model_name, table_name)
 
     with allure.step(f'Задать базовую структуру таблицы'):

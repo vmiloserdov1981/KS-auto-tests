@@ -367,7 +367,7 @@ class NewTree(BasePage):
         count = len(chain)
         for try_number in range(5):
             try:
-                self.find_and_context_click(self.node_locator_creator(parent_node))
+                self.find_and_context_click(self.node_locator_creator(parent_node), time=20)
                 for i in chain:
                     time.sleep(1)
                     if chain.index(i) == count - 1:

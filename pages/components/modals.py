@@ -81,6 +81,7 @@ class Modals(BasePage):
 
 class Calendar(BasePage, BaseApi):
     LOCATOR_CALENDAR = (By.XPATH, "//mat-calendar")
+    LOCATOR_ACCEPT_DATA_BUTTON = (By.XPATH, "//div[contains(@class, 'date-picker__overlay')]//ks-button[.='Принять']")
 
     @staticmethod
     def convert_mount(abr):
@@ -126,7 +127,7 @@ class Calendar(BasePage, BaseApi):
             return False
 
     def select_day(self, day):
-        day_locator = (By.XPATH, f"//div[contains (@class, 'mat-calendar-body-cell-content') and text()=' {day} ']")
+        day_locator = (By.XPATH, f"//div[contains(@class, 'date-picker__grid')]//div[contains(@class, 'date-picker__item') and not(contains(@class, 'disabled'))][.=' {day} ']")
         self.find_and_click(day_locator)
 
 

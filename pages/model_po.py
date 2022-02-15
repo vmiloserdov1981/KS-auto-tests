@@ -17,7 +17,8 @@ class ModelPage(NewEntityPage):
     SOLVERS_LIST_NAME = 'Поиск решения'
     TAGS_LIST_NAME = 'Теги'
 
-    LOCATOR_MODEL_PERIOD_DATEPICKER = (By.XPATH, f"//pkm-datepicker[@formcontrolname='date']//input")
+    LOCATOR_MODEL_PERIOD_DATEPICKER = (By.XPATH, f"//div[contains(@class, 'time-measurement')]//ks-date-picker")
+    LOCATOR_MODEL_PERIOD_DROPDOWN = (By.XPATH, f"//div[contains(@class, 'time-measurement')]//ks-dropdown[@formcontrolname='timePeriod']")
     LOCATOR_MODEL_PERIOD_SAVE_BUTTON = (By.XPATH, f"//div[contains(@class, 'time-measurement-body')]//button[.//*[local-name()='svg' and @data-icon='save']]")
     LOCATOR_MODEL_PERIOD_DELETE_BUTTON = (By.XPATH, f"//div[contains(@class, 'time-measurement-body')]//button[.//*[local-name()='svg' and @data-icon='trash']]")
     LOCATOR_MODEL_PERIOD_TIME = (By.XPATH, "//ks-dropdown[@formcontrolname='timePeriod']")
@@ -137,10 +138,9 @@ class ModelPage(NewEntityPage):
 
     def get_model_start_period(self):
         try:
-            input_element = self.find_element(self.LOCATOR_MODEL_PERIOD_DATEPICKER, time=3)
-            value = self.get_input_value(None, webelement=input_element)
+            value = self.get_element_text(self.LOCATOR_MODEL_PERIOD_DATEPICKER, time=3)
         except TimeoutException:
-            value = self.get_element_text(self.LOCATOR_MODEL_PERIOD_TIME, time=1, ignore_error=True)
+            value = self.get_element_text(self.LOCATOR_MODEL_PERIOD_DROPDOWN, time=3, ignore_error=True)
         return value
 
     def get_model_start_year(self):
@@ -258,6 +258,7 @@ class ModelPage(NewEntityPage):
     def set_start_period_day(self, amount: str):
         self.find_and_click(self.LOCATOR_MODEL_PERIOD_DATEPICKER)
         self.calendar.select_day(amount)
+        self.find_and_click(self.calendar.LOCATOR_ACCEPT_DATA_BUTTON)
 
     def set_period_amount(self, amount):
         self.find_element(self.LOCATOR_MODEL_PERIOD_AMOUNT_INPUT).send_keys(Keys.CONTROL + "a")
