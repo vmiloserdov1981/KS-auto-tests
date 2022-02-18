@@ -502,7 +502,7 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
 
         with allure.step('Обновить страницу'):
             parametrized_login_admin_driver.refresh()
-
+        '''
         with allure.step(f'Перейти к начальному событию {start_event_name}'):
             tree.select_node(start_event_name)
 
@@ -544,3 +544,22 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
 
         with allure.step(f'Проверить отображение события {finish_event_name} с корректными настройками'):
             assert event_page.get_event_page_data() == finish_event_data
+        '''
+        with allure.step(f"Перейти к бизнес процессу {bpms_name}"):
+            tree.select_node(bpms_name)
+
+        with allure.step("Перейти на вкладку Диаграмма"):
+            bpms_page.switch_to_tab("Диаграмма")
+
+        with allure.step("Создать диаграмму"):
+            bpms_page.create_bpms_diagram()
+
+        with allure.step("Включить синхронизацию диаграммы"):
+            bpms_page.consider_adding_process_elements()
+
+        with allure.step("Проверить отображение всех сущностей бизнес процесса на диаграмме"):
+            # удалить обновление и переключение на вкладку диаграммы после исправления PKM-9663
+            parametrized_login_admin_driver.refresh()
+            bpms_page.switch_to_tab("Диаграмма")
+
+            bpms_page.check_diagram_elements({'events': 2, 'tasks': 3, 'arrows': 7})

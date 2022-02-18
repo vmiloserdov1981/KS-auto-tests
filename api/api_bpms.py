@@ -118,3 +118,53 @@ class ApiBpms(BaseApi):
             payload['force'] = force
         resp = self.post(f'{Vars.PKM_API_URL}processes/delete-node', self.token, payload)
         assert not resp.get('error'), f'Ошибка при удалении ноды bpms \n {resp}'
+
+    def get_bpms_by_uuid(self, uuid: str):
+        payload = {'uuids': [uuid]}
+        resp = self.post(f'{Vars.PKM_API_URL}processes/get-by-ids', self.token, payload)
+        bpms_data = resp['data'][uuid]
+        return bpms_data
+
+    def get_bpms_diagram_elements(self, bpms_uuid: str):
+        bpms_data = self.get_bpms_by_uuid(bpms_uuid)
+        diagram_uuid = bpms_data['diagramUuid']
+        diagram_entities = self.post(f'{Vars.PKM_API_URL}processes/get-elements-by-diagram-uuid', self.token, {'uuid': diagram_uuid})
+        uuids_names = {}
+        result = {}
+        for entity_type in diagram_entities:
+            entities = diagram_entities[entity_type]
+            for i in entities:
+                uuids_names[i['uuid']] = i['name']
+
+        for entity_type in diagram_entities:
+            entities = diagram_entities[entity_type]
+            result[entity_type] = []
+            if entity_type == 'gates':
+                for i in entities:
+                    figure = {
+                        'name': i['name'],
+                        'next_elements': [],
+                    }
+                    for next_element in i['nextElements']:
+                        figure['next_elements'].append(
+                            {
+                                'next_element_type': next_element['nextElementType'],
+                                'next_element_name': uuids_names[next_element['nextElementUuid']]
+                            }
+                        )
+                        result[entity_type].append(figure)
+            else:
+                for i in entities:
+                    figure = {
+                        'name': i['name'],
+                        'next_element_type': i.get('nextElementType'),
+                        'next_element_name': uuids_names[i['nextElementUuid']]
+                    }
+                    result[entity_type].append(figure)
+
+        return result
+
+
+
+
+

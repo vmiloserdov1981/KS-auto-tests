@@ -18,15 +18,54 @@ class BpmsPage(NewEntityPage):
 
     def create_bpms(self, parent_node, bpms_name):
         with allure.step(f'Создать бизнес процесс {bpms_name}'):
-            time.sleep(random.randint(1, 6))
-            self.find_and_context_click(self.tree.node_locator_creator(parent_node))
-            self.hover_over_element(self.tree.context_option_locator_creator('Создать'))
-            self.find_and_click(self.tree.context_option_locator_creator('Бизнес процесс'))
+            self.tree.tree_chain_actions(parent_node, ["Создать", "Бизнес процесс"])
             self.tree.modal.enter_and_save(bpms_name)
         with allure.step(f'Проверить отображение бизнес процесса {bpms_name} в дереве бизнес процессов выбранным'):
             self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, bpms_name)
         with allure.step(f'Проверить переход на страницу вновь соданной модели'):
             self.wait_page_title(bpms_name)
+
+    def create_bpms_diagram(self):
+        create_button_locator = (By.XPATH, "//pkm-process-mx-diagram//ks-button[.='Создать диаграмму']")
+        diagram_locator = (By.XPATH, "//div[contains(@class, 'geBackgroundPage')]")
+        self.find_and_click(create_button_locator)
+        self.find_element(diagram_locator)
+
+    def consider_adding_process_elements(self):
+        toggle_block_locator = (By.XPATH, "//ks-switch[@formcontrolname='considerAddingProcessElements']")
+        toggle_locator = (By.XPATH, "//ks-switch[@formcontrolname='considerAddingProcessElements']//div[contains(@class, 'slide')]//div[contains(@class, 'thumb')]")
+        if 'slide-selected' not in self.get_element_html(toggle_block_locator):
+            self.find_and_click(toggle_locator)
+
+    def consider_deleting_process_elements(self):
+        toggle_block_locator = (By.XPATH, "//ks-switch[@formcontrolname='considerDeletingProcessElements']")
+        toggle_locator = (By.XPATH, "//ks-switch[@formcontrolname='considerDeletingProcessElements']//div[contains(@class, 'slide')]//div[contains(@class, 'thumb')]")
+        if 'slide-selected' not in self.get_element_html(toggle_block_locator):
+            self.find_and_click(toggle_locator)
+
+    def check_diagram_elements(self, elements: dict):
+        """
+        elements = {'events': 2, 'tasks': 3, 'arrows': 5}
+        """
+
+        self.wait_element_stable((By.XPATH, "//pkm-chart-diagram"), 5)
+
+        for element in elements:
+            if element == 'events':
+                xpath = "//div[contains(@class, 'diagram-container')]//*[local-name()='ellipse']"
+
+            elif element == 'tasks':
+                xpath = "//div[contains(@class, 'diagram-container')]//*[local-name()='rect']"
+
+            elif element == 'arrows':
+                xpath = "(//div[contains(@class, 'diagram-container')]//*[local-name()='path'])[not(@visibility) and @pointer-events='stroke']"
+
+            else:
+                xpath = None
+
+            if xpath:
+                for i in range(elements[element]):
+                    self.find_element((By.XPATH, f"({xpath})[{i+1}]"))
 
 
 class BpmsEventPage(NewEntityPage):
@@ -294,6 +333,7 @@ class BpmsGatePage(NewEntityPage):
         with allure.step(f'Проверить переход на страницу вновь созданного шлюза'):
             self.wait_page_title(bpms_gate_name)
 
+    '''
     def get_entity_page_title(self, gate_type='ПАРАЛЛЕЛЬНЫЙ', without_type=False):
         raw_title = super().get_entity_page_title()
         if not without_type:
@@ -312,6 +352,7 @@ class BpmsGatePage(NewEntityPage):
             self.find_and_click(self.LOCATOR_RENAME_TITLE_ICON)
             self.modal.enter_and_save(title_name, clear_input=True)
             self.wait_page_title(title_name)
+    '''
 
     def set_gate(self, gate_data):
         """
@@ -397,9 +438,10 @@ class BpmsGatePage(NewEntityPage):
 
     def get_gate_page_data(self):
         template = {
-            'name': (self.get_entity_page_title, (), {"without_type": True}),
+            'name': [self.get_entity_page_title],
             'gate_type': [self.get_gate_type],
             'next_elements': [self.get_next_elements]
         }
         page_data = self.get_page_data_by_template(template)
         return page_data
+
