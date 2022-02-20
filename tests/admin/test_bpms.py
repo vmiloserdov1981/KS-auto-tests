@@ -1,3 +1,5 @@
+import time
+
 import allure
 import pytest
 from variables import PkmVars as Vars
@@ -371,6 +373,7 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
     with allure.step(f'Создать бизнес процесс {bpms_name} в папке {test_folder_name} через API'):
         bpms_data = api.create_bpms(bpms_name, parent_uuid=test_folder_uuid)
         bpms_node_uuid = bpms_data.get('nodeUuid')
+        bpms_uuid = bpms_data.get('referenceUuid')
 
     with allure.step(f'Добавить бизнес процесс {bpms_name} в список на удаление в постусловиях'):
         parametrized_login_admin_driver.test_data['to_delete'].append(BpmsNodeCreator(parametrized_login_admin_driver, bpms_node_uuid, delete_anyway=True))
@@ -502,7 +505,7 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
 
         with allure.step('Обновить страницу'):
             parametrized_login_admin_driver.refresh()
-        '''
+
         with allure.step(f'Перейти к начальному событию {start_event_name}'):
             tree.select_node(start_event_name)
 
@@ -544,7 +547,7 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
 
         with allure.step(f'Проверить отображение события {finish_event_name} с корректными настройками'):
             assert event_page.get_event_page_data() == finish_event_data
-        '''
+
         with allure.step(f"Перейти к бизнес процессу {bpms_name}"):
             tree.select_node(bpms_name)
 
@@ -560,6 +563,71 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
         with allure.step("Проверить отображение всех сущностей бизнес процесса на диаграмме"):
             # удалить обновление и переключение на вкладку диаграммы после исправления PKM-9663
             parametrized_login_admin_driver.refresh()
+            time.sleep(3)
             bpms_page.switch_to_tab("Диаграмма")
 
             bpms_page.check_diagram_elements({'events': 2, 'tasks': 3, 'arrows': 7})
+
+        with allure.step("Проверить отображение всех сущностей бизнес процесса на диаграмме (API)"):
+            expected_entities = {
+                'events':
+                    [
+                        {
+                            'name': start_event_name,
+                            'next_element_type': 'task',
+                            'next_element_name': start_task_name
+                        },
+                        {
+                            'name': finish_event_name,
+                            'next_element_type': 'event',
+                            'next_element_name': None
+                        }
+                    ],
+                'tasks':
+                    [
+                        {
+                            'name': start_task_name,
+                            'next_element_type': 'gate',
+                            'next_element_name': enter_gate_name
+                        },
+                        {
+                            'name': gate_task_1_name,
+                            'next_element_type': 'gate',
+                            'next_element_name': exit_gate_name
+                        },
+                        {
+                            'name': gate_task_2_name,
+                            'next_element_type': 'gate',
+                            'next_element_name': exit_gate_name
+                        }
+                    ],
+                'gates':
+                    [
+                        {
+                            'name': enter_gate_name,
+                            'next_elements': [{'next_element_type': 'task', 'next_element_name': gate_task_1_name}, {'next_element_type': 'task', 'next_element_name': gate_task_2_name}]
+                        },
+                        {'name': exit_gate_name,
+                         'next_elements': [{'next_element_type': 'event', 'next_element_name': finish_event_name}]
+                         }
+                    ]
+            }
+            actual_entities = api.get_bpms_diagram_elements(bpms_uuid)
+            api.compare_bpms_diagram_elements(actual_entities, expected_entities)
+
+        with allure.step("Включить бизнес процесс"):
+            bpms_page.switch_on_bpms()
+
+        with allure.step(f"Получить uuid события {start_event_name}"):
+            start_event_uuid = api.get_event_by_bpms_uuid(bpms_uuid, start_event_name).get('uuid')
+
+        with allure.step(f"Получить uuid задачи {start_task_name}"):
+            start_task_uuid = api.get_task_by_bpms_uuid(bpms_uuid, start_task_name).get('uuid')
+
+        with allure.step(f"Получить uuid задачи {gate_task_1_name}"):
+            gate_task_1_uuid = api.get_task_by_bpms_uuid(bpms_uuid, gate_task_1_name).get('uuid')
+
+        with allure.step(f"Получить uuid задачи {gate_task_2_name}"):
+            gate_task_1_uuid = api.get_task_by_bpms_uuid(bpms_uuid, gate_task_2_name).get('uuid')
+
+

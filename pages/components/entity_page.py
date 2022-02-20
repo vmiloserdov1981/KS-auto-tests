@@ -444,8 +444,15 @@ class NewEntityPage(BasePage):
         active_tab_name = self.get_element_text(active_tab_locator)
         return active_tab_name
 
+    @antistale
     def switch_to_tab(self, tab_name: str):
         target_tab_locator = (By.XPATH, f"//div[contains(@class, 'tab-title') and .=' {tab_name} ']")
         if 'active' not in self.find_element(target_tab_locator).get_attribute('class'):
             self.find_and_click(target_tab_locator)
 
+    def switch_on_toggle(self, formcontrolname: str):
+        toggle_block_locator = (By.XPATH, f"//ks-switch[@formcontrolname='{formcontrolname}']")
+        toggle_locator = (By.XPATH, f"//ks-switch[@formcontrolname='{formcontrolname}']//div[contains(@class, 'slide')]//div[contains(@class, 'thumb')]")
+        if 'slide-selected' not in self.get_element_html(toggle_block_locator):
+            self.find_and_click(toggle_locator)
+            time.sleep(2)

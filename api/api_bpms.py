@@ -1,4 +1,5 @@
 from core import BaseApi
+from core import BasePage
 from variables import PkmVars as Vars
 
 
@@ -152,19 +153,34 @@ class ApiBpms(BaseApi):
                                 'next_element_name': uuids_names[next_element['nextElementUuid']]
                             }
                         )
-                        result[entity_type].append(figure)
+                    result[entity_type].append(figure)
             else:
                 for i in entities:
                     figure = {
                         'name': i['name'],
-                        'next_element_type': i.get('nextElementType'),
-                        'next_element_name': uuids_names[i['nextElementUuid']]
+                        'next_element_type': i.get('nextElementType')
                     }
+                    if i.get('nextElementUuid'):
+                        figure['next_element_name'] = uuids_names[i.get('nextElementUuid')]
+                    else:
+                        figure['next_element_name'] = None
                     result[entity_type].append(figure)
 
         return result
 
+    def get_event_by_bpms_uuid(self, bpms_uuid, event_name):
+        events_list = self.post(f'{Vars.PKM_API_URL}process-events/get-list', self.token, {"processUuid": bpms_uuid}).get('data') or []
+        for event in events_list:
+            if event.get('name') == event_name:
+                return event
 
+    def get_task_by_bpms_uuid(self, bpms_uuid, task_name):
+        tasks_list = self.post(f'{Vars.PKM_API_URL}tasks/get-list', self.token, {"processUuid": bpms_uuid}).get('data') or []
+        for task in tasks_list:
+            if task.get('name') == task_name:
+                return task
 
-
-
+    @staticmethod
+    def compare_bpms_diagram_elements(entities_1, entities_2):
+        for i in entities_1:
+            BasePage.compare_dicts_lists(entities_1[i], entities_2[i])

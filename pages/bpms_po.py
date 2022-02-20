@@ -25,6 +25,9 @@ class BpmsPage(NewEntityPage):
         with allure.step(f'Проверить переход на страницу вновь соданной модели'):
             self.wait_page_title(bpms_name)
 
+    def switch_on_bpms(self):
+        self.switch_on_toggle('enabled')
+
     def create_bpms_diagram(self):
         create_button_locator = (By.XPATH, "//pkm-process-mx-diagram//ks-button[.='Создать диаграмму']")
         diagram_locator = (By.XPATH, "//div[contains(@class, 'geBackgroundPage')]")
@@ -32,10 +35,7 @@ class BpmsPage(NewEntityPage):
         self.find_element(diagram_locator)
 
     def consider_adding_process_elements(self):
-        toggle_block_locator = (By.XPATH, "//ks-switch[@formcontrolname='considerAddingProcessElements']")
-        toggle_locator = (By.XPATH, "//ks-switch[@formcontrolname='considerAddingProcessElements']//div[contains(@class, 'slide')]//div[contains(@class, 'thumb')]")
-        if 'slide-selected' not in self.get_element_html(toggle_block_locator):
-            self.find_and_click(toggle_locator)
+        self.switch_on_toggle('considerAddingProcessElements')
 
     def consider_deleting_process_elements(self):
         toggle_block_locator = (By.XPATH, "//ks-switch[@formcontrolname='considerDeletingProcessElements']")
