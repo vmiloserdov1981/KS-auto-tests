@@ -6,11 +6,12 @@ import allure
 
 
 class Creator(ABC):
-    def __init__(self, driver, uuid, delete_anyway=False, force=None):
+    def __init__(self, driver, uuid, delete_anyway=False, force=None, entity_uuid=None):
         self.driver = driver
         self.uuid = uuid
         self.delete_anyway = delete_anyway
         self.force = force
+        self.entity_uuid = entity_uuid
 
     @abstractmethod
     def factory_method(self):
@@ -31,9 +32,10 @@ class ModelNodeCreator(Creator):
     def factory_method(self):
         return ModelNode(self.driver, self.uuid, self.delete_anyway)
 
+
 class BpmsNodeCreator(Creator):
     def factory_method(self):
-        return BpmsNode(self.driver, self.uuid, self.delete_anyway)
+        return BpmsNode(self.driver, self.uuid, self.delete_anyway, force=self.force, entity_uuid=self.entity_uuid)
 
 
 class FormulaEntityCreator(Creator):
@@ -43,11 +45,12 @@ class FormulaEntityCreator(Creator):
 
 class Product(ABC):
 
-    def __init__(self, driver, uuid, delete_anyway, force=None):
+    def __init__(self, driver, uuid, delete_anyway, force=None, entity_uuid=None):
         self.driver = driver
         self.uuid = uuid
         self.delete_anyway = delete_anyway
         self.force = force
+        self.entity_uuid = entity_uuid
 
     @abstractmethod
     def delete_entity(self):
@@ -79,7 +82,7 @@ class BpmsNode(Product):
     def delete_entity(self):
         with allure.step(f'Удалить bpms'):
             api = ApiBpms(None, None, self.driver.project_uuid, token=self.driver.token)
-            api.delete_bpms_node(self.uuid, force=self.force)
+            api.delete_bpms_node(self.uuid, self.entity_uuid, force=self.force)
 
 
 class ClassNode(Product):

@@ -6,7 +6,6 @@ from selenium.webdriver.common.by import By
 from copy import deepcopy
 import allure
 import time
-import random
 
 
 class BpmsPage(NewEntityPage):
@@ -67,6 +66,17 @@ class BpmsPage(NewEntityPage):
                 for i in range(elements[element]):
                     self.find_element((By.XPATH, f"({xpath})[{i+1}]"))
 
+    def get_last_bpms_instance(self):
+        self.wait_element_stable((By.XPATH, "//div[contains(@class, 'process-history__table')]"), 3)
+        result = {}
+
+        result['bpms_perform_date'] = self.get_element_text((By.XPATH, "//div[contains(@class, 'process-history__table')]//tbody//tr[last()]//td[2]")).split(' ')[0]
+        result['bpms_initiator'] = self.get_element_text((By.XPATH, "//div[contains(@class, 'process-history__table')]//tbody//tr[last()]//td[3]"))
+        result['bpms_status'] = self.get_element_text((By.XPATH, "//div[contains(@class, 'process-history__table')]//tbody//tr[last()]//td[4]"))
+        result['bpms_current_element'] = self.get_element_text((By.XPATH, "//div[contains(@class, 'process-history__table')]//tbody//tr[last()]//td[5]"))
+        result['bpms_switch_date'] = self.get_element_text((By.XPATH, "//div[contains(@class, 'process-history__table')]//tbody//tr[last()]//td[6]")).split(' ')[0]
+
+        return result
 
 class BpmsEventPage(NewEntityPage):
 
@@ -398,13 +408,13 @@ class BpmsGatePage(NewEntityPage):
 
     def get_next_elements(self):
         result = []
-        elements_rows_locator = (By.XPATH, "//tbody[@formarrayname='nextElements']//tr")
+        elements_rows_locator = (By.XPATH, "//ks-gate-next-element-list//tbody//tr")
         row_count = 0
         for element_row in self.elements_generator(elements_rows_locator):
             row_count += 1
             try:
-                entity_type = self.get_element_text((By.XPATH, f"(//tbody[@formarrayname='nextElements']//tr)[{row_count}]/td[2]"))
-                entity_name = self.get_element_text((By.XPATH, f"(//tbody[@formarrayname='nextElements']//tr)[{row_count}]/td[3]"))
+                entity_type = self.get_element_text((By.XPATH, f"(//ks-gate-next-element-list//tbody//tr)[{row_count}]/td[2]"))
+                entity_name = self.get_element_text((By.XPATH, f"(//ks-gate-next-element-list//tbody//tr)[{row_count}]/td[3]"))
             except TimeoutException:
                 return result
             result.append({'type': entity_type, 'name': entity_name})
@@ -427,7 +437,7 @@ class BpmsGatePage(NewEntityPage):
 
         for element in elements:
             if element not in current_elements:
-                self.find_and_click((By.XPATH, "//div[contains(@class, 'gate__title')]//ks-button[.='Добавить']"))
+                self.find_and_click((By.XPATH, "//div[contains(@class, 'element-list__title')]//ks-button[.='Добавить']"))
                 self.find_and_click(self.dropdown_locator_creator('nextElementType'))
                 self.find_and_click(self.dropdown_value_locator_creator(element['type']))
 

@@ -1,3 +1,5 @@
+import allure
+
 from core import BaseApi
 from core import BasePage
 from variables import PkmVars as Vars
@@ -113,12 +115,26 @@ class ApiBpms(BaseApi):
         resp = self.post(f'{Vars.PKM_API_URL}processes/create-node', self.token, payload)
         return resp
 
-    def delete_bpms_node(self, uuid: str, force=None):
-        payload = {'uuid': uuid}
-        if force:
-            payload['force'] = force
-        resp = self.post(f'{Vars.PKM_API_URL}processes/delete-node', self.token, payload)
-        assert not resp.get('error'), f'Ошибка при удалении ноды bpms \n {resp}'
+    def delete_bpms_node(self, node_uuid: str, uuid, force=None):
+        with allure.step('Остановить BPMS если запущен'):
+            actual_bpms_data = self.post(f'{Vars.PKM_API_URL}processes/get-by-ids', self.token, {'uuids': [uuid]}).get('data').get(uuid)
+            if actual_bpms_data['enabled'] is True:
+                update_payload = {
+                    'description': '',
+                    'enabled': False,
+                    'force': [124],
+                    'name': actual_bpms_data.get('name'),
+                    'renameOnly': False,
+                    'uuid': uuid
+                }
+                self.post(f'{Vars.PKM_API_URL}processes/update', self.token, update_payload)
+
+        with allure.step('Удалить BPMS'):
+            delete_payload = {'uuid': node_uuid}
+            if force:
+                delete_payload['force'] = [force]
+            resp = self.post(f'{Vars.PKM_API_URL}processes/delete-node', self.token, delete_payload)
+            assert not resp.get('error'), f'Ошибка при удалении ноды bpms \n {resp}'
 
     def get_bpms_by_uuid(self, uuid: str):
         payload = {'uuids': [uuid]}
@@ -127,6 +143,9 @@ class ApiBpms(BaseApi):
         return bpms_data
 
     def get_bpms_diagram_elements(self, bpms_uuid: str):
+        def sort_dicts(elem):
+            return elem.get('next_element_name')
+
         bpms_data = self.get_bpms_by_uuid(bpms_uuid)
         diagram_uuid = bpms_data['diagramUuid']
         diagram_entities = self.post(f'{Vars.PKM_API_URL}processes/get-elements-by-diagram-uuid', self.token, {'uuid': diagram_uuid})
@@ -154,6 +173,7 @@ class ApiBpms(BaseApi):
                             }
                         )
                     result[entity_type].append(figure)
+                    figure['next_elements'].sort(key=sort_dicts)
             else:
                 for i in entities:
                     figure = {
@@ -184,3 +204,15 @@ class ApiBpms(BaseApi):
     def compare_bpms_diagram_elements(entities_1, entities_2):
         for i in entities_1:
             BasePage.compare_dicts_lists(entities_1[i], entities_2[i])
+
+    def start_event(self, bpms_uuid, start_event_uuid):
+        self.post(f'{Vars.PKM_API_URL}process-events/manual-start', self.token, {"processUuid": bpms_uuid, "uuid": start_event_uuid})
+
+    def complete_task(self, bpms_uuid, task_uuid):
+        instance_uuid = self.get_last_bpms_instance_uuid(bpms_uuid)
+        self.post(f'{Vars.PKM_API_URL}tasks/manual-completion', self.token, {"instanceUuid": instance_uuid, "uuid": task_uuid})
+
+    def get_last_bpms_instance_uuid(self, bpms_uuid):
+        instances_list = self.post(f'{Vars.PKM_API_URL}instances/get-list', self.token, {"processUuid": bpms_uuid}).get('data')
+        uuid = instances_list[-1].get('instanceUuid')
+        return uuid

@@ -1,7 +1,7 @@
 import time
-
 import allure
 import pytest
+import users
 from variables import PkmVars as Vars
 from pages.bpms_po import BpmsPage
 from pages.bpms_po import BpmsEventPage
@@ -376,7 +376,7 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
         bpms_uuid = bpms_data.get('referenceUuid')
 
     with allure.step(f'Добавить бизнес процесс {bpms_name} в список на удаление в постусловиях'):
-        parametrized_login_admin_driver.test_data['to_delete'].append(BpmsNodeCreator(parametrized_login_admin_driver, bpms_node_uuid, delete_anyway=True))
+        parametrized_login_admin_driver.test_data['to_delete'].append(BpmsNodeCreator(parametrized_login_admin_driver, bpms_node_uuid, delete_anyway=True, entity_uuid=bpms_uuid))
 
     with allure.step(f'Развернуть тестовую папку {test_folder_name}'):
         tree.expand_node(test_folder_name)
@@ -568,7 +568,7 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
 
             bpms_page.check_diagram_elements({'events': 2, 'tasks': 3, 'arrows': 7})
 
-        with allure.step("Проверить отображение всех сущностей бизнес процесса на диаграмме (API)"):
+        with allure.step("Проверить наличие всех сущностей бизнес процесса на диаграмме (API)"):
             expected_entities = {
                 'events':
                     [
@@ -630,4 +630,37 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
         with allure.step(f"Получить uuid задачи {gate_task_2_name}"):
             gate_task_1_uuid = api.get_task_by_bpms_uuid(bpms_uuid, gate_task_2_name).get('uuid')
 
+        with allure.step(f"Инициировать событие {start_event_name} (API)"):
+            api.start_event(bpms_uuid, start_event_uuid)
 
+        with allure.step("Перейти на вкладку История запусков"):
+            bpms_page.switch_to_tab("История запусков")
+
+        with allure.step('Обновить страницу'):
+            parametrized_login_admin_driver.refresh()
+
+        with allure.step("Проверить корректное отображение экземпляра в таблице экземпляров"):
+            actual_instance = bpms_page.get_last_bpms_instance()
+            expected_instance = {
+                'bpms_perform_date': '.'.join(api.get_utc_date()),
+                'bpms_initiator': users.test_users['eu_user'].name,
+                'bpms_status': 'Выполняется',
+                'bpms_current_element': start_task_name,
+                'bpms_switch_date': '.'.join(api.get_utc_date())
+            }
+            bpms_page.compare_dicts(actual_instance, expected_instance)
+
+        with allure.step(f"Завершить задачу {start_task_name} (API)"):
+            api.complete_task(bpms_uuid, start_task_uuid)
+            time.sleep(5)
+
+        with allure.step('Обновить страницу'):
+            parametrized_login_admin_driver.refresh()
+
+        with allure.step("Проверить корректное отображение экземпляра в таблице экземпляров"):
+            actual_instance = bpms_page.get_last_bpms_instance()
+            if actual_instance['bpms_current_element'] == gate_task_1_name or actual_instance['bpms_current_element'] == gate_task_2_name or actual_instance['bpms_current_element'] == enter_gate_name:
+                expected_instance['bpms_current_element'] = actual_instance['bpms_current_element']
+                bpms_page.compare_dicts(actual_instance, expected_instance)
+            else:
+                raise AssertionError
