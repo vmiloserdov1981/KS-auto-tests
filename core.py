@@ -278,9 +278,14 @@ class BasePage:
     def compare_dicts_lists(list_a: list, list_b: list) -> None:
         if len(list_a) != len(list_b):
             raise AssertionError(f'Количество справочников в списках не совпадает: список 1 - {len(list_a)} шт, список 2 - {len(list_b)} шт')
+
         for list_dictionary in list_a:
             if list_dictionary not in list_b:
                 raise AssertionError(f'Словарь из списка 1 отсутствует в списке 2: \n {list_dictionary}')
+
+        for list_dictionary in list_b:
+            if list_dictionary not in list_a:
+                raise AssertionError(f'Словарь из списка 2 отсутствует в списке 1: \n {list_dictionary}')
 
     def compare_dicts(self, dict_a, dict_b) -> None:
         assert self.compare_lists(dict_a.keys(), dict_b.keys())

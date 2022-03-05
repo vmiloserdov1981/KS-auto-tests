@@ -456,3 +456,10 @@ class NewEntityPage(BasePage):
         if 'slide-selected' not in self.get_element_html(toggle_block_locator):
             self.find_and_click(toggle_locator)
             time.sleep(2)
+
+    def switch_off_toggle(self, formcontrolname: str):
+        toggle_block_locator = (By.XPATH, f"//ks-switch[@formcontrolname='{formcontrolname}']")
+        toggle_locator = (By.XPATH, f"//ks-switch[@formcontrolname='{formcontrolname}']//div[contains(@class, 'slide')]//div[contains(@class, 'thumb')]")
+        if 'slide-selected' in self.get_element_html(toggle_block_locator):
+            self.find_and_click(toggle_locator)
+            time.sleep(2)

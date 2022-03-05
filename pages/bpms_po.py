@@ -27,6 +27,9 @@ class BpmsPage(NewEntityPage):
     def switch_on_bpms(self):
         self.switch_on_toggle('enabled')
 
+    def switch_off_bpms(self):
+        self.switch_off_toggle('enabled')
+
     def create_bpms_diagram(self):
         create_button_locator = (By.XPATH, "//pkm-process-mx-diagram//ks-button[.='Создать диаграмму']")
         diagram_locator = (By.XPATH, "//div[contains(@class, 'geBackgroundPage')]")
@@ -35,6 +38,7 @@ class BpmsPage(NewEntityPage):
 
     def consider_adding_process_elements(self):
         self.switch_on_toggle('considerAddingProcessElements')
+        time.sleep(5)
 
     def consider_deleting_process_elements(self):
         toggle_block_locator = (By.XPATH, "//ks-switch[@formcontrolname='considerDeletingProcessElements']")
@@ -77,6 +81,77 @@ class BpmsPage(NewEntityPage):
         result['bpms_switch_date'] = self.get_element_text((By.XPATH, "//div[contains(@class, 'process-history__table')]//tbody//tr[last()]//td[6]")).split(' ')[0]
 
         return result
+
+    def get_bpms_instances(self):
+        self.wait_element_stable((By.XPATH, "//div[contains(@class, 'process-history__table')]"), 3)
+        result = []
+        instance_count = 1
+
+        for i in self.elements_generator((By.XPATH, "//div[contains(@class, 'process-history__table')]//tbody//tr")):
+            instance = {}
+            instance['bpms_perform_date'] = self.get_element_text((By.XPATH, f"//div[contains(@class, 'process-history__table')]//tbody//tr[{instance_count}]//td[2]")).split(' ')[0]
+            instance['bpms_initiator'] = self.get_element_text((By.XPATH, f"//div[contains(@class, 'process-history__table')]//tbody//tr[{instance_count}]//td[3]"))
+            instance['bpms_status'] = self.get_element_text((By.XPATH, f"//div[contains(@class, 'process-history__table')]//tbody//tr[{instance_count}]//td[4]"))
+            instance['bpms_current_element'] = self.get_element_text((By.XPATH, f"//div[contains(@class, 'process-history__table')]//tbody//tr[{instance_count}]//td[5]"))
+            instance['bpms_switch_date'] = self.get_element_text((By.XPATH, f"//div[contains(@class, 'process-history__table')]//tbody//tr[{instance_count}]//td[6]")).split(' ')[0]
+
+            result.append(instance)
+            instance_count += 1
+
+        return result
+
+    def add_variable(self, data: dict):
+        """
+        data = {
+        'type': 'Строка',
+        'name': "Строчная переменная",
+        'default_value': 'Некоторый текст'
+        }
+        """
+        var_type = data.get('type')
+        var_name = data.get('name')
+        var_default_value = data.get('default_value')
+        assert var_name
+        assert var_type
+
+        add_var_button_locator = (By.XPATH, "//pkm-process-variables//ks-button[.='Добавить']")
+        type_value_locator = (By.XPATH, f"//div[contains(@class, 'type-list')]//div[contains(@class, 'type-item') and .='{var_type}']")
+        type_name_input_locator = (By.XPATH, "//pkm-modal-window//ks-input[@formcontrolname='name']//input")
+        is_default_checkbox_locator = (By.XPATH, "//pkm-modal-window//ks-checkbox[@formcontrolname='isDefaultValue']")
+        default_value_input_locator = (By.XPATH, "//pkm-modal-window//ks-process-variable-value[@formcontrolname='defaultValue']//input")
+
+        self.wait_stable_page()
+        self.find_and_click(add_var_button_locator)
+        self.find_and_click(type_value_locator)
+        self.find_and_enter(type_name_input_locator, var_name)
+        if var_default_value:
+            if 'checkbox-selected' not in self.find_element(is_default_checkbox_locator).get_attribute('class'):
+                self.find_and_click(is_default_checkbox_locator)
+            self.find_and_enter(default_value_input_locator, var_default_value)
+        self.find_and_click(self.modal.LOCATOR_SAVE_BUTTON)
+
+    def get_variables_list(self):
+        var_row_locator = (By.XPATH, "//div[contains(@class, 'process-variables__table')]//tbody//tr")
+        vars_list = []
+        count = 1
+        for row in self.elements_generator(var_row_locator, wait=5):
+            var_data = {
+                'name': self.get_element_text((By.XPATH, f"{var_row_locator[1]}[{count}]//td[1]")),
+                'type': self.get_element_text((By.XPATH, f"{var_row_locator[1]}[{count}]//td[2]"))
+            }
+            default = self.get_element_text((By.XPATH, f"{var_row_locator[1]}[{count}]//td[3]"))
+            if default == '+':
+                var_data['is_collection'] = True
+            elif default == '-':
+                var_data['is_collection'] = False
+            vars_list.append(var_data)
+            count += 1
+
+        return vars_list
+
+
+
+
 
 class BpmsEventPage(NewEntityPage):
 
@@ -257,14 +332,14 @@ class BpmsTaskPage(NewEntityPage):
             self.find_and_click(target_type_locator)
 
     def get_task_executors_list(self):
-        executors_locator = (By.XPATH, "//div[contains(@class, 'task-settings__container') and .//div[contains(@class, 'task-settings__performers')]]//tbody//tr//td[1]")
+        executors_locator = (By.XPATH, "//ks-users-roles-list//tbody//tr//td[1]")
         executors_list = []
         for row in self.elements_generator(executors_locator):
             executors_list.append(row.text)
         return executors_list
 
     def set_task_executors(self, executors_list: list):
-        add_executor_button_locator = (By.XPATH, "//div[contains(@class, 'task-settings__container') and .//div[contains(@class, 'task-settings__performers')]]//ks-button[.='Добавить']")
+        add_executor_button_locator = (By.XPATH, "//ks-users-roles-list//ks-button[.='Добавить']")
         filter_input_locator = (By.XPATH, "//pkm-modal-window//div[contains(@class, 'filter-input')]//input")
         add_user_button_locator = (By.XPATH, "//pkm-modal-window//ks-button[.=' Добавить ']")
 
@@ -445,6 +520,7 @@ class BpmsGatePage(NewEntityPage):
                 self.find_and_click(self.dropdown_value_locator_creator(element['name']))
 
                 self.find_and_click(self.modal.LOCATOR_SAVE_BUTTON)
+                assert self.is_element_disappearing((By.XPATH, "//div[contains(@class, 'modal-window-background background-visible')]"), wait_display=False), 'Модальное окно добавления элемента не исчезает'
 
     def get_gate_page_data(self):
         template = {

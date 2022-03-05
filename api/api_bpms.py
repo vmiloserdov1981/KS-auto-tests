@@ -3,6 +3,7 @@ import allure
 from core import BaseApi
 from core import BasePage
 from variables import PkmVars as Vars
+import time
 
 
 class ApiBpms(BaseApi):
@@ -207,10 +208,12 @@ class ApiBpms(BaseApi):
 
     def start_event(self, bpms_uuid, start_event_uuid):
         self.post(f'{Vars.PKM_API_URL}process-events/manual-start', self.token, {"processUuid": bpms_uuid, "uuid": start_event_uuid})
+        time.sleep(5)
 
     def complete_task(self, bpms_uuid, task_uuid):
         instance_uuid = self.get_last_bpms_instance_uuid(bpms_uuid)
         self.post(f'{Vars.PKM_API_URL}tasks/manual-completion', self.token, {"instanceUuid": instance_uuid, "uuid": task_uuid})
+        time.sleep(5)
 
     def get_last_bpms_instance_uuid(self, bpms_uuid):
         instances_list = self.post(f'{Vars.PKM_API_URL}instances/get-list', self.token, {"processUuid": bpms_uuid}).get('data')

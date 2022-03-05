@@ -177,7 +177,8 @@ def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
         for dataset in api_datasets:
             if dataset.get('name') == dataset_2:
                 api_datasets.remove(dataset)
-                break
+            if dataset.get('name') == dataset_3:
+                dataset['is_default'] = True
 
     with allure.step(f'Проверить корректное отображение наборов данных в списке'):
         expected = api_datasets
