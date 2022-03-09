@@ -1,5 +1,4 @@
 import allure
-
 from core import BaseApi
 from core import BasePage
 from variables import PkmVars as Vars
@@ -117,18 +116,20 @@ class ApiBpms(BaseApi):
         return resp
 
     def delete_bpms_node(self, node_uuid: str, uuid, force=None):
-        with allure.step('Остановить BPMS если запущен'):
-            actual_bpms_data = self.post(f'{Vars.PKM_API_URL}processes/get-by-ids', self.token, {'uuids': [uuid]}).get('data').get(uuid)
-            if actual_bpms_data['enabled'] is True:
-                update_payload = {
-                    'description': '',
-                    'enabled': False,
-                    'force': [124],
-                    'name': actual_bpms_data.get('name'),
-                    'renameOnly': False,
-                    'uuid': uuid
-                }
-                self.post(f'{Vars.PKM_API_URL}processes/update', self.token, update_payload)
+        if uuid:
+            with allure.step('Остановить BPMS если запущен'):
+                processes = self.post(f'{Vars.PKM_API_URL}processes/get-by-ids', self.token, {'uuids': [uuid]})
+                actual_bpms_data = processes.get('data').get(uuid)
+                if actual_bpms_data['enabled'] is True:
+                    update_payload = {
+                        'description': '',
+                        'enabled': False,
+                        'force': [124],
+                        'name': actual_bpms_data.get('name'),
+                        'renameOnly': False,
+                        'uuid': uuid
+                    }
+                    self.post(f'{Vars.PKM_API_URL}processes/update', self.token, update_payload)
 
         with allure.step('Удалить BPMS'):
             delete_payload = {'uuid': node_uuid}
