@@ -226,7 +226,7 @@ class EntityPage(BasePage):
 
 class NewEntityPage(BasePage):
     LOCATOR_ENTITY_PAGE_TITLE = (By.XPATH, "//div[contains(@class, 'entity__configuration-name')]")
-    LOCATOR_RENAME_TITLE_ICON = (By.XPATH, "//div[contains(@class, 'entity__configuration-name')]//fa-icon[.//*[local-name()='svg' and @data-icon='pen']]")
+    LOCATOR_RENAME_TITLE_ICON = (By.XPATH, "//div[contains(@class, 'entity__configuration-name') or contains(@class, 'table__title')]//fa-icon[.//*[local-name()='svg' and @data-icon='pen']]")
     #LOCATOR_TITLE_INPUT = (By.XPATH, "(//div[@class='page-title-container']//input)[1]")
     #LOCATOR_TITLE_CHECK_ICON = (By.XPATH, "//div[@class='page-title-container']//fa-icon[@icon='check']")
     LOCATOR_PAGE_CONTENT = (By.XPATH, "//div[contains(@class, 'router-outlet')]")
@@ -324,7 +324,7 @@ class NewEntityPage(BasePage):
         locator = (By.XPATH, f"//div[contains(@class, 'dropdown-item') and .='{value_name}' or contains(@class, 'dropdown-item') and .=' {value_name} ']")
         return locator
 
-    def get_entity_page_title(self, return_raw=False, prev_title_html: str = None, timeout=10):
+    def get_entity_page_title(self, return_raw=False, prev_title_html: str = None, timeout=10) -> str:
         if prev_title_html:
             self.wait_element_changing(prev_title_html, self.LOCATOR_ENTITY_PAGE_TITLE, time=5, ignore_timeout=True)
         if return_raw:
@@ -337,9 +337,11 @@ class NewEntityPage(BasePage):
         self.wait_until_text_in_element(self.LOCATOR_ENTITY_PAGE_TITLE, page_title, time=timeout)
 
     def rename_title(self, title_name):
-        self.find_and_click(self.LOCATOR_RENAME_TITLE_ICON)
-        self.modal.enter_and_save(title_name, clear_input=True)
-        self.wait_page_title(title_name)
+        current_name = self.get_entity_page_title()
+        if current_name != title_name:
+            self.find_and_click(self.LOCATOR_RENAME_TITLE_ICON)
+            self.modal.enter_and_save(title_name, clear_input=True)
+            self.wait_page_title(title_name)
 
     def get_list_elements_names(self, list_name, timeout=5):
         elements = [element.text for element in self.elements_generator(self.list_elements_creator(list_name), time=timeout)]
@@ -396,7 +398,7 @@ class NewEntityPage(BasePage):
         return sorted_result
 
     @antistale
-    def get_page_data_by_template(self, template):
+    def get_page_data_by_template(self, template) -> dict:
         """
         template = {
             'model_name': (self.get_entity_page_title, (), {"return_raw": True}),
@@ -442,8 +444,22 @@ class NewEntityPage(BasePage):
         active_tab_name = self.get_element_text(active_tab_locator)
         return active_tab_name
 
+    @antistale
     def switch_to_tab(self, tab_name: str):
         target_tab_locator = (By.XPATH, f"//div[contains(@class, 'tab-title') and .=' {tab_name} ']")
         if 'active' not in self.find_element(target_tab_locator).get_attribute('class'):
             self.find_and_click(target_tab_locator)
 
+    def switch_on_toggle(self, formcontrolname: str):
+        toggle_block_locator = (By.XPATH, f"//ks-switch[@formcontrolname='{formcontrolname}']")
+        toggle_locator = (By.XPATH, f"//ks-switch[@formcontrolname='{formcontrolname}']//div[contains(@class, 'slide')]//div[contains(@class, 'thumb')]")
+        if 'slide-selected' not in self.get_element_html(toggle_block_locator):
+            self.find_and_click(toggle_locator)
+            time.sleep(2)
+
+    def switch_off_toggle(self, formcontrolname: str):
+        toggle_block_locator = (By.XPATH, f"//ks-switch[@formcontrolname='{formcontrolname}']")
+        toggle_locator = (By.XPATH, f"//ks-switch[@formcontrolname='{formcontrolname}']//div[contains(@class, 'slide')]//div[contains(@class, 'thumb')]")
+        if 'slide-selected' in self.get_element_html(toggle_block_locator):
+            self.find_and_click(toggle_locator)
+            time.sleep(2)

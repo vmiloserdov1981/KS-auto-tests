@@ -1,4 +1,3 @@
-import time
 import allure
 import pytest
 from variables import PkmVars as Vars
@@ -177,7 +176,8 @@ def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
         for dataset in api_datasets:
             if dataset.get('name') == dataset_2:
                 api_datasets.remove(dataset)
-                break
+            if dataset.get('name') == dataset_3:
+                dataset['is_default'] = True
 
     with allure.step(f'Проверить корректное отображение наборов данных в списке'):
         expected = api_datasets
@@ -191,112 +191,6 @@ def test_admin_datasets_control(parametrized_login_admin_driver, parameters):
         api_datasets = api.get_datasets_names(model_uuid, group_value='createdAt', reverse=True)
         ui_datasets = model_page.get_model_datasets()
         assert api_datasets == ui_datasets, 'Некорректная сортировка по умолчанию'
-
-"""
-Отключено, в связи с задачей PKM-6775
-
-@allure.feature('Интерфейс Администратора')
-@allure.story('Дерево моделей')
-@allure.title('Управление измерениями модели')
-@allure.severity(allure.severity_level.CRITICAL)
-@pytest.mark.red_label
-@pytest.mark.parametrize("parameters", [({
-        'login': 'eu_user2',
-        'project': Vars.PKM_PROJECT_NAME,
-        'tree_type': 'Модели',
-        'name': 'Управление измерениями модели'
-    })])
-def test_admin_dimensions_control(parametrized_login_admin_driver, parameters):
-    model_page = ModelPage(parametrized_login_admin_driver)
-    model_api = model_page.api_creator.get_api_models()
-    dictionary_api = model_page.api_creator.get_api_dictionaries()
-    test_folder_name = Vars.PKM_TEST_FOLDER_NAME
-    dimension_1 = {'name': 'Типы данных (автотест)', 'elements': ['Числовые', 'Текстовые']}
-    dimension_2 = {'name': 'Функциональность данных (автотест)', 'elements': ['Базовая', 'Расширенная']}
-    dimension_3 = {'name': 'Виды данных (автотест)', 'elements': ['Статистические', 'Эмпирические']}
-
-    with allure.step(f'Проверить наличие тестовых справочников'):
-        dictionary_api.check_test_dictionaries([dimension_1, dimension_2, dimension_3], parent_node_name=test_folder_name)
-
-    with allure.step(f'Проверить наличие тестовой папки "{test_folder_name}" в дереве моделей через API'):
-        test_folder_uuid = model_api.check_test_folder(test_folder_name)
-
-    with allure.step(f'Определить уникальное название модели'):
-        model_name = model_api.create_unique_model_name(Vars.PKM_BASE_MODEL_NAME + '_измерения')
-
-    with allure.step(f'Создать тестовую модель {model_name} в папке {test_folder_name} через API'):
-        model = model_api.create_model_node(model_name, parent_uuid=test_folder_uuid)
-        model_node_uuid = model.get('nodeUuid')
-        model_uuid = model.get('referenceUuid')
-
-    with allure.step(f'Добавить модель {model_name} в список на удаление в постусловиях'):
-        parametrized_login_admin_driver.test_data['to_delete'].append(ModelNodeCreator(parametrized_login_admin_driver, model_node_uuid, delete_anyway=True))
-
-    with allure.step(f'развернуть тестовую папку {test_folder_name}'):
-        model_page.tree.expand_node(test_folder_name)
-
-    with allure.step(f'Перейти на страницу модели {model_name}'):
-        model_page.tree.select_node(model_name)
-
-    with allure.step(f'Добавить измерение {dimension_1.get("name")} в модель'):
-        model_page.add_dimension(dimension_1.get("name"))
-
-    with allure.step(f'Добавить измерение {dimension_2.get("name")} в модель'):
-        model_page.add_dimension(dimension_2.get("name"))
-
-    with allure.step('Обновить страницу'):
-        parametrized_login_admin_driver.refresh()
-
-    with allure.step(f'Добавить измерение {dimension_3.get("name")} в модель'):
-        model_page.add_dimension(dimension_3.get("name"))
-
-    with allure.step(f'Проверить отображение всех добавленных измерений в списке измерений'):
-        ui_dimensions = model_page.get_model_dimensions()
-        added_dimensions = [dimension_1.get('name'), dimension_2.get('name'), dimension_3.get('name')]
-        assert model_page.compare_lists(ui_dimensions, added_dimensions), 'Измерения в списке не совпадают из созданными'
-
-    with allure.step(f'Проверить сортировку измерений по дате (DESC) по умолчанию'):
-        ui_dimensions = model_page.get_model_dimensions()
-        api_dimensions = model_api.get_model_dictionaries_names(model_uuid, group_value='createdAt', reverse=True)
-        assert api_dimensions == ui_dimensions, 'Некорректная сортировка по умолчанию'
-
-    with allure.step(f'Проверить сортировку измерений по дате (ASC)'):
-        ui_dimensions = model_page.get_model_dimensions('По дате создания', 'ASC')
-        api_dimensions = model_api.get_model_dictionaries_names(model_uuid, 'createdAt', False)
-        assert ui_dimensions == api_dimensions
-
-    with allure.step(f'Проверить сортировку измерений по дате (DESC)'):
-        ui_dimensions = model_page.get_model_dimensions('По дате создания', 'DESC')
-        api_dimensions = model_api.get_model_dictionaries_names(model_uuid, 'createdAt', True)
-        assert ui_dimensions == api_dimensions
-
-    with allure.step(f'Проверить сортировку измерений по алфавиту (ASC)'):
-        ui_dimensions = model_page.get_model_dimensions('По алфавиту', 'ASC')
-        api_dimensions = model_api.get_model_dictionaries_names(model_uuid, 'name', False)
-        assert ui_dimensions == api_dimensions
-
-    with allure.step(f'Проверить сортировку измерений по алфавиту (DESC)'):
-        ui_dimensions = model_page.get_model_dimensions('По алфавиту', 'DESC')
-        api_dimensions = model_api.get_model_dictionaries_names(model_uuid, 'name', True)
-        assert ui_dimensions == api_dimensions
-
-    with allure.step(f'Удалить измерение {dimension_2.get("name")}'):
-        model_page.delete_dimension(dimension_2.get("name"))
-        api_dimensions.remove(dimension_2.get("name"))
-
-    with allure.step(f'Проверить корректное отображение измерений в списке'):
-        expected = api_dimensions
-        actual = model_page.get_model_dimensions()
-        assert actual == expected, 'Актуальные измерения не совпадают с ожидаемыми'
-
-    with allure.step('Обновить страницу'):
-        parametrized_login_admin_driver.refresh()
-
-    with allure.step(f'Проверить сортировку измерений по дате (DESC) по умолчанию'):
-        api_dimensions = model_api.get_model_dictionaries_names(model_uuid, group_value='createdAt', reverse=True)
-        ui_dimensions = model_page.get_model_dimensions()
-        assert api_dimensions == ui_dimensions, 'Некорректная сортировка по умолчанию'
-    """
 
 
 @allure.feature('Интерфейс Администратора')
@@ -348,7 +242,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             "period_type": 'День',
             'period_start_value': '.'.join(expected_date),
             'period_start_year': None,
-            'period_amount': None,
+            'period_amount': '1',
             'last_period': model_page.convert_date(expected_date)
         }
         assert actual_period_data == expected_period_data
@@ -409,7 +303,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             "period_type": 'Месяц',
             'period_start_value': current_mounth,
             'period_start_year': current_year,
-            'period_amount': None,
+            'period_amount': '1',
             'last_period': f'{current_mounth} {current_year}'.lower()
         }
         # Включить проверку после исправления PKM-9244
@@ -443,7 +337,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             "period_type": 'Год',
             'period_start_value': None,
             'period_start_year': current_year,
-            'period_amount': None,
+            'period_amount': '1',
             'last_period': current_year
         }
         # Включить проверку после исправления PKM-9244
@@ -742,6 +636,9 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
 
+    with allure.step(f'Развернуть папку {test_folder_name}'):
+        object_page.tree.expand_node(test_folder_name)
+
     with allure.step(f'Проверить отсутствие удаленных объектов модели {model_name} в дереве'):
         actual_objects = object_page.tree.get_node_children_names(model_name)
         assert actual_objects == []
@@ -826,13 +723,12 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         table_page.tree.expand_node(test_folder_name)
 
     with allure.step(f'Создать таблицу данных {table_name}'):
-        time.sleep(10)
         table_page.create_data_table(model_name, table_name)
 
     with allure.step(f'Задать базовую структуру таблицы'):
         table_page.set_base_structure()
 
-    # Удалить принудительное указание сущностей после исправления PKM-8966
+    # Удалить принудительное указание сущностей после исправления PKM-8966 и PKM-9767
     table_page.set_entity_values('Столбцы', 'Наборы данных', [dataset_1_name, dataset_2_name])
     table_page.set_entity_values('Столбцы', 'Показатели', ['Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый'])
 
@@ -863,7 +759,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
         table_page.wait_cells_value(expected_data)
     '''
 
-    with allure.step(f'Проверить ячейки таблицы не заполнены'):
+    with allure.step(f'Проверить что ячейки таблицы не заполнены'):
         actual_data = table_page.get_table_data()
         assert actual_data == [], 'Таблица заполнена'
 
@@ -881,10 +777,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     new_table_name = table_name + '_переименованная'
     
     with allure.step(f'Переименовать таблицу "{table_name}" на "{new_table_name}" на странице таблицы'):
-        # Вернуть переименование со страницы таблицы после исправления PKM-9313
-        # table_page.rename_title(new_table_name)
-        table_page.tree.rename_node(table_name, new_table_name)
-        table_page.wait_page_title(new_table_name, timeout=20)
+        table_page.rename_title(new_table_name)
 
     with allure.step(f'Проверить изменение названия таблицы в дереве'):
         table_page.tree.wait_selected_node_name(new_table_name, timeout=20)
@@ -911,7 +804,7 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Задать структуру таблицы c объектами класса "{class_name}"'):
         table_page.set_class_objects_structure(class_name)
 
-    # Удалить принудительное указание сущностей после исправления PKM-8966
+    # Удалить принудительное указание сущностей после исправления PKM-8966 и PKM-9767
     table_page.set_entity_values('Столбцы', 'Наборы данных', [dataset_1_name, dataset_2_name])
     table_page.set_entity_values('Столбцы', 'Показатели', ['Показатель_1', 'Показатель_2', 'Показатель_3', 'Показатель_текстовый'])
 
@@ -938,17 +831,6 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Проверить отображение объекта "{table_object_1_name}" в дереве'):
         assert table_page.tree.wait_child_node(model_name, table_object_2_name), f'Объект {table_object_2_name} не отображается в дереве'
-
-    '''
-    new_objects_data = [
-            {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
-            {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
-            {'object_name': table_object_1_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'},
-            {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'}
-        ]
-    with allure.step(f'Проверить расчет показателей новых объектов по формуле'):
-        table_page.wait_cells_value(new_objects_data)
-    '''
 
     with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице (включая вновь созданные объекты)'):
         # new_expected_cells_data = expected_cells_data + new_objects_data

@@ -18,7 +18,7 @@ class TablePage(NewEntityPage):
     LOCATOR_TABLE_ROW_TITLE = (By.XPATH, "//pkm-table-header-left//pkm-table-header-cell")
     LOCATOR_TABLE_CELL = (By.XPATH, "//pkm-table-cell")
     LOCATOR_DELETE_TABLE_ENTITY_ICON = (By.XPATH, "//div[contains(@class, 'structure-list__element-buttons')]//ks-button[.//*[local-name()='svg' and @data-icon='trash']]")
-    LOCATOR_ADD_OBJECT_ICON = (By.XPATH, "//div[contains(@class, 'table-buttons')]//*[local-name()='svg' and @data-icon='plus']")
+    LOCATOR_ADD_OBJECT_ICON = (By.XPATH, "//div[contains(@class, 'options-container')]//ks-button[.//*[local-name()='svg' and @data-icon='plus']]")
     LOCATOR_TABLE_SCROLL_ZONE = (By.XPATH, "//pkm-table-cells-container")
     LOCATOR_ENTITY_PAGE_TITLE = (By.XPATH, "//div[contains(@class, 'ks-page__entity-title')]")
 
@@ -70,9 +70,7 @@ class TablePage(NewEntityPage):
 
     def create_data_table(self, model_name, table_name):
         with allure.step(f'Создать таблицу {table_name} в ноде "{model_name}"'):
-            self.find_and_context_click(self.tree.node_locator_creator(model_name), time=20)
-            self.hover_over_element(self.tree.context_option_locator_creator('Создать'))
-            self.find_and_click(self.tree.submenu_option_locator_creator('Таблица данных'))
+            self.tree.tree_chain_actions(model_name, ["Создать", "Таблица данных"])
         with allure.step(f'Укзать название таблицы {table_name} и создать ее'):
             self.modal.enter_and_save(table_name)
         with allure.step(f'Проверить переход на страницу таблицы {table_name}'):
@@ -400,7 +398,7 @@ class TablePage(NewEntityPage):
 
             cell_left = self.get_cell_style_value('left', cell) + 1
             cell_top = self.get_cell_style_value('top', cell)
-            cell_value = cell.text
+            cell_value = cell.text.strip()
             if cell_value and cell_value != '':
                 cell_object = None
                 cell_dataset = None
@@ -474,11 +472,9 @@ class TablePage(NewEntityPage):
 
         for cell_data in cells_data:
             cell_locator = self.cell_locator_creator(cell_data, table_fields_data=table_fields_data)
-            editable_cell_locator = (By.XPATH, f"{cell_locator[1]}//div[@contenteditable='true']")
             self.find_and_click(cell_locator)
             action_chains = ActionChains(self.driver)
-            action_chains.send_keys(cell_data.get('value')).perform()
-            self.find_element(editable_cell_locator).send_keys(Keys.ENTER)
+            action_chains.send_keys(cell_data.get('value'), Keys.ENTER).perform()
             time.sleep(5)
 
     def wait_cell_value(self, cell_data):
@@ -533,4 +529,3 @@ class TablePage(NewEntityPage):
             return True
         except TimeoutException:
             return False
-

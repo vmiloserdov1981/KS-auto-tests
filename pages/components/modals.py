@@ -81,6 +81,7 @@ class Modals(BasePage):
 
 class Calendar(BasePage, BaseApi):
     LOCATOR_CALENDAR = (By.XPATH, "//mat-calendar")
+    LOCATOR_ACCEPT_DATA_BUTTON = (By.XPATH, "//div[contains(@class, 'date-picker__overlay')]//ks-button[.='Принять']")
 
     @staticmethod
     def convert_mount(abr):
@@ -126,7 +127,7 @@ class Calendar(BasePage, BaseApi):
             return False
 
     def select_day(self, day):
-        day_locator = (By.XPATH, f"//div[contains (@class, 'mat-calendar-body-cell-content') and text()=' {day} ']")
+        day_locator = (By.XPATH, f"//div[contains(@class, 'date-picker__grid')]//div[contains(@class, 'date-picker__item') and not(contains(@class, 'disabled'))][.=' {day} ']")
         self.find_and_click(day_locator)
 
 
@@ -525,35 +526,34 @@ class TagModal(BasePage):
 
 class TableObjectsSetModal(Modals):
     LOCATOR_TYPE_DROPDOWN = (By.XPATH, "//div[contains(@class, 'modal-window')]//ks-dropdown[1]")
-    LOCATOR_OBJECTS_INPUT = (By.XPATH, "(//div[contains(@class, 'modal-window-content content-padding')]//div[contains(@class, 'form-col')])[2]//async-dropdown-pagination//input")
+    LOCATOR_OBJECTS_INPUT = (By.XPATH, "//pkm-modal-window//async-dropdown-pagination")
     LOCATOR_CHECK_ALL_CHECKBOX = (By.XPATH, "//ks-checkbox[@label='Выбрать все']//div[contains(@class, 'checkbox-container')]")
     LOCATOR_CHECK_ALL_OPTION = (By.XPATH, "//div[contains(@class, 'multi-select__item') and contains(@class, 'check-all')]")
 
+    """
     def select_type(self, object_type: str):
         type_dropdown_value = self.get_element_text(self.LOCATOR_TYPE_DROPDOWN)
         if type_dropdown_value != object_type:
             self.find_and_click(self.LOCATOR_TYPE_DROPDOWN)
             option_locator = (By.XPATH, f"(//div[contains(@class, 'dropdown-item')])[.='{object_type}' or .=' {object_type} ']")
             self.find_and_click(option_locator)
+    """
+    def select_type(self, object_type: str):
+        type_button_locator = (By.XPATH, f"//pkm-modal-window//div[contains(@class, 'ks-radio-item') and .='{object_type}']")
+        self.find_and_click(type_button_locator)
 
     def set_all_objects(self):
         self.wait_element_stable((By.XPATH, "//div[@class='modal-window']"), 5)
-        type_dropdown_value = self.get_element_text(self.LOCATOR_TYPE_DROPDOWN)
-        if type_dropdown_value != 'Объекты':
-            self.select_type('Объекты')
+        self.select_type('Объекты')
         self.find_and_click(self.LOCATOR_OBJECTS_INPUT)
-        objects_checkbox_locator = (By.XPATH, "(//div[contains(@class, 'dropdown-overlay__items-list')]//div[contains(@class, 'dropdown-overlay__item')])[.//div[contains(@class, 'checkbox-container') and not(contains(@class, 'checkbox-selected'))]]")
-        for checkbox in self.elements_generator(objects_checkbox_locator):
-            checkbox.click()
+        self.find_and_click((By.XPATH, "//div[contains(@class, 'dropdown-overlay__item') and .='Выбрать все']"))
         time.sleep(1)
         self.find_and_click(self.LOCATOR_MODAL_TITLE)
         self.find_and_click(self.LOCATOR_SAVE_BUTTON)
-        time.sleep(2)
+        time.sleep(1)
 
     def set_class_objects(self, class_name):
-        type_dropdown_value = self.get_element_text(self.LOCATOR_TYPE_DROPDOWN)
-        if type_dropdown_value != 'По классу':
-            self.select_type('По классу')
+        self.select_type('По классу')
         class_input_locator = (By.XPATH, "//async-dropdown-search//input")
         value_locator = (By.XPATH, f"//div[contains(@class,'dropdown-item')][ .=' {class_name} ' or  .='{class_name}' ]")
         self.find_and_enter(class_input_locator, class_name)

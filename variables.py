@@ -2,7 +2,7 @@ import os
 
 
 class PkmVars:
-    PKM_MAIN_URL = 'https://pkm.andersenlab.com/' if os.getenv('USE_STAGE') != 'true' else 'https://rc-test.ks.works/'
+    PKM_MAIN_URL = 'https://pkm.andersenlab.com/' if os.getenv('USE_STAGE') != 'true' else 'https://main.ks.works/'
     PKM_API_URL = f'{PKM_MAIN_URL}api/'
     PKM_TEST_FOLDER_NAME = 'auto-test'
     PKM_WORKSHOP_TEST_FOLDER_NAME = os.getenv('WORKSHOP_FOLDER_NAME', 'workshop')
@@ -14,6 +14,7 @@ class PkmVars:
     PKM_BASE_DICTIONARY_NAME = 'Тестовый_справочник'
     PKM_BASE_CLASS_NAME = 'Тестовый_класс'
     PKM_BASE_MODEL_NAME = 'Тестовая_модель'
+    PKM_BASE_BPMS_NAME = 'Тестовый BPMS'
     PKM_RELATION_CLASS_NAME = 'Класс для связи'
     PKM_BASE_FOLDER_NAME = 'auto_folder-2'
     PKM_DEFAULT_TREE_TYPE = 'model'

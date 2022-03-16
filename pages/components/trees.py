@@ -35,7 +35,7 @@ class Tree(BasePage):
 
     @staticmethod
     def folder_locator_creator(folder_name):
-        #locator = (By.XPATH, f"//div[@class='tree-item' and .='{folder_name}' and .//fa-icon[@ng-reflect-icon='folder']]")
+        # locator = (By.XPATH, f"//div[@class='tree-item' and .='{folder_name}' and .//fa-icon[@ng-reflect-icon='folder']]")
         locator = (By.XPATH, f"//div[@class='tree-item' and .='{folder_name}']//*[local-name()='svg' and @data-icon='folder' ]")
         return locator
 
@@ -193,7 +193,6 @@ class NewTree(BasePage):
     LOCATOR_TREE_CLASS_BUTTON = (By.XPATH, "//div[contains(@class, 'dropdown-list app-scrollbar')]//div[text()=' Классы ']")
     LOCATOR_TREE_TYPE_BLOCK = (By.XPATH, "//div[contains(@class, 'admin-tree__title')]")
     LOCATOR_TREE_ADD_ROOT_ENTITY = (By.XPATH, "//div[contains(@class, 'create-container')]//button[//*[local-name()='svg' and @data-icon='plus']]")
-    #LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item') and contains(@class, 'selected')]//div[contains(@class, 'tree-item-title')]")
     LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item') and contains(@class, 'selected')]")
     DICTIONARIES_TREE_NAME = 'Справочники'
     LOCATOR_TREE_NODE = (By.XPATH, "(//pkm-tree-item[.//div[contains(@class, tree-item)]])[not(.//div[contains(@class, 'load')])]")
@@ -209,7 +208,6 @@ class NewTree(BasePage):
 
     @staticmethod
     def node_locator_creator(node_name):
-        #locator = (By.XPATH, f"(//div[contains(@class, 'tree-item-title') and .='{node_name}'])[last()]")
         locator = (By.XPATH, f"(//div[contains(@class, 'tree-item') and .//div[contains(@class, 'tree-item-title') and .='{node_name}']])[last()]")
         return locator
 
@@ -289,7 +287,7 @@ class NewTree(BasePage):
         """
         node_locator = self.node_locator_creator(node_name)
 
-        self.context_selection(node_name, 'Удалить')
+        self.tree_chain_actions(node_name, ['Удалить'])
         actual_deletion_modal_text = self.modal.get_deletion_confirm_modal_text()
         expected_deletion_modal_text = f'Вы действительно хотите удалить\n{node_type} {node_name} ?'
         assert actual_deletion_modal_text == expected_deletion_modal_text, 'Некорректный текст подтверждения удаления ноды'
@@ -298,11 +296,16 @@ class NewTree(BasePage):
 
     def rename_node(self, node_name, new_node_name):
         time.sleep(3)
-        self.context_selection(node_name, 'Переименовать')
+        self.tree_chain_actions(node_name, ['Переименовать'])
         self.modal.clear_name_input()
         self.modal.enter_and_save(new_node_name)
 
     def get_node_arrow(self, node_name, timeout=5):
+        node_locator = self.node_locator_creator(node_name)
+        try:
+            self.find_element(node_locator)
+        except TimeoutException:
+            raise AssertionError(f'Родительская нода {node_name} не отображается в дереве')
         try:
             arrow = self.find_element(self.node_arrow_locator_creator(node_name), time=timeout)
             self.scroll_to_element(arrow, to_top=True)
@@ -358,3 +361,22 @@ class NewTree(BasePage):
             return True
         except TimeoutException:
             return False
+
+    def tree_chain_actions(self, parent_node, chain: list):
+        # chain = ["Создать", "Событие"]
+        count = len(chain)
+        for try_number in range(5):
+            try:
+                self.find_and_context_click(self.node_locator_creator(parent_node), time=20)
+                for i in chain:
+                    time.sleep(1)
+                    if chain.index(i) == count - 1:
+                        self.find_and_click(self.context_option_locator_creator(i))
+                    else:
+                        self.hover_over_element(self.context_option_locator_creator(i))
+                return
+            except TimeoutException:
+                if try_number == 4:
+                    raise AssertionError('Превышено количество попыток клика')
+                else:
+                    continue

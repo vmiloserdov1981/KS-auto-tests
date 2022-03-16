@@ -57,7 +57,7 @@ class ApiModels(BaseApi):
 
     def get_models_names(self):
         names = self.get_tree_nodes().get('model')
-        return names
+        return names or []
 
     def create_dataset(self, dataset_name, model_uuid, is_default=False):
         payload = {'name': dataset_name,
