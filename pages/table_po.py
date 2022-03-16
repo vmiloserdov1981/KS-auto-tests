@@ -18,7 +18,7 @@ class TablePage(NewEntityPage):
     LOCATOR_TABLE_ROW_TITLE = (By.XPATH, "//pkm-table-header-left//pkm-table-header-cell")
     LOCATOR_TABLE_CELL = (By.XPATH, "//pkm-table-cell")
     LOCATOR_DELETE_TABLE_ENTITY_ICON = (By.XPATH, "//div[contains(@class, 'structure-list__element-buttons')]//ks-button[.//*[local-name()='svg' and @data-icon='trash']]")
-    LOCATOR_ADD_OBJECT_ICON = (By.XPATH, "//div[contains(@class, 'table-buttons')]//*[local-name()='svg' and @data-icon='plus']")
+    LOCATOR_ADD_OBJECT_ICON = (By.XPATH, "//div[contains(@class, 'options-container')]//ks-button[.//*[local-name()='svg' and @data-icon='plus']]")
     LOCATOR_TABLE_SCROLL_ZONE = (By.XPATH, "//pkm-table-cells-container")
     LOCATOR_ENTITY_PAGE_TITLE = (By.XPATH, "//div[contains(@class, 'ks-page__entity-title')]")
 
@@ -472,11 +472,9 @@ class TablePage(NewEntityPage):
 
         for cell_data in cells_data:
             cell_locator = self.cell_locator_creator(cell_data, table_fields_data=table_fields_data)
-            editable_cell_locator = (By.XPATH, f"{cell_locator[1]}//div[@contenteditable='true']")
             self.find_and_click(cell_locator)
             action_chains = ActionChains(self.driver)
             action_chains.send_keys(cell_data.get('value'), Keys.ENTER).perform()
-            #self.find_element(editable_cell_locator).send_keys(Keys.ENTER)
             time.sleep(5)
 
     def wait_cell_value(self, cell_data):

@@ -1,4 +1,3 @@
-import time
 import allure
 import pytest
 from variables import PkmVars as Vars
@@ -832,17 +831,6 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
 
     with allure.step(f'Проверить отображение объекта "{table_object_1_name}" в дереве'):
         assert table_page.tree.wait_child_node(model_name, table_object_2_name), f'Объект {table_object_2_name} не отображается в дереве'
-
-    '''
-    new_objects_data = [
-            {'object_name': table_object_1_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
-            {'object_name': table_object_2_name, 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '0.00'},
-            {'object_name': table_object_1_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'},
-            {'object_name': table_object_2_name, 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_3', 'value': '0.00'}
-        ]
-    with allure.step(f'Проверить расчет показателей новых объектов по формуле'):
-        table_page.wait_cells_value(new_objects_data)
-    '''
 
     with allure.step(f'Проверить корректное отображение значений всех ячеек в таблице (включая вновь созданные объекты)'):
         # new_expected_cells_data = expected_cells_data + new_objects_data
