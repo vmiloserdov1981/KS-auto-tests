@@ -210,15 +210,6 @@ class ApiEu(BaseApi):
                     }
                 }
             ],
-            #Вернуть длительность после исправления PKM-4742
-            #duration_uuid: [
-                #{
-                    #"value": {
-                        #"data": duration,
-                        #"type": "number"
-                    #}
-                #}
-            #],
             end_uuid: [
                 {
                     "value": {

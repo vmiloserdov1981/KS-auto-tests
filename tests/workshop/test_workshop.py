@@ -827,7 +827,6 @@ def test_workshop(parametrized_login_admin_driver, parameters):
     with allure.step(f'Сохранить временной интервал'):
         model_page.save_model_period()
         
-    # Убрать создание объектов после исправления PKM-7179
     object_page = ObjectPage(parametrized_login_admin_driver)
     object_page.create_object('1', base_data['model']['name'], base_data['class_1']['name'])
     object_page.create_object('2', base_data['model']['name'], base_data['class_2']['name'])
@@ -865,7 +864,6 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         gantt_page.events_plan_page.create_event(event_data, check=False)
 
     with allure.step('Проверить отображение созданного мероприятия на диаграмме Ганта'):
-        # Убрать объект 1 после исправления PKM-7179
         assert gantt_page.events_plan_page.get_events(names_only=True) == ['1', event_data['event_name']]
 
     with allure.step('Проверить отображение созданного мероприятия в дереве'):
@@ -875,7 +873,6 @@ def test_workshop(parametrized_login_admin_driver, parameters):
         parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение созданного мероприятия на диаграмме Ганта'):
-        # Убрать объект 1 после исправления PKM-7179
         assert gantt_page.events_plan_page.get_events(names_only=True) == ['1', event_data['event_name']]
 
     with allure.step('Проверить отображение созданного мероприятия в дереве'):

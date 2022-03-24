@@ -306,8 +306,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             'period_amount': '1',
             'last_period': f'{current_mounth} {current_year}'.lower()
         }
-        # Включить проверку после исправления PKM-9244
-        # assert model_page.get_model_period_data() == expected_period_data
+        assert model_page.get_model_period_data() == expected_period_data
 
     with allure.step(f'Указать количество периодов {mounth_amount_period}'):
         model_page.set_period_amount(mounth_amount_period)
@@ -340,8 +339,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             'period_amount': '1',
             'last_period': current_year
         }
-        # Включить проверку после исправления PKM-9244
-        # assert model_page.get_model_period_data() == expected_period_data
+        assert model_page.get_model_period_data() == expected_period_data
 
     with allure.step(f'Указать количество периодов {years_amount_period}'):
         model_page.set_period_amount(years_amount_period)
@@ -372,8 +370,7 @@ def test_admin_model_period_control(parametrized_login_admin_driver, parameters)
             'period_amount': None,
             'last_period': None
         }
-        # Включить проверку после исправления PKM-9244
-        # assert model_page.get_model_period_data() == expected_period_data, 'Временной интервал модели не очищен'
+        assert model_page.get_model_period_data() == expected_period_data, 'Временной интервал модели не очищен'
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
@@ -551,8 +548,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
             'object_class': src_class_name,
             'relations': [[src_class_name, relation_name, dst_class_name]]
         }
-        # включить проверку после исправления PKM-8286
-        # assert object_1_data == expected_data, 'Объект заполнен некорректными данными'
+        assert object_1_data == expected_data, 'Объект заполнен некорректными данными'
 
     with allure.step(f'Создать объект {object_2_name} класса {dst_class_name} в модели {model_name}'):
         object_2_data = object_page.create_object(object_2_name, model_name, dst_class_name)
@@ -564,8 +560,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
             'object_class': dst_class_name,
             'relations': [[src_class_name, relation_name, dst_class_name]]
         }
-        # включить проверку после исправления PKM-8286
-        # assert object_2_data == expected_data, 'Объект заполнен некорректными данными'
+        assert object_2_data == expected_data, 'Объект заполнен некорректными данными'
 
     with allure.step(f'Создать связь объектов {object_1_name} и {object_2_name}'):
         object_relation = object_page.create_object_relation(src_class_name, relation_name, dst_class_name, object_1_name)
@@ -577,8 +572,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         actual_relations = object_page.get_object_relations()
         expected_relations = [[src_class_name, relation_name, dst_class_name], object_relation]
 
-        # включить проверку после исправления PKM-8286
-        # assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
+        assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
 
     with allure.step(f'Переименовать объект {object_1_name} на странице объекта'):
         object_1_name += '_ред'
@@ -611,8 +605,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         object_relation[0] = object_1_name
         expected_relations = [[src_class_name, relation_name, dst_class_name], object_relation]
 
-        # включить проверку после исправления PKM-8286
-        # assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
+        assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
 
     with allure.step(f'Удалить связь объектов {object_1_name} и {object_2_name}'):
         object_page.delete_relation(object_1_name, relation_name, object_2_name)
@@ -623,9 +616,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
     with allure.step(f'Проверить отображение коректных связей на странице объекта'):
         actual_relations = object_page.get_object_relations()
         expected_relations = [[src_class_name, relation_name, dst_class_name]]
-
-        # включить проверку после исправления PKM-8286
-        # assert actual_relations == expected_relations, "Некорректный список связей"
+        assert actual_relations == expected_relations, "Некорректный список связей"
 
     with allure.step(f'Удалить объект {object_1_name}'):
         object_page.tree.delete_node(object_1_name, 'Объект', parent_node_name=model_name)
