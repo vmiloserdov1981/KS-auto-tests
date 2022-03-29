@@ -524,252 +524,252 @@ def test_perform_bpms(parametrized_login_admin_driver, parameters):
                 }
         task_page.set_task(gate_task_2_data)
 
-        with allure.step(f'Перейти к шлюзу {exit_gate_name}'):
-            tree.select_node(exit_gate_name)
+    with allure.step(f'Перейти к шлюзу {exit_gate_name}'):
+        tree.select_node(exit_gate_name)
 
-        with allure.step('Настроить шлюз'):
-            exit_gate_data = {
-                'name': exit_gate_name,
-                'gate_type': 'Параллельный',
-                'next_elements': [
+    with allure.step('Настроить шлюз'):
+        exit_gate_data = {
+            'name': exit_gate_name,
+            'gate_type': 'Параллельный',
+            'next_elements': [
+                {
+                    'type': 'Событие',
+                    'name': finish_event_name
+                }
+            ]
+        }
+        gate_page.set_gate(exit_gate_data)
+
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
+
+    with allure.step(f'Перейти к начальному событию {start_event_name}'):
+        tree.select_node(start_event_name)
+
+    with allure.step(f'Проверить отображение события {start_event_name} с корректными настройками'):
+        assert event_page.get_event_page_data() == start_event_data
+
+    with allure.step(f'Перейти к задаче {start_task_name}'):
+        tree.select_node(start_task_name)
+
+    with allure.step(f'Проверить отображение задачи {start_task_name} с корректными настройками'):
+        assert task_page.get_task_page_data() == start_task_data
+
+    with allure.step(f'Перейти к шлюзу {enter_gate_name}'):
+        tree.select_node(enter_gate_name)
+
+    with allure.step(f'Проверить отображение шлюза {enter_gate_name} с корректными настройками'):
+        assert gate_page.get_gate_page_data() == enter_gate_data
+
+    with allure.step(f'Перейти к задаче {gate_task_1_name}'):
+        tree.select_node(gate_task_1_name)
+
+    with allure.step(f'Проверить отображение задачи {gate_task_1_name} с корректными настройками'):
+        assert task_page.get_task_page_data() == gate_task_1_data
+
+    with allure.step(f'Перейти к задаче {gate_task_2_name}'):
+        tree.select_node(gate_task_2_name)
+
+    with allure.step(f'Проверить отображение задачи {gate_task_2_name} с корректными настройками'):
+        assert task_page.get_task_page_data() == gate_task_2_data
+
+    with allure.step(f'Перейти к шлюзу {exit_gate_name}'):
+        tree.select_node(exit_gate_name)
+
+    with allure.step(f'Проверить отображение шлюза {exit_gate_name} с корректными настройками'):
+        assert gate_page.get_gate_page_data() == exit_gate_data
+
+    with allure.step(f'Перейти к событию {finish_event_name}'):
+        tree.select_node(finish_event_name)
+
+    with allure.step(f'Проверить отображение события {finish_event_name} с корректными настройками'):
+        assert event_page.get_event_page_data() == finish_event_data
+
+    with allure.step(f"Перейти к бизнес процессу {bpms_name}"):
+        tree.select_node(bpms_name)
+
+    with allure.step("Перейти на вкладку Диаграмма"):
+        bpms_page.switch_to_tab("Диаграмма")
+
+    with allure.step("Создать диаграмму"):
+        bpms_page.create_bpms_diagram()
+
+    with allure.step("Включить синхронизацию диаграммы"):
+        bpms_page.consider_adding_process_elements()
+
+    with allure.step("Проверить отображение всех сущностей бизнес процесса на диаграмме"):
+        # удалить обновление и переключение на вкладку диаграммы после исправления PKM-9663
+        parametrized_login_admin_driver.refresh()
+        time.sleep(3)
+        bpms_page.switch_to_tab("Диаграмма")
+
+        bpms_page.check_diagram_elements({'events': 2, 'tasks': 3, 'arrows': 7})
+
+    with allure.step("Проверить наличие всех сущностей бизнес процесса на диаграмме (API)"):
+        expected_entities = {
+            'events':
+                [
                     {
-                        'type': 'Событие',
-                        'name': finish_event_name
+                        'name': start_event_name,
+                        'next_element_type': 'task',
+                        'next_element_name': start_task_name
+                    },
+                    {
+                        'name': finish_event_name,
+                        'next_element_type': 'event',
+                        'next_element_name': None
                     }
+                ],
+            'tasks':
+                [
+                    {
+                        'name': start_task_name,
+                        'next_element_type': 'gate',
+                        'next_element_name': enter_gate_name
+                    },
+                    {
+                        'name': gate_task_1_name,
+                        'next_element_type': 'gate',
+                        'next_element_name': exit_gate_name
+                    },
+                    {
+                        'name': gate_task_2_name,
+                        'next_element_type': 'gate',
+                        'next_element_name': exit_gate_name
+                    }
+                ],
+            'gates':
+                [
+                    {
+                        'name': enter_gate_name,
+                        'next_elements': [{'next_element_type': 'task', 'next_element_name': gate_task_1_name}, {'next_element_type': 'task', 'next_element_name': gate_task_2_name}]
+                    },
+                    {'name': exit_gate_name,
+                     'next_elements': [{'next_element_type': 'event', 'next_element_name': finish_event_name}]
+                     }
                 ]
-            }
-            gate_page.set_gate(exit_gate_data)
+        }
+        actual_entities = api.get_bpms_diagram_elements(bpms_uuid)
+        api.compare_bpms_diagram_elements(actual_entities, expected_entities)
 
-        with allure.step('Обновить страницу'):
-            parametrized_login_admin_driver.refresh()
+    with allure.step("Включить бизнес процесс"):
+        bpms_page.switch_on_bpms()
 
-        with allure.step(f'Перейти к начальному событию {start_event_name}'):
-            tree.select_node(start_event_name)
+    with allure.step(f"Получить uuid события {start_event_name}"):
+        start_event_uuid = api.get_event_by_bpms_uuid(bpms_uuid, start_event_name).get('uuid')
 
-        with allure.step(f'Проверить отображение события {start_event_name} с корректными настройками'):
-            assert event_page.get_event_page_data() == start_event_data
+    with allure.step(f"Получить uuid задачи {start_task_name}"):
+        start_task_uuid = api.get_task_by_bpms_uuid(bpms_uuid, start_task_name).get('uuid')
 
-        with allure.step(f'Перейти к задаче {start_task_name}'):
-            tree.select_node(start_task_name)
+    with allure.step(f"Получить uuid задачи {gate_task_1_name}"):
+        gate_task_1_uuid = api.get_task_by_bpms_uuid(bpms_uuid, gate_task_1_name).get('uuid')
 
-        with allure.step(f'Проверить отображение задачи {start_task_name} с корректными настройками'):
-            assert task_page.get_task_page_data() == start_task_data
+    with allure.step(f"Получить uuid задачи {gate_task_2_name}"):
+        gate_task_2_uuid = api.get_task_by_bpms_uuid(bpms_uuid, gate_task_2_name).get('uuid')
 
-        with allure.step(f'Перейти к шлюзу {enter_gate_name}'):
-            tree.select_node(enter_gate_name)
+    with allure.step(f"Инициировать событие {start_event_name} (API)"):
+        api.start_event(bpms_uuid, start_event_uuid)
 
-        with allure.step(f'Проверить отображение шлюза {enter_gate_name} с корректными настройками'):
-            assert gate_page.get_gate_page_data() == enter_gate_data
+    with allure.step("Перейти на вкладку История запусков"):
+        bpms_page.switch_to_tab("История запусков")
 
-        with allure.step(f'Перейти к задаче {gate_task_1_name}'):
-            tree.select_node(gate_task_1_name)
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
 
-        with allure.step(f'Проверить отображение задачи {gate_task_1_name} с корректными настройками'):
-            assert task_page.get_task_page_data() == gate_task_1_data
+    with allure.step("Проверить корректное отображение экземпляра в таблице экземпляров"):
+        actual_instance = bpms_page.get_last_bpms_instance()
+        first_expected_instance = {
+            'bpms_perform_date': '.'.join(api.get_utc_date()),
+            'bpms_initiator': users.test_users['eu_user'].name,
+            'bpms_status': 'Выполняется',
+            'bpms_current_element': start_task_name,
+            'bpms_switch_date': '.'.join(api.get_utc_date())
+        }
+        bpms_page.compare_dicts(actual_instance, first_expected_instance)
 
-        with allure.step(f'Перейти к задаче {gate_task_2_name}'):
-            tree.select_node(gate_task_2_name)
+    with allure.step(f"Завершить задачу {start_task_name} (API)"):
+        api.complete_task(bpms_uuid, start_task_uuid)
 
-        with allure.step(f'Проверить отображение задачи {gate_task_2_name} с корректными настройками'):
-            assert task_page.get_task_page_data() == gate_task_2_data
+    with allure.step(f"Завершить задачу {gate_task_1_name} (API)"):
+        api.complete_task(bpms_uuid, gate_task_1_uuid)
 
-        with allure.step(f'Перейти к шлюзу {exit_gate_name}'):
-            tree.select_node(exit_gate_name)
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
 
-        with allure.step(f'Проверить отображение шлюза {exit_gate_name} с корректными настройками'):
-            assert gate_page.get_gate_page_data() == exit_gate_data
+    with allure.step("Проверить корректное отображение экземпляра в таблице экземпляров"):
+        actual_instance = bpms_page.get_last_bpms_instance()
+        if actual_instance['bpms_current_element'] == exit_gate_name or actual_instance['bpms_current_element'] == gate_task_2_name:
+            first_expected_instance['bpms_current_element'] = actual_instance['bpms_current_element']
+        else:
+            raise AssertionError('Некорректное отображение текущего элемента')
+        bpms_page.compare_dicts(actual_instance, first_expected_instance)
 
-        with allure.step(f'Перейти к событию {finish_event_name}'):
-            tree.select_node(finish_event_name)
+    with allure.step(f"Завершить задачу {gate_task_2_name} (API)"):
+        api.complete_task(bpms_uuid, gate_task_2_uuid)
 
-        with allure.step(f'Проверить отображение события {finish_event_name} с корректными настройками'):
-            assert event_page.get_event_page_data() == finish_event_data
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
 
-        with allure.step(f"Перейти к бизнес процессу {bpms_name}"):
-            tree.select_node(bpms_name)
+    with allure.step("Проверить корректное отображение экземпляра в таблице экземпляров"):
+        first_expected_instance['bpms_current_element'] = finish_event_name
+        first_expected_instance['bpms_status'] = 'Завершен'
+        actual_instance = bpms_page.get_last_bpms_instance()
+        bpms_page.compare_dicts(actual_instance, first_expected_instance)
 
-        with allure.step("Перейти на вкладку Диаграмма"):
-            bpms_page.switch_to_tab("Диаграмма")
+    with allure.step(f"Инициировать событие {start_event_name} (API, экземпляр 2)"):
+        api.start_event(bpms_uuid, start_event_uuid)
 
-        with allure.step("Создать диаграмму"):
-            bpms_page.create_bpms_diagram()
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
 
-        with allure.step("Включить синхронизацию диаграммы"):
-            bpms_page.consider_adding_process_elements()
+    with allure.step("Проверить корректное отображение экземпляров в таблице экземпляров"):
+        actual_instances = bpms_page.get_bpms_instances()
+        second_expected_instance = {
+            'bpms_perform_date': '.'.join(api.get_utc_date()),
+            'bpms_initiator': users.test_users['eu_user'].name,
+            'bpms_status': 'Выполняется',
+            'bpms_current_element': start_task_name,
+            'bpms_switch_date': '.'.join(api.get_utc_date())
+        }
+        expected_instances = [first_expected_instance, second_expected_instance]
+        bpms_page.compare_dicts_lists(actual_instances, expected_instances)
 
-        with allure.step("Проверить отображение всех сущностей бизнес процесса на диаграмме"):
-            # удалить обновление и переключение на вкладку диаграммы после исправления PKM-9663
-            parametrized_login_admin_driver.refresh()
-            time.sleep(3)
-            bpms_page.switch_to_tab("Диаграмма")
+    with allure.step(f"Завершить задачу {start_task_name}  (API, экземпляр 2)"):
+        api.complete_task(bpms_uuid, start_task_uuid)
 
-            bpms_page.check_diagram_elements({'events': 2, 'tasks': 3, 'arrows': 7})
+    with allure.step(f"Завершить задачу {gate_task_1_name} (API, экземпляр 2)"):
+        api.complete_task(bpms_uuid, gate_task_1_uuid)
 
-        with allure.step("Проверить наличие всех сущностей бизнес процесса на диаграмме (API)"):
-            expected_entities = {
-                'events':
-                    [
-                        {
-                            'name': start_event_name,
-                            'next_element_type': 'task',
-                            'next_element_name': start_task_name
-                        },
-                        {
-                            'name': finish_event_name,
-                            'next_element_type': 'event',
-                            'next_element_name': None
-                        }
-                    ],
-                'tasks':
-                    [
-                        {
-                            'name': start_task_name,
-                            'next_element_type': 'gate',
-                            'next_element_name': enter_gate_name
-                        },
-                        {
-                            'name': gate_task_1_name,
-                            'next_element_type': 'gate',
-                            'next_element_name': exit_gate_name
-                        },
-                        {
-                            'name': gate_task_2_name,
-                            'next_element_type': 'gate',
-                            'next_element_name': exit_gate_name
-                        }
-                    ],
-                'gates':
-                    [
-                        {
-                            'name': enter_gate_name,
-                            'next_elements': [{'next_element_type': 'task', 'next_element_name': gate_task_1_name}, {'next_element_type': 'task', 'next_element_name': gate_task_2_name}]
-                        },
-                        {'name': exit_gate_name,
-                         'next_elements': [{'next_element_type': 'event', 'next_element_name': finish_event_name}]
-                         }
-                    ]
-            }
-            actual_entities = api.get_bpms_diagram_elements(bpms_uuid)
-            api.compare_bpms_diagram_elements(actual_entities, expected_entities)
+    with allure.step(f"Завершить задачу {gate_task_2_name} (API, экземпляр 2)"):
+        api.complete_task(bpms_uuid, gate_task_2_uuid)
 
-        with allure.step("Включить бизнес процесс"):
-            bpms_page.switch_on_bpms()
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
 
-        with allure.step(f"Получить uuid события {start_event_name}"):
-            start_event_uuid = api.get_event_by_bpms_uuid(bpms_uuid, start_event_name).get('uuid')
+    with allure.step("Проверить корректное отображение экземпляров в таблице экземпляров"):
+        actual_instances = bpms_page.get_bpms_instances()
+        second_expected_instance['bpms_current_element'] = finish_event_name
+        second_expected_instance['bpms_status'] = 'Завершен'
+        bpms_page.compare_dicts_lists(actual_instances, expected_instances)
 
-        with allure.step(f"Получить uuid задачи {start_task_name}"):
-            start_task_uuid = api.get_task_by_bpms_uuid(bpms_uuid, start_task_name).get('uuid')
+    with allure.step('Проверить отображение переменных в списке'):
+        actual_variables_list = bpms_page.get_variables_list()
+        bpms_page.compare_dicts_lists(actual_variables_list, expected_variables_list)
 
-        with allure.step(f"Получить uuid задачи {gate_task_1_name}"):
-            gate_task_1_uuid = api.get_task_by_bpms_uuid(bpms_uuid, gate_task_1_name).get('uuid')
+    with allure.step('Отключить бизнес процесс'):
+        bpms_page.switch_off_bpms()
 
-        with allure.step(f"Получить uuid задачи {gate_task_2_name}"):
-            gate_task_2_uuid = api.get_task_by_bpms_uuid(bpms_uuid, gate_task_2_name).get('uuid')
+    with allure.step(f'Удалить бизнес процесс "{bpms_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}" в дереве'):
+        bpms_page.tree.delete_node(bpms_name, 'Бизнес процесс', parent_node_name=Vars.PKM_TEST_FOLDER_NAME)
 
-        with allure.step(f"Инициировать событие {start_event_name} (API)"):
-            api.start_event(bpms_uuid, start_event_uuid)
+    with allure.step('Обновить страницу'):
+        parametrized_login_admin_driver.refresh()
 
-        with allure.step("Перейти на вкладку История запусков"):
-            bpms_page.switch_to_tab("История запусков")
+    with allure.step(f'Проверить отсутствие бизнес процесса "{bpms_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}"'):
+        assert bpms_name not in bpms_page.tree.get_node_children_names(Vars.PKM_TEST_FOLDER_NAME)
 
-        with allure.step('Обновить страницу'):
-            parametrized_login_admin_driver.refresh()
+    with allure.step(f'Проверить отсутствие бизнес процесса "{bpms_name}" в дереве'):
+        assert bpms_name not in api.get_bpms_names()
 
-        with allure.step("Проверить корректное отображение экземпляра в таблице экземпляров"):
-            actual_instance = bpms_page.get_last_bpms_instance()
-            first_expected_instance = {
-                'bpms_perform_date': '.'.join(api.get_utc_date()),
-                'bpms_initiator': users.test_users['eu_user'].name,
-                'bpms_status': 'Выполняется',
-                'bpms_current_element': start_task_name,
-                'bpms_switch_date': '.'.join(api.get_utc_date())
-            }
-            bpms_page.compare_dicts(actual_instance, first_expected_instance)
-
-        with allure.step(f"Завершить задачу {start_task_name} (API)"):
-            api.complete_task(bpms_uuid, start_task_uuid)
-
-        with allure.step(f"Завершить задачу {gate_task_1_name} (API)"):
-            api.complete_task(bpms_uuid, gate_task_1_uuid)
-
-        with allure.step('Обновить страницу'):
-            parametrized_login_admin_driver.refresh()
-
-        with allure.step("Проверить корректное отображение экземпляра в таблице экземпляров"):
-            actual_instance = bpms_page.get_last_bpms_instance()
-            if actual_instance['bpms_current_element'] == exit_gate_name or actual_instance['bpms_current_element'] == gate_task_2_name:
-                first_expected_instance['bpms_current_element'] = actual_instance['bpms_current_element']
-            else:
-                raise AssertionError('Некорректное отображение текущего элемента')
-            bpms_page.compare_dicts(actual_instance, first_expected_instance)
-
-        with allure.step(f"Завершить задачу {gate_task_2_name} (API)"):
-            api.complete_task(bpms_uuid, gate_task_2_uuid)
-
-        with allure.step('Обновить страницу'):
-            parametrized_login_admin_driver.refresh()
-
-        with allure.step("Проверить корректное отображение экземпляра в таблице экземпляров"):
-            first_expected_instance['bpms_current_element'] = finish_event_name
-            first_expected_instance['bpms_status'] = 'Завершен'
-            actual_instance = bpms_page.get_last_bpms_instance()
-            bpms_page.compare_dicts(actual_instance, first_expected_instance)
-
-        with allure.step(f"Инициировать событие {start_event_name} (API, экземпляр 2)"):
-            api.start_event(bpms_uuid, start_event_uuid)
-
-        with allure.step('Обновить страницу'):
-            parametrized_login_admin_driver.refresh()
-
-        with allure.step("Проверить корректное отображение экземпляров в таблице экземпляров"):
-            actual_instances = bpms_page.get_bpms_instances()
-            second_expected_instance = {
-                'bpms_perform_date': '.'.join(api.get_utc_date()),
-                'bpms_initiator': users.test_users['eu_user'].name,
-                'bpms_status': 'Выполняется',
-                'bpms_current_element': start_task_name,
-                'bpms_switch_date': '.'.join(api.get_utc_date())
-            }
-            expected_instances = [first_expected_instance, second_expected_instance]
-            bpms_page.compare_dicts_lists(actual_instances, expected_instances)
-
-        with allure.step(f"Завершить задачу {start_task_name}  (API, экземпляр 2)"):
-            api.complete_task(bpms_uuid, start_task_uuid)
-
-        with allure.step(f"Завершить задачу {gate_task_1_name} (API, экземпляр 2)"):
-            api.complete_task(bpms_uuid, gate_task_1_uuid)
-
-        with allure.step(f"Завершить задачу {gate_task_2_name} (API, экземпляр 2)"):
-            api.complete_task(bpms_uuid, gate_task_2_uuid)
-
-        with allure.step('Обновить страницу'):
-            parametrized_login_admin_driver.refresh()
-
-        with allure.step("Проверить корректное отображение экземпляров в таблице экземпляров"):
-            actual_instances = bpms_page.get_bpms_instances()
-            second_expected_instance['bpms_current_element'] = finish_event_name
-            second_expected_instance['bpms_status'] = 'Завершен'
-            bpms_page.compare_dicts_lists(actual_instances, expected_instances)
-
-        with allure.step('Проверить отображение переменных в списке'):
-            actual_variables_list = bpms_page.get_variables_list()
-            bpms_page.compare_dicts_lists(actual_variables_list, expected_variables_list)
-
-        with allure.step('Отключить бизнес процесс'):
-            bpms_page.switch_off_bpms()
-
-        with allure.step(f'Удалить бизнес процесс "{bpms_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}" в дереве'):
-            bpms_page.tree.delete_node(bpms_name, 'Бизнес процесс', parent_node_name=Vars.PKM_TEST_FOLDER_NAME)
-
-        with allure.step('Обновить страницу'):
-            parametrized_login_admin_driver.refresh()
-
-        with allure.step(f'Проверить отсутствие бизнес процесса "{bpms_name}" в папке "{Vars.PKM_TEST_FOLDER_NAME}"'):
-            assert bpms_name not in bpms_page.tree.get_node_children_names(Vars.PKM_TEST_FOLDER_NAME)
-
-        with allure.step(f'Проверить отсутствие бизнес процесса "{bpms_name}" в дереве'):
-            assert bpms_name not in api.get_bpms_names()
-
-        with allure.step(f'Удалить бизнес процесс {bpms_name} из списка на удаление в постусловиях'):
-            parametrized_login_admin_driver.test_data['to_delete'] = []
+    with allure.step(f'Удалить бизнес процесс {bpms_name} из списка на удаление в постусловиях'):
+        parametrized_login_admin_driver.test_data['to_delete'] = []
