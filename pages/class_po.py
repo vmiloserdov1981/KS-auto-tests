@@ -362,10 +362,10 @@ class ClassPage(NewEntityPage):
         self.find_and_click(self.dropdown_value_locator_creator(dictionary_name))
 
     def set_indicator_timed_type(self, can_be_timed: bool):
-        checkbox_locator = self.input_locator_creator('canBeTimed')
-        if self.is_input_checked(checkbox_locator) != can_be_timed:
+        checkbox_locator = self.checkbox_locator_creator('', 'Может содержать временное измерение')
+        if self.is_checkbox_checked(checkbox_locator) != can_be_timed:
             self.find_and_click(checkbox_locator)
-            assert self.is_input_checked(checkbox_locator) == can_be_timed
+            assert self.is_checkbox_checked(checkbox_locator) == can_be_timed
 
     def set_indicator_format(self, indicator_format: str):
         format_input_locator = self.input_locator_creator('dataFormat')
@@ -373,9 +373,10 @@ class ClassPage(NewEntityPage):
             self.find_and_enter(format_input_locator, indicator_format)
 
     def create_formula(self, formula_data):
-        add_formula_button_locator = self.add_entity_button_locator_creator('ФормулыКомментарий')
-        last_formula_locator = (By.XPATH, f"({self.list_elements_creator('Формулы')[1]})[last()]")
-        formulas_list_locator = (By.XPATH, "//div[@class='list' and .//div[@class='title' and .='Формулы'] ]//div[@class='list-body']")
+        self.switch_to_tab('Формулы')
+        add_formula_button_locator = (By.XPATH, "//ks-indicator-formulas//fa-icon[contains(@class,'add-icon')]")
+        last_formula_locator = (By.XPATH, "//ks-formula-list-item[last()]")
+        formulas_list_locator = (By.CLASS_NAME, "formulas__sidebar-list")
         with allure.step('Создать формулу'):
             formulas_list_html = self.find_element(formulas_list_locator).get_attribute('innerHTML')
             self.find_and_click(add_formula_button_locator)
@@ -388,10 +389,10 @@ class ClassPage(NewEntityPage):
     def add_formula_element(self, element: dict, parent_function_name: str = None, parent_argument_index: int = None):
 
         def argument_cell_locator_creator(function_name, argument_index: int):
-            locator = (By.XPATH, f"(//div[contains(@class, 'function-body') and ./div[contains(@class, 'function-title') and .=' {function_name} ']]/div/pkm-formula-list[{str(argument_index + 1)}]/div//div[@class='input-field'])[last()]")
+            locator = (By.XPATH, f"(//div[contains(@class, 'function-body') and ./div[contains(@class, 'function-title') and .=' {function_name} ']]/div/ks-formula-list[{str(argument_index + 1)}]/div//div[@class='input-field'])[last()]")
             return locator
 
-        main_empty_space_locator = (By.XPATH, "(//pkm-formula-list//div[@class='input-field'])[last()]")
+        main_empty_space_locator = (By.XPATH, "(//ks-formula-list//div[@class='input-field'])[last()]")
 
         if parent_function_name is not None and parent_argument_index is not None:
             self.find_and_click(argument_cell_locator_creator(parent_function_name, parent_argument_index))
