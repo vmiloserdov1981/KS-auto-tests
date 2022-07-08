@@ -130,6 +130,7 @@ def get_workshop_base_data(driver):
                 'indicator_2': {
                     'name': 'График требуемой численности, чел.',
                     'type': 'Число',
+                    'can_be_timed': True,
                     'formula': {
                         0: {
                             "type": "function",
@@ -294,7 +295,7 @@ def get_workshop_base_data(driver):
                         "children": [
                             {"name": "Показатели", "entity_type": "Столбцы", "values": [base_data['class_4']['indicators']['indicator_1']['name'], base_data['class_4']['indicators']['indicator_2']['name']]},
                             {"name": "Показатели", "entity_type": "Столбцы", "values": [base_data['class_4']['indicators']['indicator_3']['name']],
-                             "children": [{"name": "Временные измерения", "entity_type": "Столбцы"}]}
+                             "children": [{"name": "Временное измерение", "entity_type": "Столбцы"}]}
                         ],
                     }
                 ],
@@ -322,7 +323,7 @@ def get_workshop_base_data(driver):
                                         base_data['class_3']['indicators']['indicator_2']['name']]},
                             {"name": "Показатели", "entity_type": "Столбцы",
                              "values": [base_data['class_3']['indicators']['indicator_3']['name']],
-                             "children": [{"name": "Временные измерения", "entity_type": "Столбцы"}]}
+                             "children": [{"name": "Временное измерение", "entity_type": "Столбцы"}]}
                         ],
                     }
                 ],
@@ -351,7 +352,7 @@ def get_workshop_base_data(driver):
                         "name": "Наборы данных",
                         "values": ["План"],
                         "entity_type": "Столбцы",
-                        "children": [{"name": "Временные измерения", "entity_type": "Столбцы"}],
+                        "children": [{"name": "Временное измерение", "entity_type": "Столбцы"}],
                     }
                 ],
                 "check_data": {

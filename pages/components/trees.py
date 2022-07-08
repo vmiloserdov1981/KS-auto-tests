@@ -1,5 +1,6 @@
 from core import BasePage, antistale, retry
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException
 from pages.components.modals import Modals
 from pages.components.entity_page import NewEntityPage
@@ -196,6 +197,7 @@ class NewTree(BasePage):
     LOCATOR_SELECTED_NODE = (By.XPATH, "//div[contains(@class, 'tree-item') and contains(@class, 'selected')]")
     DICTIONARIES_TREE_NAME = 'Справочники'
     LOCATOR_TREE_NODE = (By.XPATH, "(//pkm-tree-item[.//div[contains(@class, tree-item)]])[not(.//div[contains(@class, 'load')])]")
+    LOCATOR_SEARCH_TREE_NODE = (By.XPATH, "//pkm-ks-tree//ks-input//input")
 
     def __init__(self, driver):
         super().__init__(driver)
@@ -254,6 +256,19 @@ class NewTree(BasePage):
         except TimeoutException:
             return False
 
+    def search_node(self, search):
+        input = self.find_element(self.LOCATOR_SEARCH_TREE_NODE)
+        input.clear()
+        self.find_and_enter(self.LOCATOR_SEARCH_TREE_NODE, search)
+        time.sleep(2)
+
+    def search_reset(self):
+        input = self.find_element(self.LOCATOR_SEARCH_TREE_NODE)
+        input.clear()
+        self.find_and_enter(self.LOCATOR_SEARCH_TREE_NODE, " ")
+        self.find_and_enter(self.LOCATOR_SEARCH_TREE_NODE, Keys.BACKSPACE)
+        time.sleep(2)
+
     def context_selection(self, node_name, choice_name):
         node_locator = self.node_locator_creator(node_name)
         choice_locator = self.context_option_locator_creator(choice_name)
@@ -277,6 +292,22 @@ class NewTree(BasePage):
             return node
         except TimeoutException:
             return
+
+    def create_node(self, node_name, action_name, parent_node_name=None):
+        if parent_node_name != None:
+            self.search_node(parent_node_name)
+            self.find_and_context_click(self.node_locator_creator(parent_node_name))
+            self.find_and_click(self.context_option_locator_creator(action_name))
+        else:
+            create_button_locator = (By.XPATH, f"//div[contains(@class, 'menu-list')]//div[.=' {action_name} ']")
+            self.find_and_click(self.LOCATOR_TREE_ADD_ROOT_ENTITY)
+            self.find_and_click(create_button_locator)
+        self.modal.enter_and_save(node_name)
+# TODO: при значении фильтра в дереве схлапывает и не выделяет
+        if parent_node_name != None:
+            self.search_reset()
+            self.expand_node(parent_node_name)
+            self.select_node(node_name, title_check=False)
 
     def delete_node(self, node_name, node_type, parent_node_name=None):
         """
@@ -305,7 +336,7 @@ class NewTree(BasePage):
         try:
             self.find_element(node_locator)
         except TimeoutException:
-            raise AssertionError(f'Родительская нода {node_name} не отображается в дереве')
+            raise AssertionError(f'Нода {node_name} не отображается в дереве')
         try:
             arrow = self.find_element(self.node_arrow_locator_creator(node_name), time=timeout)
             self.scroll_to_element(arrow, to_top=True)
@@ -341,13 +372,12 @@ class NewTree(BasePage):
             arrow.click()
 
     def select_node(self, node_name, wait_upper_title=False, title_check=True):
-        self.find_and_click(self.node_locator_creator(node_name), time=20)
+        self.find_and_click(self.node_locator_creator(node_name), time=3)
         self.wait_until_text_in_element(self.LOCATOR_SELECTED_NODE, node_name)
-        expected_name = node_name.upper() if wait_upper_title else node_name
         if title_check:
+            expected_name = node_name.upper() if wait_upper_title else node_name
             page_title_locator = NewEntityPage.LOCATOR_ENTITY_PAGE_TITLE
             self.wait_until_text_in_element(page_title_locator, expected_name)
-        time.sleep(2)
 
     @antistale
     def wait_selected_node_name(self, name, timeout=15):

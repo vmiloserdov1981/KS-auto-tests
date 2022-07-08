@@ -104,6 +104,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
                     "indicator_2": {
                         "name": "График требуемой численности, чел.",
                         "type": "Число",
+                        "can_be_timed": True,
                         "formula": {
                             0: {
                                 "type": "function",
@@ -342,7 +343,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
                                 ],
                                 "children": [
                                     {
-                                        "name": "Временные измерения",
+                                        "name": "Временное измерение",
                                         "entity_type": "Столбцы",
                                         "parent_entity_name": "Показатели",
                                     }
@@ -398,7 +399,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
                                 "values": ["Совокупный график потребности, ед."],
                                 "children": [
                                     {
-                                        "name": "Временные измерения",
+                                        "name": "Временное измерение",
                                         "entity_type": "Столбцы",
                                         "parent_entity_name": "Показатели",
                                     }
@@ -466,7 +467,7 @@ def test_workshop(parametrized_login_admin_driver, parameters):
                         "entity_type": "Столбцы",
                         "children": [
                             {
-                                "name": "Временные измерения",
+                                "name": "Временное измерение",
                                 "entity_type": "Столбцы",
                                 "parent_entity_name": "Наборы данных",
                             }
