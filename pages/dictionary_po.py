@@ -2,6 +2,7 @@ from pages.components.entity_page import EntityPage
 from pages.components.trees import NewTree
 from pages.components.modals import Modals
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 import allure
 import time
 
@@ -20,11 +21,10 @@ class DictionaryPage(EntityPage):
 
     def create_dictionary(self, parent_node: str, dict_name: str):
         with allure.step(f'Создать справочник {dict_name}'):
-            self.find_and_context_click(self.tree.node_locator_creator(parent_node))
-            self.find_and_click(self.tree.context_option_locator_creator('Создать справочник'))
-            self.tree.modal.enter_and_save(dict_name)
+            self.tree.create_node(dict_name, 'Создать справочник', parent_node)
         with allure.step(f'Проверить отображение справочника {dict_name} в дереве справочников выбранным'):
-            self.tree.wait_selected_node_name(dict_name, timeout=20)
+            self.tree.wait_selected_node_name(dict_name, timeout=5)
+
         with allure.step(f'Проверить переход на страницу вновь соданного справочника'):
             self.wait_page_title(dict_name)
 
@@ -34,7 +34,7 @@ class DictionaryPage(EntityPage):
         self.wait_page_title(title_name)
         time.sleep(2)
 
-    def wait_page_title(self, page_title: str, timeout: int = 10):
+    def wait_page_title(self, page_title: str, timeout: int = 5):
         self.wait_until_text_in_element(self.LOCATOR_DICTIONARY_PAGE_TITLE, page_title, time=timeout)
 
     def get_dict_elements(self):

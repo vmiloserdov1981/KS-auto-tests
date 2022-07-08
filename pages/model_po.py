@@ -65,9 +65,7 @@ class ModelPage(NewEntityPage):
 
     def create_model(self, parent_node, model_name):
         with allure.step(f'Создать модель {model_name}'):
-            self.find_and_context_click(self.tree.node_locator_creator(parent_node))
-            self.find_and_click(self.tree.context_option_locator_creator('Создать модель'))
-            self.tree.modal.enter_and_save(model_name)
+            self.tree.create_node(model_name, 'Создать модель', parent_node)
         api = self.api_creator.get_api_models()
         # actual_date = f'{".".join(api.get_utc_date())}'
         # actual_time = api.get_utc_time()
@@ -240,7 +238,7 @@ class ModelPage(NewEntityPage):
         assert self.get_model_period_type() == period_type, "В дропдауне периода отображается некорректное значение"
 
     def set_start_period_month(self, month: str):
-        month_locator = (By.XPATH, f"//div[contains(@class, 'dropdown-item') and .=' {month} ']")
+        month_locator = (By.XPATH, f"//div[contains(@class, 'dropdown-item') and .='{month}']")
         self.find_and_click(self.LOCATOR_MODEL_PERIOD_TIME)
         self.find_and_click(month_locator)
 

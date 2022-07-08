@@ -10,8 +10,9 @@ import allure
 class ClassPage(NewEntityPage):
     LOCATOR_ADD_FORMULA_INDICATOR_BUTTON = (By.XPATH, "//pkm-indicator-formula-field//fa-icon[@icon='plus']")
     LOCATOR_FX_FORMULA_BUTTON = (By.XPATH, "//pkm-indicator-formula-field//div[@class='icon-button' and .='fx']")
-    LOCATOR_ADD_FORMULA_INDICATOR_FIELD = (By.XPATH, "//pkm-indicator-formula-field//input")
+    LOCATOR_ADD_FORMULA_INDICATOR_FIELD = (By.XPATH, "//ks-formula-indicator-search//input")
     LOCATOR_FUNCTIONS_CONTAINER = (By.XPATH, "//div[contains(@class, 'functions-container')]")
+    LOCATOR_FUNCTIONS_SHOW_HIDE_SWITCHER = (By.XPATH, "//ks-formula-functions-list//div[contains(@class, 'functions__expand-icon')]//fa-icon//*[name()='svg']")
 
     INDICATORS_LIST_NAME = 'Показатели'
     DIMENSIONS_LIST_NAME = 'Измерения'
@@ -84,9 +85,7 @@ class ClassPage(NewEntityPage):
 
     def create_class(self, parent_node, class_name, with_check=False):
         with allure.step(f'Создать класс {class_name}'):
-            self.find_and_context_click(self.tree.node_locator_creator(parent_node))
-            self.find_and_click(self.tree.context_option_locator_creator('Создать класс'))
-            self.tree.modal.enter_and_save(class_name)
+            self.tree.create_node(class_name, 'Создать класс', parent_node)
         with allure.step(f'Проверить переход на страницу вновь соданного класса'):
             self.wait_page_title(class_name)
         with allure.step(f'Проверить отображение класса {class_name} в дереве классов выбранным'):
@@ -147,12 +146,13 @@ class ClassPage(NewEntityPage):
                 self.find_and_click(self.tree.submenu_option_locator_creator('Показатель'))
         else:
             with allure.step(f'Создать показатель {indicator_name} на странице класса'):
-                self.find_and_click(self.add_entity_button_locator_creator('Показатели'))
+                path, spath = self.add_entity_button_locator_creator('Показатель')
+                self.find_and_click((By.XPATH, "//ks-indicators-table" + spath))
         with allure.step(f'Укзать название показателя {indicator_name} и сохранить его'):
             self.modal.enter_and_save(indicator_name)
 
         with allure.step(f'Проверить переход на страницу вновь соданного показателя'):
-            self.wait_page_title(indicator_name.upper())
+            self.wait_page_title(indicator_name)
 
         if with_check:
             with allure.step(f'Проверить заполнение созданного показателя данными по умолчанию'):
@@ -385,54 +385,52 @@ class ClassPage(NewEntityPage):
             self.find_and_click(last_formula_locator)
             for main_element_index in formula_data:
                 self.add_formula_element(formula_data[main_element_index])
+            time.sleep(2) # чтобы фронт отправил последний запрос на update формулы
 
-    def add_formula_element(self, element: dict, parent_function_name: str = None, parent_argument_index: int = None):
-
-        def argument_cell_locator_creator(function_name, argument_index: int):
-            locator = (By.XPATH, f"(//div[contains(@class, 'function-body') and ./div[contains(@class, 'function-title') and .=' {function_name} ']]/div/ks-formula-list[{str(argument_index + 1)}]/div//div[@class='input-field'])[last()]")
-            return locator
-
-        main_empty_space_locator = (By.XPATH, "(//ks-formula-list//div[@class='input-field'])[last()]")
-
-        if parent_function_name is not None and parent_argument_index is not None:
-            self.find_and_click(argument_cell_locator_creator(parent_function_name, parent_argument_index))
-        else:
-            self.find_and_click(main_empty_space_locator)
+    def add_formula_element(self, element: dict, parent_xpath: str = "//div[@class='formula__body']//ks-formula-list"):
+        self.find_and_click((By.XPATH, "(" + parent_xpath + "//div[@class='empty-space'])[last()]"))
 
         if element.get('type') == 'function':
-            try:
-                self.find_element(self.LOCATOR_FUNCTIONS_CONTAINER, time=2)
-            except TimeoutException:
-                self.find_and_click(self.LOCATOR_FX_FORMULA_BUTTON)
+            self.expand_functions()
             function_locator = ClassPage.function_button_locator_creator(element.get('value'))
-            try:
-                self.find_and_click(function_locator, time=3)
-            except TimeoutException:
-                self.find_and_click(ClassPage.function_button_locator_creator('...'))
-                self.find_and_click(self.function_modal_button_locator_creator(element.get('value')))
-                self.find_and_click((By.XPATH, "//button[.=' Добавить ']"))
+            self.find_and_click(function_locator, time=1)
             if element.get('arguments'):
                 for argument in element.get('arguments'):
                     for argument_number in element.get('arguments').get(argument):
-                        self.add_formula_element(element.get('arguments').get(argument).get(argument_number), parent_function_name=element.get('value'), parent_argument_index=argument)
+                        self.add_formula_element(element.get('arguments').get(argument).get(argument_number),
+                        "((" + parent_xpath + f"//element-container//div[contains(@class, 'formula-element-container') and ./*//function-container//div[contains(@class, 'function-container__title-container__text') and .=' {element.get('value')} ']])[last()]//div[@class='function-container__body'])[1]/child::div[@class='ng-star-inserted'][{str(argument + 1)}]")
 
         if element.get('type') == 'text':
-            if parent_function_name is not None and parent_argument_index is not None:
-                self.find_and_enter(argument_cell_locator_creator(parent_function_name, parent_argument_index), element.get('value'))
-            else:
-                self.find_and_enter(main_empty_space_locator, element.get('value'))
+            self.find_and_enter((By.XPATH, "(" + parent_xpath + "//div[contains(@class, 'input-field')])[last()]"), element.get('value'))
 
         if element.get('type') == 'indicator':
             self.select_formula_indicator(element.get('value'))
 
-        self.find_and_click((By.XPATH, "(//pkm-indicator-formula-field//div[contains(@class, 'title')])[1]"))
-        time.sleep(1)
+        self.find_and_click((By.XPATH, "//div[@class='formula__body']"))
+
+    def expand_functions(self):
+        arrow = self.find_element(self.LOCATOR_FUNCTIONS_SHOW_HIDE_SWITCHER)
+        if arrow.get_attribute("data-icon") == "chevron-up":
+            return
+        arrow.click()
+
+    def hide_functions(self):
+        arrow = self.find_element(self.LOCATOR_FUNCTIONS_SHOW_HIDE_SWITCHER)
+        if arrow.get_attribute("data-icon") == "chevron-down":
+            return
+        arrow.click()
 
     def select_formula_indicator(self, indicator_name):
+        input = self.find_element(self.LOCATOR_ADD_FORMULA_INDICATOR_FIELD)
+        input.clear()
+        self.find_and_enter(self.LOCATOR_ADD_FORMULA_INDICATOR_FIELD, indicator_name)
         try:
-            self.find_and_click(self.LOCATOR_ADD_FORMULA_INDICATOR_BUTTON, time=1)
+            indicator_locator = (By.XPATH, f"//ks-indicators-list//div[contains(@class, 'search-item-name') and .=' {indicator_name} ']")
+            self.find_and_click(indicator_locator, time=1)
         except TimeoutException:
-            pass
-        self.find_and_click(self.LOCATOR_ADD_FORMULA_INDICATOR_FIELD)
-        indicator_locator = (By.XPATH, f"//div[contains(@class, 'search-item-name') and .=' {indicator_name} ']")
-        self.find_and_click(indicator_locator)
+            arrow = self.find_element((By.XPATH, "//ks-relation-search-item//div[@class='expand-icon'][1]//fa-icon//*[name()='svg']"))
+            if arrow.get_attribute("data-icon") == "chevron-up":
+                return
+            arrow.click()
+            indicator_locator = (By.XPATH, f"//ks-indicators-list//div[contains(@class, 'search-item-name') and .=' {indicator_name} ']")
+            self.find_and_click(indicator_locator, time=1)
