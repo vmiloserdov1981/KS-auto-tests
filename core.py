@@ -54,7 +54,7 @@ class BasePage:
         from api.api import ApiCreator
         self.api_creator = ApiCreator(None, None, driver.project_uuid, token=driver.token)
 
-    def find_element(self, locator, time=10) -> WebElement:
+    def find_element(self, locator, time=20) -> WebElement:
         return WebDriverWait(self.driver, time).until(ec.presence_of_element_located(locator),
                                                       message=f"Can't find element by locator {locator}")
 
