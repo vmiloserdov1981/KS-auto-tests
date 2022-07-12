@@ -16,12 +16,16 @@ class NewPage(BasePage):
 
 class NavigationSidebar(BasePage):
     LOCATOR_SIDEBAR = (By.XPATH, "//ks-sidebar[.//div[contains(@class, 'sidebar__logo')]]")
+    USER_SEARCH_FIELD = (By.XPATH, "//ks-filter-input/div/input")
 
     def select_page(self, page_name):
         page_locator = (By.XPATH, f"//div[contains(@class, 'sidebar__nav-item') and .//span[.='{page_name}']]")
         if 'selected' not in self.find_element(page_locator).get_attribute('class'):
             self.find_and_click(page_locator)
 
+    def search_user(self):
+        self.find_and_click(self.USER_SEARCH_FIELD)
+        self.find_element(self.USER_SEARCH_FIELD).send_keys('eu_user4')
 
 class Header(BasePage):
     LOCATOR_USER_INFO_BLOCK = (By.XPATH, "(//div[contains(@class, 'header__user-info')])[1]")
@@ -39,3 +43,4 @@ class NewModal(BasePage):
 
     def accept_modal(self):
         self.find_and_click(self.LOCATOR_ACCEPT_BUTTON)
+
