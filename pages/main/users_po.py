@@ -17,16 +17,24 @@ class UsersPage(NewPage):
         self.sidebar.select_page('Пользователи')
         self.wait_element_stable(self.LOCATOR_USERS_PAGE, 3)
 
-    def select_user(self, login: str):
-        target_locator = (By.XPATH, f"//tr[(.//td[2])[.='{login}']]")
-        target_row = None
-        while not target_row:
-            try:
-                target_row = self.find_element(target_locator, time=5)
-            except TimeoutException:
-                self.find_and_click(self.LOCATOR_PAGINATION_NEXT_PAGE_BUTTON)
-        target_row.click()
 
+    def select_user(self, login: str):
+        self.sidebar.search_user()
+        target_locator = (By.XPATH, f"//tr[(.//td[2])[.='{login}']]")
+        target_row = self.find_element(target_locator, time=4)
+        time.sleep(1)
+        target_row.click()
+'''
+    def select_user(self, login: str):
+         target_locator = (By.XPATH, f"//tr[(.//td[2])[.='{login}']]")
+         target_row = None
+         while not target_row:
+             try:
+                 target_row = self.find_element(target_locator, time=3)
+             except TimeoutException:
+                 self.find_and_click(self.LOCATOR_PAGINATION_NEXT_PAGE_BUTTON)
+         target_row.click()
+'''
 
 class UserProfilePage(NewPage):
     LOCATOR_EDIT_PASSWORD_BUTTON = (By.XPATH, "//div[contains(@class, 'edit-password')]")
