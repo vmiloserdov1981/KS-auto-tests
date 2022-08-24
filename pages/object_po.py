@@ -101,9 +101,12 @@ class ObjectPage(NewEntityPage):
         assert self.is_element_disappearing(relation_locator, time=15, wait_display=False), "связь не исчезает из списка"
 
     def rename_title(self, title_name):
-        title_container_locator = (By.XPATH, "//div[contains(@class, 'page-title-container')]")
-        title_input_locator = (By.XPATH, "//div[contains(@class, 'page-title-container')]//input")
-        title_save_icon_locator = (By.XPATH, "//div[contains(@class, 'page-title-container')]//*[local-name()='svg' and @data-icon='check']")
+#        title_container_locator = (By.XPATH, "//div[contains(@class, 'page-title-container')]")
+        title_container_locator = (By.CSS_SELECTOR, "body > pkm-app-root > div > pkm-admin > div.admin-main > div > div > div.router-outlet > ks-object > div > div > div.entity__configuration > div.entity__configuration-name > fa-icon > svg")
+#        title_input_locator = (By.XPATH, "//div[contains(@class, 'page-title-container')]//input")
+        title_input_locator = (By.XPATH, "//div[contains(@class, 'ng-star-inserted')]//textarea")
+#        title_save_icon_locator = (By.XPATH, "//div[contains(@class, 'page-title-container')]//*[local-name()='svg' and @data-icon='check']")
+        title_save_icon_locator = (By.XPATH, "//div[contains(@class, 'modal-window')]//*[.=' Сохранить ']")
         self.find_and_click(title_container_locator)
         self.find_and_double_click(title_input_locator)
         self.find_and_enter(title_input_locator, title_name)

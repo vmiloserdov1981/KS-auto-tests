@@ -14,9 +14,9 @@ admin = PkmUsers(*admin_credentials)
 system_user = PkmUsers('system', None)
 
 test_users = {
-    'eu_user': PkmUsers('eu_user', 'Euuser01', name='Иванов Андрей'),
-    'eu_user2': PkmUsers('eu_user2', 'Euuser01', name='Иванов Второй'),
-    'eu_user3': PkmUsers('eu_user3', 'Euuser01', name='Иванов Третий'),
+    'eu_user': PkmUsers('eu_user', 'Euuser011', name='Иванов Андрей'),
+    'eu_user2': PkmUsers('eu_user2', 'Euuser011', name='Иванов Второй'),
+    'eu_user3': PkmUsers('eu_user3', 'Euuser011', name='Иванов Третий'),
     'eu_user4': PkmUsers('eu_user4', 'Euuser01', name='Иванов Четвертый')
 }
 workshop_user = test_users['eu_user']

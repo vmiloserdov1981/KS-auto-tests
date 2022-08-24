@@ -41,7 +41,7 @@ class UserProfilePage(NewPage):
     LOCATOR_GENERATE_PASSWORD_BUTTON = (By.XPATH, "//div[contains(@class, 'generate-password')]")
     LOCATOR_SHOW_PASSWORD_BUTTON = (By.XPATH, "//fa-icon[contains(@class, 'eye-password-icon')]")
     LOCATOR_PASSWORD_FIELD = (By.XPATH, "//ks-input[@type='password']//input[@placeholder='Создайте пароль']")
-    LOCATOR_CHANGE_PASSWORD_BUTTON = (By.XPATH, "//ks-button[.='Изменить пароль']")
+    LOCATOR_CHANGE_PASSWORD_BUTTON = (By.XPATH, "//ks-button[.=' Изменить пароль ']")
     LOCATOR_EDIT_USER_PROFILE_BUTTON = (By.XPATH, "//div[contains(@class,'user-details-form')]//button[.='Редактировать']")
 
     def change_password(self, new_password: str = None):

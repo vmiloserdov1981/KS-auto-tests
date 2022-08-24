@@ -1,5 +1,6 @@
 import allure
 import pytest
+import time
 from variables import PkmVars as Vars
 from pages.model_po import ModelPage
 from pages.table_po import TablePage
@@ -8,6 +9,7 @@ from conditions.clean_factory import ModelNodeCreator, ClassNodeCreator, Formula
 from pages.components.modals import TagModal
 
 
+'''
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
 @allure.title('Управление моделями')
@@ -465,7 +467,7 @@ def test_admin_model_tags_control(parametrized_login_admin_driver, parameters):
     with allure.step('Проверить отображение пустого списка тегов модели'):
         assert model_page.get_model_tags() is None, 'Некорректный список тегов'
 
-
+'''
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
 @allure.title('Управление объектами модели')
@@ -477,6 +479,8 @@ def test_admin_model_tags_control(parametrized_login_admin_driver, parameters):
         'tree_type': 'Модели',
         'name': 'Управление объектами модели'
     })])
+
+
 def test_admin_model_objects_control(parametrized_login_admin_driver, parameters):
     object_page = ObjectPage(parametrized_login_admin_driver)
     model_api = object_page.api_creator.get_api_models()
@@ -564,22 +568,37 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
 
     with allure.step(f'Создать связь объектов {object_1_name} и {object_2_name}'):
         object_relation = object_page.create_object_relation(src_class_name, relation_name, dst_class_name, object_1_name)
+        print('1')
+        time.sleep(4)
+
 
     with allure.step(f'Открыть объект {object_1_name} через дерево'):
         object_page.tree.select_node(object_1_name)
+        print('2')
+        time.sleep(2)
+
 
     with allure.step(f'Проверить отображение коректных связей на странице объекта'):
         actual_relations = object_page.get_object_relations()
         expected_relations = [[src_class_name, relation_name, dst_class_name], object_relation]
+        print('3')
+        time.sleep(2)
+
 
         assert actual_relations == expected_relations, "актуальные связи не совпадают с ожидаемыми"
+        print('4')
+        time.sleep(2)
 
     with allure.step(f'Переименовать объект {object_1_name} на странице объекта'):
         object_1_name += '_ред'
         object_page.rename_title(object_1_name)
+        print('5')
+        time.sleep(2)
 
     with allure.step(f'Проверить изменение названия объекта в дереве'):
         object_page.wait_until_text_in_element(object_page.tree.LOCATOR_SELECTED_NODE, object_1_name)
+        print('6')
+        time.sleep(2)
 
     with allure.step('Обновить страницу'):
         parametrized_login_admin_driver.refresh()
