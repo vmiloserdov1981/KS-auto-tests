@@ -10,8 +10,10 @@ from selenium.common.exceptions import TimeoutException
 class Modals(BasePage):
     LOCATOR_NAME_INPUT = (By.XPATH, "//pkm-modal-window//*[local-name()='input' or local-name()='textarea']")
     LOCATOR_CLASS_INPUT = (By.XPATH, "//input[@placeholder='Выберите класс' or @placeholder='Введите название класса']")
-    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()='Сохранить' or text()=' Сохранить ' or text()=' Добавить ']")
-    LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()=' Создать ']")
+    LOCATOR_SAVE_BUTTON_OLD = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()='Сохранить' or text()=' Сохранить ' or text()=' Добавить ']")
+    LOCATOR_SAVE_BUTTON = (By.XPATH,"//button[contains(@class, 'ks-button primary')]//div[text()='Сохранить' or text()=' Сохранить ' or text()=' Добавить ']")
+    #LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()=' Создать ']")
+    LOCATOR_CREATE_BUTTON = (By.XPATH, "//button[contains(@class, 'ks-button primary')]//div[text()=' Создать ']")
     LOCATOR_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class,'notification-type-error') and text()='Ошибка сервера']")
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]")
     LOCATOR_ACCEPT_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Принять ']")
