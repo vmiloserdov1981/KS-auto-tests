@@ -16,7 +16,9 @@ class TablePage(NewEntityPage):
     LOCATOR_TABLE_PAGE_TYPE_DROPDOWN = (By.XPATH, "//div[contains(@class, 'form-row')]//div[contains(@class, 'dropdown')]")
     LOCATOR_TABLE_COLUMN_TITLE = (By.XPATH, "//pkm-table-header-top//pkm-table-header-cell")
     LOCATOR_TABLE_ROW_TITLE = (By.XPATH, "//pkm-table-header-left//pkm-table-header-cell")
-    LOCATOR_TABLE_CELL = (By.XPATH, "//pkm-table-cell")
+#    LOCATOR_TABLE_ROW_TITLE2 = (By.XPATH, "//pkm-table-cells-container//ks-table-cell")
+#    LOCATOR_TABLE_CELL = (By.XPATH, "//pkm-table-cell")
+    LOCATOR_TABLE_CELL = (By.XPATH, "//ks-table-cell")
     LOCATOR_DELETE_TABLE_ENTITY_ICON = (By.XPATH, "//div[contains(@class, 'structure-list__element-buttons')]//ks-button[.//*[local-name()='svg' and @data-icon='trash']]")
     LOCATOR_ADD_OBJECT_ICON = (By.XPATH, "//div[contains(@class, 'options-container')]//ks-button[.//*[local-name()='svg' and @data-icon='plus']]")
     LOCATOR_TABLE_SCROLL_ZONE = (By.XPATH, "//pkm-table-cells-container")
@@ -186,7 +188,8 @@ class TablePage(NewEntityPage):
             add_entity_button_locator = (By.XPATH, f"//div[contains(@class, 'constructor-list__header') and .//ks-switch[.=' {entity_type} ']]//ks-add-field-button")
         else:
             add_entity_button_locator = (By.XPATH, f"//div[contains(@class, 'structure-list__element') and .//div[contains(@class, 'ks__form-column-label') and .=' {parent_entity_name} ']]//ks-add-field-button")
-        entity_type_locator = (By.XPATH, f"//div[contains(@class, 'overlay-item') and .=' {entity_name} ']")
+#        entity_type_locator = (By.XPATH, f"//div[contains(@class, 'overlay-item') and .=' {entity_name} ']")
+        entity_type_locator = (By.XPATH, f"//div[contains(@class, 'overlay') and .='{entity_name}']")
 
         self.find_and_click(add_entity_button_locator)
         self.find_and_click(entity_type_locator)
@@ -304,7 +307,7 @@ class TablePage(NewEntityPage):
         params = {}
         for style in styles:
             value = style.split(': ')
-            params[value[0]] = value[1]
+            params[value[0]] = value[1]                  #1 заменил на 2
         style_value = params[style_name]
         int_value = int(style_value.split('px')[0])
         return int_value
@@ -446,36 +449,43 @@ class TablePage(NewEntityPage):
 
         for i in table_rows_titles:
             if table_rows_titles.get(i) == cell_data.get('object_name'):
-                expected_top = i[0]
+                expected_top = i[0]                     # expected_top = i[0]
+#                print(expected_top)
                 break
 
         columns_lefts = []
         for i in cols_titles_indicators:
             if cols_titles_indicators[i] == cell_data.get('indicator_name'):
-                columns_lefts.append(i[1][0])
+                columns_lefts.append(i[1][0])           # columns_lefts.append(i[1][0])
 
         for i in cols_titles_datasets:
             if cols_titles_datasets[i] == cell_data.get('dataset_name'):
-                target_dataset_range = i[1]
+                target_dataset_range = i[1]              # target_dataset_range = i[1]
                 break
 
         for i in columns_lefts:
             if i in target_dataset_range:
-                expected_left = i
+                expected_left = i                        # expected_left = i
+#                print(expected_left)
                 break
 
-        locator = By.XPATH, f"//pkm-table-cell[contains(@style, 'top: {expected_top}px') and contains(@style, 'left: {expected_left}px')]"
+#        locator = By.XPATH, f"//pkm-table-cell[contains(@style, 'top: {expected_top}px') and contains(@style, 'left: {expected_left}px')]"
+        locator = By.XPATH, f"//ks-table-cell[contains(@style, 'top: {expected_top}px') and contains(@style, 'left: {expected_left}px')]"
         return locator
 
     def fill_cells(self, cells_data: list, table_fields_data: dict = None):
         table_fields_data = table_fields_data or {'objects': self.get_table_rows_titles(), 'datasets': self.get_table_cols_titles(level_only=1), 'indicators': self.get_table_cols_titles(level_only=2)}
 
         for cell_data in cells_data:
+            time.sleep(0.5)
             cell_locator = self.cell_locator_creator(cell_data, table_fields_data=table_fields_data)
+            time.sleep(0.5)
             self.find_and_click(cell_locator)
+            time.sleep(0.5)
             action_chains = ActionChains(self.driver)
-            action_chains.send_keys(cell_data.get('value'), Keys.ENTER).perform()
-            time.sleep(5)
+            time.sleep(1)
+            action_chains.send_keys(cell_data.get('value'), Keys.ENTER).perform()  # action_chains.send_keys(cell_data.get('value'), Keys.ENTER).perform()
+            time.sleep(0.5)
 
     def wait_cell_value(self, cell_data):
         cell_locator = self.cell_locator_creator(cell_data)
@@ -514,7 +524,7 @@ class TablePage(NewEntityPage):
             self.find_and_click(checkbox_locator)
 
     def enable_objects_adding(self):
-        self.check_displaying_option('Разрешить добавление объектов')
+        self.check_displaying_option('Создать объект')       # self.check_displaying_option('Разрешить добавление объектов')
         time.sleep(3)
 
     def add_table_object(self, object_name: str):

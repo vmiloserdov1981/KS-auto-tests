@@ -13,6 +13,7 @@ class Modals(BasePage):
 #    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()='Сохранить' or text()=' Сохранить ' or text()=' Добавить ']")
     LOCATOR_SAVE_BUTTON = (By.XPATH, "//pkm-button//*[text()=' Сохранить ']")
     LOCATOR_SAVE_BUTTON2 = (By.XPATH, "//pkm-modal-window//*[text()=' Сохранить ']")
+    LOCATOR_SAVE_BUTTON3 = (By.XPATH, "//pkm-modal-window//*[text()='Сохранить']")
 #    LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()=' Создать ']")
     LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//*[.=' Создать ']")
     LOCATOR_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class,'notification-type-error') and text()='Ошибка сервера']")
@@ -530,6 +531,7 @@ class TagModal(BasePage):
 class TableObjectsSetModal(Modals):
     LOCATOR_TYPE_DROPDOWN = (By.XPATH, "//div[contains(@class, 'modal-window')]//ks-dropdown[1]")
     LOCATOR_OBJECTS_INPUT = (By.XPATH, "//pkm-modal-window//async-dropdown-pagination")
+    SETTING_OBJECT_CLICK = (By.XPATH, "//div[@class='overlay']//*[text()='Настройка объекта']")
     LOCATOR_CHECK_ALL_CHECKBOX = (By.XPATH, "//ks-checkbox[@label='Выбрать все']//div[contains(@class, 'checkbox-container')]")
     LOCATOR_CHECK_ALL_OPTION = (By.XPATH, "//div[contains(@class, 'multi-select__item') and contains(@class, 'check-all')]")
 
@@ -546,13 +548,19 @@ class TableObjectsSetModal(Modals):
         self.find_and_click(type_button_locator)
 
     def set_all_objects(self):
+#        self.find_and_click(self.SETTING_OBJECT_CLICK)
+        print('11.2')
         self.wait_element_stable((By.XPATH, "//div[@class='modal-window']"), 5)
+        print('11.3')
         self.select_type('Объекты')
+        print('11.4')
         self.find_and_click(self.LOCATOR_OBJECTS_INPUT)
+        print('11.5')
         self.find_and_click((By.XPATH, "//div[contains(@class, 'dropdown-overlay__item') and .='Выбрать все']"))
+        print('11.6')
         time.sleep(1)
         self.find_and_click(self.LOCATOR_MODAL_TITLE)
-        self.find_and_click(self.LOCATOR_SAVE_BUTTON)
+        self.find_and_click(self.LOCATOR_SAVE_BUTTON3)
         time.sleep(1)
 
     def set_class_objects(self, class_name):
@@ -562,7 +570,7 @@ class TableObjectsSetModal(Modals):
         self.find_and_enter(class_input_locator, class_name)
         self.find_and_click(value_locator)
         time.sleep(1)
-        self.find_and_click(self.LOCATOR_SAVE_BUTTON)
+        self.find_and_click(self.LOCATOR_SAVE_BUTTON3)
 
 
 class ChangePasswordModal(Modals):
