@@ -434,7 +434,7 @@ class NewEntityPage(BasePage):
             sorted_result[field] = futures[field].result()
         return sorted_result
 
-    def wait_stable_page(self, timeout=3):
+    def wait_stable_page(self, timeout=10):
         self.wait_element_stable(self.LOCATOR_PAGE_CONTENT, timeout)
 
     def get_active_page_tab_name(self):

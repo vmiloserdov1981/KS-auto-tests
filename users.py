@@ -9,7 +9,7 @@ class PkmUsers:
         self.name = name
 
 
-admin_credentials = literal_eval(os.getenv('ADMIN_CREDENTIALS', '("admin", "admin")'))
+admin_credentials = literal_eval(os.getenv('ADMIN_CREDENTIALS', '("admin", "Password2")'))
 admin = PkmUsers(*admin_credentials)
 system_user = PkmUsers('system', None)
 

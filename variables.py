@@ -2,7 +2,7 @@ import os
 
 
 class PkmVars:
-    PKM_MAIN_URL = 'https://pkm.andersenlab.com/' if os.getenv('USE_STAGE') != 'true' else 'https://main.ks.works/'
+    PKM_MAIN_URL = 'https://dev.ks.works/' if os.getenv('USE_STAGE') != 'true' else 'https://main.ks.works/'
     PKM_API_URL = f'{PKM_MAIN_URL}api/'
     PKM_TEST_FOLDER_NAME = 'auto-test'
     PKM_WORKSHOP_TEST_FOLDER_NAME = os.getenv('WORKSHOP_FOLDER_NAME', 'workshop')
