@@ -9,7 +9,6 @@ from pages.bpms_po import BpmsTaskPage
 from pages.bpms_po import BpmsGatePage
 from conditions.clean_factory import BpmsNodeCreator
 
-
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево бизнес процессов')
 @allure.title('Управление бизнес процессами')
@@ -125,8 +124,8 @@ def test_admin_bpms_events_control(parametrized_login_admin_driver, parameters):
     with allure.step(f'Проверить изменение названия события в дереве'):
         bpms_event_page.tree.wait_selected_node_name(new_event_name)
 
-    with allure.step('Обновить страницу'):
-        parametrized_login_admin_driver.refresh()
+   # with allure.step('Обновить страницу'):
+   #     parametrized_login_admin_driver.refresh()
 
     with allure.step('Проверить отображение обновленного события на странице события'):
         bpms_event_page.wait_page_title(new_event_name)

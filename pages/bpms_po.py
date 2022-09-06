@@ -128,7 +128,10 @@ class BpmsPage(NewEntityPage):
             if 'checkbox-selected' not in self.find_element(is_default_checkbox_locator).get_attribute('class'):
                 self.find_and_click(is_default_checkbox_locator)
             self.find_and_enter(default_value_input_locator, var_default_value)
-        self.find_and_click(self.modal.LOCATOR_SAVE_BUTTON)
+        try:
+            self.find_and_click(self.modal.LOCATOR_SAVE_BUTTON)
+        except Exception:
+            self.find_and_click(self.modal.LOCATOR_SAVE_BUTTON_OLD)
 
     def get_variables_list(self):
         var_row_locator = (By.XPATH, "//div[contains(@class, 'process-variables__table')]//tbody//tr")
@@ -279,6 +282,7 @@ class BpmsTaskPage(NewEntityPage):
         with allure.step(f'Создать задачу {bpms_task_name}'):
             self.tree.tree_chain_actions(parent_node, ['Создать', 'Задачу'])
             self.tree.modal.enter_and_save(bpms_task_name)
+        time.sleep(3)
         with allure.step(f'Проверить отображение события {bpms_task_name} в дереве бизнес процессов выбранным'):
             self.wait_until_text_in_element(self.tree.LOCATOR_SELECTED_NODE, bpms_task_name)
         with allure.step(f'Проверить переход на страницу вновь созданного события'):

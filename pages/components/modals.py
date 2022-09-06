@@ -10,12 +10,19 @@ from selenium.common.exceptions import TimeoutException
 class Modals(BasePage):
     LOCATOR_NAME_INPUT = (By.XPATH, "//pkm-modal-window//*[local-name()='input' or local-name()='textarea']")
     LOCATOR_CLASS_INPUT = (By.XPATH, "//input[@placeholder='Выберите класс' or @placeholder='Введите название класса']")
+<<<<<<< HEAD
 #    LOCATOR_SAVE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()='Сохранить' or text()=' Сохранить ' or text()=' Добавить ']")
     LOCATOR_SAVE_BUTTON = (By.XPATH, "//pkm-button//*[text()=' Сохранить ']")
     LOCATOR_SAVE_BUTTON2 = (By.XPATH, "//pkm-modal-window//*[text()=' Сохранить ']")
     LOCATOR_SAVE_BUTTON3 = (By.XPATH, "//pkm-modal-window//*[text()='Сохранить']")
 #    LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()=' Создать ']")
     LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//*[.=' Создать ']")
+=======
+    LOCATOR_SAVE_BUTTON_OLD = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()='Сохранить' or text()=' Сохранить ' or text()=' Добавить ']")
+    LOCATOR_SAVE_BUTTON = (By.XPATH,"//button[contains(@class, 'ks-button primary')]//div[text()='Сохранить' or text()=' Сохранить ' or text()=' Добавить ']")
+    #LOCATOR_CREATE_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window')]//button[text()=' Создать ']")
+    LOCATOR_CREATE_BUTTON = (By.XPATH, "//button[contains(@class, 'ks-button primary')]//div[text()=' Создать ']")
+>>>>>>> 7bd1dfe87341a14f23f813f49f944684b97f24d4
     LOCATOR_ERROR_NOTIFICATION = (By.XPATH, "//div[contains(@class,'notification-type-error') and text()='Ошибка сервера']")
     LOCATOR_MODAL_TITLE = (By.XPATH, "//div[contains(@class, 'modal-window-title')]")
     LOCATOR_ACCEPT_BUTTON = (By.XPATH, "//div[contains(@class, 'modal-window-footer')]//button[text()=' Принять ']")
