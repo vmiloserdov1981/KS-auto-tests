@@ -176,12 +176,17 @@ class BasePage:
         top_value = 'true' if to_top else 'false'
         self.driver.execute_script(f"arguments[0].scrollIntoView(alignToTop={top_value});", webelement)
 
+    def displaying_option_checkbox_locator_creator(self, option_name: str):
+        locator = (By.XPATH, f"//ks-constructor-settings//ks-checkbox[.='{option_name}']//div[contains(@class, 'checkbox-container')]")
+        return locator
+
     @antistale
     def find_and_click(self, locator, time=10, scroll_to_element=True):
         element = self.find_element(locator, time=time)
         if scroll_to_element:
             self.scroll_to_element(element)
         element.click()
+
 
     @antistale
     def find_and_double_click(self, locator, timeout=10):
@@ -617,7 +622,8 @@ class WS:
         self.connection: WebSocket = self.create_connection()
 
     def create_connection(self):
-        uri = f"wss://pkm.andersenlab.com/ws/?token={self.token}"
+#        uri = f"wss://pkm.andersenlab.com/ws/?token={self.token}"
+        uri = f"wss://dev.ks.works/ws/?token={self.token}"
         if self.project_uuid:
             uri += f'&projectUuid={self.project_uuid}'
         ws_client = create_connection(uri, timeout=self.ws_timeout)

@@ -40,6 +40,7 @@ class ApiClasses(BaseApi):
         classes = resp.get('data') or []
         return classes
 
+
     def api_get_classes_list(self, term_value):
         payload = {'term': term_value} if term_value else {}
         resp = self.post('{}classes/get-list'.format(Vars.PKM_API_URL), self.token, payload)
@@ -176,6 +177,8 @@ class ApiClasses(BaseApi):
         }
         resp = self.post(f'{Vars.PKM_API_URL}classes/create-node', self.token, payload)
         return resp
+
+
 
     def create_indicator_node(self, name, class_uuid, parent_node_uuid, indicator_type, data_format=None):
         payload = {

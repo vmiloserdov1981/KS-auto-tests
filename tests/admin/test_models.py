@@ -8,7 +8,6 @@ from pages.object_po import ObjectPage
 from conditions.clean_factory import ModelNodeCreator, ClassNodeCreator, FormulaEntityCreator, DatasetCreator
 from pages.components.modals import TagModal
 
-'''
 
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
@@ -683,7 +682,7 @@ def test_admin_model_objects_control(parametrized_login_admin_driver, parameters
         assert actual_objects == []
         print('21')
 
-'''
+
 
 @allure.feature('Интерфейс Администратора')
 @allure.story('Дерево моделей')
@@ -706,16 +705,16 @@ def test_admin_data_tables_control(parametrized_login_admin_driver, parameters):
     cells_fill_data = [
         {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1', 'value': '200'},
         {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2', 'value': '33'},
-        {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_текстовый', 'value': 'Как_же_я'},   #Тестовое_значение
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_текстовый', 'value': 'Тест_тест'},   #Тестовое_значение
         {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_1', 'value': '500'},
         {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_2', 'value': '-150'},
-        {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_текстовый', 'value': 'Замучился'},  #Тестовое_значение_2
+        {'object_name': 'Объект_1', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_текстовый', 'value': 'Тест123'},  #Тестовое_значение_2
         {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_1', 'value': '3000'},
         {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_2', 'value': '4500'},
-        {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_текстовый', 'value': 'Это'},   #Привет
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_текстовый', 'value': 'Test'},   #Привет
         {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_1', 'value': '-300'},
         {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_2', 'value': '-122'},
-        {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_текстовый', 'value': 'Чинить'}    #Что-то
+        {'object_name': 'Объект_2', 'dataset_name': 'Набор_2', 'indicator_name': 'Показатель_текстовый', 'value': 'Что-то'}    #Что-то
     ]
     cells_calc_data = [
         {'object_name': 'Объект_1', 'dataset_name': 'Набор_1', 'indicator_name': 'Показатель_3', 'value': '167.00'},

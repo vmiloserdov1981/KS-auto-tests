@@ -23,9 +23,9 @@ class NavigationSidebar(BasePage):
         if 'selected' not in self.find_element(page_locator).get_attribute('class'):
             self.find_and_click(page_locator)
 
-    def search_user(self):
+    def search_user(self, User):
         self.find_and_click(self.USER_SEARCH_FIELD)
-        self.find_element(self.USER_SEARCH_FIELD).send_keys('eu_user4')
+        self.find_element(self.USER_SEARCH_FIELD).send_keys(User)
 
 class Header(BasePage):
     LOCATOR_USER_INFO_BLOCK = (By.XPATH, "(//div[contains(@class, 'header__user-info')])[1]")

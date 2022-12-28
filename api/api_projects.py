@@ -26,6 +26,7 @@ class ApiProjects(BaseApi):
         }
         self.post(f'{Vars.PKM_API_URL}project-access/create', self.token, payload)
 
+
     def check_project_access(self, users_logins: list, project_uuid: str):
         users_uuids = [self.api_get_user_by_login(login)['uuid'] for login in users_logins]
         authorized_users = self.post(f'{Vars.PKM_API_URL}project-access/get', self.token, {'referenceUuids': [project_uuid]}).get('users')
