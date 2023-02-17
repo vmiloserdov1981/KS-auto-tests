@@ -6,7 +6,7 @@ from pages.login_po import LoginPage
 from pages.components.modals import ChangePasswordModal
 import time
 
-'''
+
 @allure.feature('Главная страница')
 @allure.story('Логин/Логаут')
 @allure.title('Сброс пароля пользователя')
@@ -97,7 +97,7 @@ def test_creating_new_user(driver, parameters):
     with allure.step('Проверить, что пользователь eu_user5 действительно удален'):
         users_page.should_be_user_deleting()
 
-'''
+
 @allure.feature('Главная страница')
 @allure.story('Логин/Логаут')
 @allure.title('Регистрация нового пользователя')

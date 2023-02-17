@@ -183,7 +183,7 @@ def test_create_new_icon_set(driver, parameters):
         'name': 'Сброс пароля пользователя'
     })])
 
-def test_create_new_icon_set(driver, parameters):
+def test_create_new_role(driver, parameters):
     #данные
     users_page = UsersPage(driver)
     New_test_role = "autotest_role"
